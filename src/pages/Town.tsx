@@ -1,0 +1,612 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Crown, 
+  Users, 
+  MapPin, 
+  Calendar, 
+  Building2, 
+  MessageCircle, 
+  Heart,
+  UserPlus,
+  Star,
+  Globe,
+  Camera,
+  Coins,
+  ArrowLeft,
+  BookOpen,
+  Settings,
+  Share2,
+  Home,
+  Trophy,
+  Image
+} from 'lucide-react';
+import TownImageUploadDialog from '@/components/towns/TownImageUploadDialog';
+import DynmapEmbed from '@/components/towns/DynmapEmbed';
+import TownPhotoGallery from '@/components/towns/TownPhotoGallery';
+import { TownProfilePicture } from '@/components/towns/TownProfilePicture';
+import { SupabaseTownService, SupabaseTownData, TownResident } from '@/services/supabaseTownService';
+import TownLevelDisplay from '@/components/towns/TownLevelDisplay';
+import TownAchievements from '@/components/towns/TownAchievements';
+import { getTownAchievements, calculateTownLevelInfo } from '@/lib/townLeveling';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import PlayerProfile from '@/components/PlayerProfile';
+import { usePlayerProfile } from '@/hooks/usePlayerProfile';
+
+const TownPage = () => {
+  const { townName } = useParams<{ townName: string }>();
+  const navigate = useNavigate();
+  const [townData, setTownData] = useState<SupabaseTownData | null>(null);
+  const [residents, setResidents] = useState<TownResident[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showMap, setShowMap] = useState(true);
+  const [showAchievements, setShowAchievements] = useState(true);
+  const [showGallery, setShowGallery] = useState(true);
+  const [favorited, setFavorited] = useState(false);
+  const [dataSource, setDataSource] = useState<'supabase' | 'mock'>('supabase');
+  const [townXp, setTownXp] = useState(0);
+  const [selectedPlayerUuid, setSelectedPlayerUuid] = useState<string | null>(null);
+  const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
+  
+  // Move usePlayerProfile to the top level, before any early returns
+  const selectedProfileQuery = usePlayerProfile(selectedPlayerUuid || '');
+
+  useEffect(() => {
+    const fetchTownData = async () => {
+      if (!townName) {
+        setError('Town name is required');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Fetching town data:', decodeURIComponent(townName));
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch town data from Supabase
+        const townResult = await SupabaseTownService.getTown(decodeURIComponent(townName));
+
+        if (!townResult) {
+          setError('Town not found');
+          setLoading(false);
+          return;
+        }
+
+        setTownData(townResult);
+        setResidents(townResult.residents || []);
+        setDataSource('supabase');
+
+        // Use the town's actual XP and level from the database
+        setTownXp(townResult.total_xp || 0);
+      } catch (err) {
+        console.error('Error fetching town data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch town data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTownData();
+  }, [townName]);
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    } catch {
+      return 'Unknown';
+    }
+  };
+
+
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    // You could add a toast notification here
+  };
+
+
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading town data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !townData) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-4xl mb-4">🏘️</div>
+            <h1 className="text-2xl font-bold mb-2">Town Not Found</h1>
+            <p className="text-muted-foreground mb-4">{error || 'The requested town could not be found.'}</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Requested: {townName ? decodeURIComponent(townName) : 'No town name'}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => navigate('/towns')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Towns
+              </Button>
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Hero Section with Background */}
+      <div className="relative bg-gradient-to-br from-primary/10 to-secondary/10 py-8">
+        <div className="container mx-auto px-4">
+          {/* Back Button */}
+          <div className="mb-6">
+            <Button variant="outline" onClick={() => navigate('/towns')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Towns
+            </Button>
+          </div>
+
+
+
+          {/* Town Header */}
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="flex items-center gap-4">
+              <TownProfilePicture 
+                townName={townData.name}
+                className="h-32 w-32 object-cover"
+                imageUrl={(townData as any).image_url}
+              />
+              
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold">{townData.name}</h1>
+                  <Badge className={townData.capital ? 'bg-yellow-600' : 'bg-blue-600'}>
+                    {townData.capital ? 'Capital' : 'Town'}
+                  </Badge>
+                  <Badge className={townData.public ? 'bg-green-600' : 'bg-gray-600'}>
+                    {townData.public ? 'Public' : 'Private'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Crown className="w-3 h-3" />
+                    Mayor: {townData.mayor}
+                  </Badge>
+                  {townData.nation && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <Globe className="w-3 h-3" />
+                      {townData.nation.name}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-muted-foreground max-w-2xl">
+                  {townData.capital ? 'Capital city' : 'Town'} in {townData.nation?.name || 'Unknown Nation'} with {townData.resident_count} residents.
+                </p>
+              </div>
+            </div>
+
+            {/* Town Level Display - full width, player profile style */}
+            <div className="mt-4 mb-8">
+              <TownLevelDisplay totalXp={townXp} currentLevel={townData?.level || 1} />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 mt-6">
+            <Button className="flex items-center gap-2">
+              <UserPlus className="w-4 h-4" />
+              Request to Join
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              Message Mayor
+            </Button>
+            <Button 
+              variant={favorited ? "default" : "outline"} 
+              className="flex items-center gap-2"
+              onClick={() => setFavorited(!favorited)}
+            >
+              <Heart className={`w-4 h-4 ${favorited ? 'fill-current' : ''}`} />
+              {favorited ? 'Favorited' : 'Favorite'}
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2" onClick={copyLink}>
+              <Share2 className="w-4 h-4" />
+              Share
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => setShowImageUploadDialog(true)}
+            >
+              <Image className="w-4 h-4" />
+              Update Image
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <Home className="w-4 h-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="achievements" className="flex items-center gap-2">
+            <Trophy className="w-4 h-4" />
+            Achievements
+          </TabsTrigger>
+          <TabsTrigger value="gallery" className="flex items-center gap-2">
+            <Camera className="w-4 h-4" />
+            Gallery
+          </TabsTrigger>
+        </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Town Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-8 h-8 text-primary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Population</p>
+                      <p className="text-2xl font-bold">{townData.resident_count}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-8 h-8 text-primary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Founded</p>
+                      <p className="text-2xl font-bold">{new Date(townData.created).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <Star className="w-8 h-8 text-primary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Plots</p>
+                      <p className="text-2xl font-bold">{townData.plots?.[0]?.count || 0}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <Coins className="w-8 h-8 text-primary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Balance</p>
+                      <p className="text-2xl font-bold">${(townData.balance || 0).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+
+
+            {/* Residents */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Residents ({residents.length})
+                  {dataSource === 'mock' && (
+                    <Badge variant="secondary" className="text-xs">
+                      Mock Data
+                    </Badge>
+                  )}
+                  {dataSource === 'supabase' && (
+                    <Badge variant="default" className="text-xs bg-green-600">
+                      Live Data
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {residents.map((resident) => (
+                    <div key={resident.uuid} className="flex items-center gap-3 p-3 border rounded-lg">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={`https://mc-heads.net/avatar/${resident.name}/100`} alt={resident.name} />
+                        <AvatarFallback>{resident.name.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="font-medium truncate hover:underline text-left"
+                            onClick={() => setSelectedPlayerUuid(resident.uuid)}
+                          >
+                            {resident.name}
+                          </button>
+                          {resident.is_mayor && (
+                            <Badge variant="default" className="bg-yellow-600 text-xs">
+                              <Crown className="w-3 h-3 mr-1" />
+                              Mayor
+                            </Badge>
+                          )}
+                          {resident.is_king && (
+                            <Badge variant="default" className="bg-purple-600 text-xs">
+                              <Crown className="w-3 h-3 mr-1" />
+                              King
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Joined: {new Date(resident.joined).toLocaleDateString()}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Last online: {new Date(resident.last_online).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {selectedPlayerUuid && (
+                  selectedProfileQuery.loading ? (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+                      <div className="bg-white dark:bg-card p-8 rounded-lg shadow-lg flex flex-col items-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                        <div className="text-muted-foreground">Loading player profile...</div>
+                        <button className="mt-4 text-sm underline" onClick={() => setSelectedPlayerUuid(null)}>Cancel</button>
+                      </div>
+                    </div>
+                  ) : selectedProfileQuery.profile ? (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+                      <PlayerProfile
+                        profile={selectedProfileQuery.profile}
+                        onClose={() => setSelectedPlayerUuid(null)}
+                      />
+                    </div>
+                  ) : (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+                      <div className="bg-white dark:bg-card p-8 rounded-lg shadow-lg flex flex-col items-center">
+                        <div className="text-muted-foreground mb-4">Player profile not found.</div>
+                        <button className="text-sm underline" onClick={() => setSelectedPlayerUuid(null)}>Close</button>
+                      </div>
+                    </div>
+                  )
+                )}
+                {dataSource === 'mock' && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-yellow-800">
+                      <span className="font-medium">Note:</span>
+                      <span>Showing mock data. The real API may be unavailable or experiencing CORS issues.</span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Live Map View */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Live Map View
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DynmapEmbed 
+                  townName={townData.name}
+                  coordinates={{ x: townData.spawn.x, z: townData.spawn.z }}
+                  className="w-full"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Town Information */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    Town Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Basic Information</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Name:</span>
+                        <span className="font-medium">{townData.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Type:</span>
+                        <span className="font-medium">{townData.capital ? 'Capital' : 'Town'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Status:</span>
+                        <span className="font-medium">{townData.public ? 'Public' : 'Private'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Mayor:</span>
+                        <span className="font-medium">{townData.mayor}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Founded:</span>
+                        <span className="font-medium">{new Date(townData.created).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Open:</span>
+                        <span className="font-medium">{townData.open ? 'Yes' : 'No'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {townData.nation && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Nation Information</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Nation:</span>
+                          <span className="font-medium">{townData.nation.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Capital:</span>
+                          <span className="font-medium">{townData.nation.capital}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Balance:</span>
+                          <span className="font-medium">${(townData.nation.balance || 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Statistics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Current Stats</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Population:</span>
+                        <span className="font-medium">{townData.resident_count} residents</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Plots:</span>
+                        <span className="font-medium">{townData.plots?.[0]?.count || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Town Level:</span>
+                        <span className="font-medium">Level {townData.level || 1}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total XP:</span>
+                        <span className="font-medium">{townXp.toLocaleString()} XP</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Balance:</span>
+                        <span className="font-medium">${(townData.balance || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold mb-2">Location</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">World:</span>
+                        <span className="font-medium">{townData.spawn.world}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Coordinates:</span>
+                        <span className="font-medium">{townData.spawn.x.toFixed(1)}, {townData.spawn.z.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Achievements Tab */}
+          <TabsContent value="achievements">
+            <div className="space-y-6">
+              {/* Town Level Display */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5" />
+                    Town Level & Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TownLevelDisplay 
+                    totalXp={townXp}
+                    currentLevel={townData.level}
+                    className="w-full"
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Town Achievements */}
+              <TownAchievements 
+                townId={townData.id}
+                townName={townData.name}
+                townData={townData}
+              />
+            </div>
+          </TabsContent>
+
+          {/* Gallery Tab */}
+          <TabsContent value="gallery">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="w-5 h-5" />
+                  Photo Gallery
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TownPhotoGallery townName={townData.name} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Town Image Upload Dialog */}
+      <TownImageUploadDialog
+        isOpen={showImageUploadDialog}
+        onClose={() => setShowImageUploadDialog(false)}
+        townId={townData.id}
+        townName={townData.name}
+        currentImageUrl={(townData as any).image_url}
+        onImageUpdated={(imageUrl) => {
+          // Update the town data with the new image URL
+          setTownData(prev => prev ? { ...prev, image_url: imageUrl } : null);
+        }}
+      />
+    </div>
+  );
+};
+
+export default TownPage; 
