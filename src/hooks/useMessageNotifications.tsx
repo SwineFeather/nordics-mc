@@ -1,5 +1,6 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import * as React from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { RealtimeChannel, User } from '@supabase/supabase-js';

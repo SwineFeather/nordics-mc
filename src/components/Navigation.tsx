@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import NordicsLogo from './NordicsLogo';
 import { ThemeToggle } from './ThemeToggle';
-import AuthModal from './AuthModal';
+import { AuthModal } from './AuthModal';
 import NotificationBell from './NotificationBell';
 import PlayerStatsDetail from './community/PlayerStatsDetail';
 import SettingsModal from './SettingsModal';
@@ -399,7 +399,7 @@ const Navigation = () => {
       />
 
       {/* Auth Modal */}
-      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+              <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
 
       {/* Player Profile Modal */}
       {user && profileOpen && (
