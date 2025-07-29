@@ -1,0 +1,102 @@
+
+export const SECURITY_CONFIG = {
+  // WebSocket Security
+  websocket: {
+    enforceWSS: true,
+    connectionTimeout: 10000,
+    maxRetries: 3,
+    retryDelay: 5000,
+    requireAuth: true
+  },
+
+  // Authentication Security
+  auth: {
+    sessionTimeout: 3600, // 1 hour
+    requireEmailVerification: true,
+    passwordMinLength: 8,
+    enforcePasswordComplexity: true,
+    maxLoginAttempts: 5,
+    lockoutDuration: 900 // 15 minutes
+  },
+
+  // Role-based Access Control
+  rbac: {
+    adminRoles: ['admin'],
+    moderatorRoles: ['admin', 'moderator'],
+    staffRoles: ['admin', 'moderator', 'helper'],
+    requiredRoleForUserManagement: 'admin',
+    auditAllRoleChanges: true
+  },
+
+  // API Security
+  api: {
+    rateLimitRequests: 100,
+    rateLimitWindow: 60000, // 1 minute
+    requireAuthForAllEndpoints: true,
+    validateInputs: true,
+    sanitizeOutputs: true
+  },
+
+  // Storage Security
+  storage: {
+    maxFileSize: 10 * 1024 * 1024, // 10MB
+    allowedFileTypes: [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'text/markdown',
+      'text/plain',
+      'application/json'
+    ],
+    requireAuthForUploads: true,
+    scanUploadsForMalware: false // Would require external service
+  },
+
+  // Environment Security
+  environment: {
+    hideSecretsInLogs: true,
+    useSeparateSecretsStore: true,
+    rotateSecretsRegularly: true,
+    auditSecretAccess: true
+  },
+
+  // Content Security Policy
+  csp: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "https:"],
+    connectSrc: ["'self'", "wss:", "https:"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    upgradeInsecureRequests: true
+  }
+};
+
+export const validateSecurityConfig = () => {
+  const errors: string[] = [];
+
+  // Validate WebSocket configuration
+  if (SECURITY_CONFIG.websocket.connectionTimeout < 5000) {
+    errors.push('WebSocket connection timeout should be at least 5 seconds');
+  }
+
+  // Validate authentication configuration
+  if (SECURITY_CONFIG.auth.passwordMinLength < 8) {
+    errors.push('Password minimum length should be at least 8 characters');
+  }
+
+  // Validate storage configuration
+  if (SECURITY_CONFIG.storage.maxFileSize > 50 * 1024 * 1024) {
+    errors.push('Maximum file size should not exceed 50MB');
+  }
+
+  if (errors.length > 0) {
+    console.warn('Security configuration issues detected:', errors);
+  }
+
+  return errors;
+};
+
+// Initialize security configuration validation
+validateSecurityConfig();

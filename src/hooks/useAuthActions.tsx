@@ -94,10 +94,26 @@ export const useAuthActions = () => {
         throw new Error('Password is incorrect');
       }
 
-      // Delete user account
-      const { error } = await supabase.auth.admin.deleteUser(user.user.id);
-      
-      if (error) throw error;
+      // Get current session token for admin operation
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Call secure admin function instead of client-side admin operation
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: {
+          operation: 'delete_user',
+          userId: user.user.id
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error || !data.success) {
+        throw new Error(data?.error || 'Failed to delete account');
+      }
 
       toast.success('Account deleted successfully');
       return { success: true };
