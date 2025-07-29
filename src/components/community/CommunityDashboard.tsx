@@ -12,12 +12,13 @@ import StatisticsLeaderboard from './StatisticsLeaderboard';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useState } from 'react';
 import { DollarSign, Shield, Trophy, BarChart3 } from 'lucide-react';
+import type { PlayerProfile } from '@/types/player';
 
 const CommunityDashboard = () => {
   const { profile } = useAuth();
   const { profiles, loading } = useProfiles({ fetchAll: true });
   const [selectedStat, setSelectedStat] = useState<{ key: string; label: string } | null>(null);
-  const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerProfile | null>(null);
 
   const handleSelectStat = (stat: { key: string; label: string }) => {
     setSelectedStat(stat);
@@ -27,7 +28,7 @@ const CommunityDashboard = () => {
     setSelectedStat(null);
   };
 
-  const handleSelectProfile = (profile: any) => {
+  const handleSelectProfile = (profile: PlayerProfile) => {
     setSelectedPlayer(profile);
   };
 

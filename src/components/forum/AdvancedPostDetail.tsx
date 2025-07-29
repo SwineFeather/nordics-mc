@@ -93,7 +93,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
           .single();
 
         if (error) throw error;
-        setPost(data);
+        setPost(data as ForumPost);
       } catch (error) {
         console.error('Error fetching post:', error);
         toast({
