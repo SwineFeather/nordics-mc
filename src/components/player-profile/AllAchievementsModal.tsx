@@ -1,366 +1,256 @@
 
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Award, Clock, Sparkles, CheckCircle, Lock } from 'lucide-react';
-import { achievements } from '@/config/achievements';
-import { useAuth } from '@/hooks/useAuth';
-import { useAchievementClaiming, type ClaimableAchievement } from '@/hooks/useAchievementClaiming';
-import { ClaimButton } from '@/components/achievements/ClaimButton';
-import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Trophy, Star, Clock, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { DialogDescription } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
-interface AllAchievementsModalProps {
-  playerUuid: string;
-  playerUsername: string;
-  playerStats: any;
-  unlockedAchievements: any[];
-  onAchievementClaimed?: () => void; // Add callback prop
+interface Achievement {
+  id: string;
+  achievement_id: string;
+  achievement_name: string;
+  tier_name: string;
+  tier_description: string;
+  points: number;
+  tier_number: number;
+  current_value: number;
+  threshold: number;
+  is_claimable: boolean;
+  unlocked_at?: string;
+  is_claimed?: boolean;
 }
 
-// Convert raw stat values to display values for specific achievements
-const convertStatValue = (statKey: string, rawValue: number): number => {
-  switch (statKey) {
-    case 'custom_minecraft_play_time':
-      // Convert ticks to hours (20 ticks per second, 3600 seconds per hour)
-      return Math.floor(rawValue / 72000);
-    case 'custom_minecraft_boat_one_cm':
-      // Convert centimeters to blocks (100 cm = 1 block)
-      return Math.floor(rawValue / 100);
-    default:
-      return rawValue;
-  }
-};
+interface AllAchievementsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  playerUuid: string;
+  playerName: string;
+}
 
-// Helper to robustly resolve tier_id for any achievement/tier
-const getTierIdForAchievement = async (
-  achievementId: string,
-  tierNum: number,
-  claimableAchievements: any[],
-  unlockedAchievements: any[],
-): Promise<string | null> => {
-  // 1. Try claimableAchievements
-  const foundClaimable = claimableAchievements.find(
-    ca => ca.achievement_id === achievementId && ca.tier_number === tierNum
-  );
-  if (foundClaimable) return foundClaimable.tier_id;
-  // 2. Try unlockedAchievements
-  const foundUnlocked = unlockedAchievements.find(
-    ua => ua.achievementId === achievementId && ua.tier === tierNum && ua.tier_id
-  );
-  if (foundUnlocked) return foundUnlocked.tier_id;
-  // 3. Try config (achievements) - but config doesn't have tier_id, so fetch from DB
-  // 4. Fetch from Supabase achievement_tiers
-  const { data, error } = await supabase
-    .from('achievement_tiers')
-    .select('id')
-    .eq('achievement_id', achievementId)
-    .eq('tier', tierNum)
-    .single();
-  if (error || !data) {
-    console.error('Could not find tier_id in DB for admin claim:', { achievementId, tierNum, error });
-    return null;
-  }
-  return data.id;
-};
-
-// Helper to robustly get nested stat value from playerStats using dot notation
-const getStatValue = (playerStats: any, statKey: string): number => {
-  if (!statKey) return 0;
-  // Support dot notation for nested stats (e.g., 'mined.wheat')
-  if (statKey.includes('.')) {
-    const parts = statKey.split('.');
-    let value = playerStats;
-    for (const part of parts) {
-      if (value && typeof value === 'object' && part in value) {
-        value = value[part];
-      } else {
-        return 0;
-      }
-    }
-    if (typeof value === 'number') return value;
-    if (typeof value === 'object' && value !== null && 'value' in value) return value.value;
-    return 0;
-  }
-  // Try direct key
-  let stat = playerStats?.[statKey];
-  if (stat !== undefined) {
-    if (typeof stat === 'object' && stat !== null && 'value' in stat) return stat.value;
-    if (typeof stat === 'number') return stat;
-  }
-  return 0;
-};
-
-const AllAchievementsModal = ({ 
-  playerUuid, 
-  playerUsername, 
-  playerStats, 
-  unlockedAchievements, 
-  onAchievementClaimed // Destructure callback
-}: AllAchievementsModalProps) => {
-  const [open, setOpen] = useState(false);
-  const { user, profile } = useAuth();
-  const { 
-    claimableAchievements, 
-    fetchClaimableAchievements, 
-    claimAchievement, 
-    adminClaimAchievement,
-    isLoading 
-  } = useAchievementClaiming();
-  const { toast } = useToast();
-
-  const isOwnProfile = profile?.minecraft_username?.toLowerCase() === playerUsername.toLowerCase();
-  const isAdmin = profile?.role === 'admin';
-  const canClaim = isOwnProfile || isAdmin;
-  
-  // Debug logging for admin claim button visibility
-  console.log('AllAchievementsModal permission debug:', {
-    playerUsername,
-    minecraftUsername: profile?.minecraft_username,
-    userRole: profile?.role,
-    isOwnProfile,
-    isAdmin,
-    canClaim,
-    claimableCount: claimableAchievements.filter(ca => ca.is_claimable).length
-  });
+const AllAchievementsModal: React.FC<AllAchievementsModalProps> = ({
+  isOpen,
+  onClose,
+  playerUuid,
+  playerName
+}) => {
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open && canClaim && profile) {
-      fetchClaimableAchievements(playerUuid);
+    if (isOpen && playerUuid) {
+      fetchAchievements();
     }
-  }, [open, playerUuid, canClaim, fetchClaimableAchievements, profile]);
+  }, [isOpen, playerUuid]);
 
-  const handleClaimAchievement = async (tierIdOrCompound: string) => {
-    if (!user) {
-      console.error('No user found for claiming achievement');
-      toast({ title: 'Error', description: 'No user found for claiming achievement', variant: 'destructive' });
-      return;
-    }
-    
-    console.log('Claiming achievement:', {
-      tierId: tierIdOrCompound,
-      playerUuid,
-      playerUsername,
-      isAdmin,
-      isOwnProfile,
-      userId: user.id
-    });
-    
-    let tierId = tierIdOrCompound;
-    let debugInfo: any = { tierIdOrCompound, userId: user.id, playerUuid, isAdmin, isOwnProfile };
-    if (tierIdOrCompound.includes(':')) {
-      const [achievementId, tierNumStr] = tierIdOrCompound.split(':');
-      const tierNum = parseInt(tierNumStr, 10);
-      debugInfo.achievementId = achievementId;
-      debugInfo.tierNum = tierNum;
-      // Robustly resolve tier_id for admin claim
-      tierId = await getTierIdForAchievement(achievementId, tierNum, claimableAchievements, unlockedAchievements);
-      debugInfo.resolvedTierId = tierId;
-      if (!tierId) {
-        console.error('Could not resolve tier_id for admin claim:', debugInfo);
-        toast({ title: 'Error', description: `Could not resolve tier_id for admin claim: ${achievementId} tier ${tierNum}`, variant: 'destructive' });
-        return;
-      }
-    }
-    
+  const fetchAchievements = async () => {
+    setLoading(true);
     try {
-      if (isAdmin && !isOwnProfile) {
-        console.log('Admin claiming achievement for another player', debugInfo);
-        const result = await adminClaimAchievement(user.id, playerUuid, tierId);
-        console.log('Admin claim result:', result);
-        if (!result.success) {
-          toast({ title: 'Admin Claim Failed', description: result.message || 'Unknown error', variant: 'destructive' });
-          console.error('Admin claim failed:', result, debugInfo);
-        } else {
-          toast({ title: 'Admin Claim Success', description: `Awarded achievement! XP: ${result.xp_awarded}`, variant: 'default' });
-          if (onAchievementClaimed) onAchievementClaimed();
+      // Fetch all available achievements
+      const { data: allAchievements, error: allError } = await supabase
+        .rpc('get_claimable_achievements', { p_player_uuid: playerUuid });
+
+      if (allError) throw allError;
+
+      // Fetch unlocked achievements
+      const { data: unlocked, error: unlockedError } = await supabase
+        .from('unlocked_achievements')
+        .select(`
+          *,
+          achievement_tiers(
+            id,
+            name,
+            description,
+            points,
+            tier,
+            threshold,
+            achievement_definitions(
+              id,
+              name,
+              achievement_type
+            )
+          )
+        `)
+        .eq('player_uuid', playerUuid);
+
+      if (unlockedError) throw unlockedError;
+
+      setAchievements(allAchievements || []);
+      setUnlockedAchievements(unlocked || []);
+    } catch (error) {
+      console.error('Error fetching achievements:', error);
+      toast.error('Failed to load achievements');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const claimAchievement = async (tierId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('claim-achievement', {
+        body: {
+          player_uuid: playerUuid,
+          tier_id: tierId
         }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success(`Achievement claimed! +${data.xp_awarded} XP`);
+        fetchAchievements();
       } else {
-        console.log('User claiming own achievement', debugInfo);
-        const result = await claimAchievement(playerUuid, tierId);
-        console.log('Claim result:', result);
-        if (!result.success) {
-          toast({ title: 'Claim Failed', description: result.message || 'Unknown error', variant: 'destructive' });
-          console.error('Claim failed:', result, debugInfo);
-        } else {
-          toast({ title: 'Claim Success', description: `Achievement claimed! XP: ${result.xp_awarded}`, variant: 'default' });
-          if (onAchievementClaimed) onAchievementClaimed();
-        }
+        toast.error(data.message || 'Failed to claim achievement');
       }
     } catch (error) {
-      toast({ title: 'Error', description: 'Error claiming achievement', variant: 'destructive' });
-      console.error('Error claiming achievement:', error, debugInfo);
+      console.error('Error claiming achievement:', error);
+      toast.error('Failed to claim achievement');
     }
   };
 
-  const getAchievementState = (achievementId: string, tier: number) => {
-    // Check if it's claimable (for normal users)
-    const claimable = claimableAchievements.find(
-      ca => ca.achievement_id === achievementId && ca.tier_number === tier && ca.is_claimable
-    );
-    if (claimable) {
-      return { state: 'claimable', data: claimable };
-    }
-    // Check if it's already claimed/unlocked
-    const unlocked = unlockedAchievements.find(
-      ua => ua.achievementId === achievementId && ua.tier === tier
-    );
-    if (unlocked) return { state: 'claimed', data: unlocked };
-    // If admin and not own profile, allow admin-claim for any unclaimed achievement
-    if (isAdmin && !isOwnProfile) {
-      return { state: 'admin-claimable', data: { achievementId, tier } };
-    }
-    // Otherwise it's locked
-    return { state: 'locked', data: null };
+  const getProgressPercentage = (current: number, threshold: number) => {
+    return Math.min((current / threshold) * 100, 100);
   };
 
-  const claimableCount = claimableAchievements.filter(ca => ca.is_claimable).length;
+  const getTierIcon = (tier: number) => {
+    switch (tier) {
+      case 1: return <Trophy className="h-4 w-4 text-bronze" />;
+      case 2: return <Trophy className="h-4 w-4 text-gray-400" />;
+      case 3: return <Trophy className="h-4 w-4 text-yellow-500" />;
+      default: return <Star className="h-4 w-4" />;
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="relative">
-          <Trophy className="w-4 h-4 mr-2" />
-          All Achievements
-          {canClaim && claimableCount > 0 && (
-            <Badge 
-              variant="secondary" 
-              className="ml-2 bg-yellow-100 text-yellow-800 animate-pulse"
-            >
-              {claimableCount} Ready!
-            </Badge>
-          )}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>All Achievements - {playerUsername}</DialogTitle>
-          <DialogDescription>
-            View and claim achievements for {playerUsername}. Admins can claim any achievement for other players.
-          </DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            {playerName}'s Achievements
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {achievements.map((achievement) => (
-            <div key={achievement.id} className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${achievement.color} flex items-center justify-center`}>
-                  <Trophy className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{achievement.name}</h3>
-                  <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                </div>
-              </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <Tabs defaultValue="available" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="available">Available</TabsTrigger>
+              <TabsTrigger value="unlocked">Unlocked</TabsTrigger>
+            </TabsList>
 
-              <div className="grid gap-3 pl-4">
-                {achievement.tiers.map((tier, index) => {
-                  // Use unlockedAchievements to determine claimed state
-                  const { state, data } = getAchievementState(achievement.id, tier.tier);
-                  const IconComponent = tier.icon;
-                  
-                  // Get current progress - support dot notation for nested stats
-                  const rawValue = getStatValue(playerStats, achievement.stat);
-                  // Convert the raw value to display value for progress calculation
-                  const displayValue = convertStatValue(achievement.stat, rawValue);
-                  const progress = Math.min((displayValue / tier.threshold) * 100, 100);
-
-                  return (
-                    <div
-                      key={tier.tier}
-                      className={cn(
-                        "relative p-4 rounded-lg border-2 transition-all duration-300",
-                        state === 'claimable' && "border-yellow-400 bg-yellow-50 shadow-lg ring-2 ring-yellow-200",
-                        state === 'claimed' && "border-green-200 bg-green-50",
-                        state === 'locked' && "border-gray-200 bg-gray-50 opacity-75"
-                      )}
-                    >
-                      {/* Pulsing effect for claimable achievements */}
-                      {state === 'claimable' && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/20 to-orange-300/20 rounded-lg animate-pulse" />
-                      )}
-                      
-                      <div className="relative flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center",
-                            state === 'claimable' && "bg-yellow-500 text-white animate-pulse",
-                            state === 'claimed' && "bg-green-500 text-white",
-                            state === 'locked' && "bg-gray-300 text-gray-600"
-                          )}>
-                            {state === 'claimed' ? (
-                              <CheckCircle className="w-5 h-5" />
-                            ) : state === 'locked' ? (
-                              <Lock className="w-5 h-5" />
-                            ) : (
-                              <IconComponent className="w-5 h-5" />
-                            )}
-                          </div>
-                          
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium">{tier.name}</h4>
-                              <Badge variant="secondary" className="text-xs">
-                                {tier.points} XP
-                              </Badge>
-                              {state === 'claimable' && (
-                                <Badge className="bg-yellow-500 text-white animate-bounce text-xs">
-                                  <Sparkles className="w-3 h-3 mr-1" />
-                                  Ready!
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">{tier.description}</p>
-                            
-                            <div className="mt-2 space-y-1">
-                              <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>Progress: {displayValue.toLocaleString()} / {tier.threshold.toLocaleString()} ({Math.round(progress)}%)</span>
-                              </div>
-                              <Progress value={progress} className="h-2" />
-                            </div>
-                          </div>
+            <TabsContent value="available" className="space-y-4 max-h-[50vh] overflow-y-auto">
+              {achievements.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No achievements available to claim</p>
+                </div>
+              ) : (
+                achievements.map((achievement) => (
+                  <Card key={achievement.tier_id} className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {getTierIcon(achievement.tier_number)}
+                          <h3 className="font-semibold">{achievement.achievement_name}</h3>
+                          <Badge variant="outline">
+                            Tier {achievement.tier_number}
+                          </Badge>
                         </div>
-
-                        {/* Claim button for claimable achievements */}
-                        {state === 'claimable' && canClaim && data && (
-                          <ClaimButton
-                            onClaim={() => handleClaimAchievement(data.tier_id)}
-                            isLoading={isLoading}
-                            className="shrink-0"
-                          >
-                            {isAdmin && !isOwnProfile ? 'Admin Claim' : 'Hold to Claim'}
-                          </ClaimButton>
-                        )}
-                        {/* Admin claim button for any unclaimed achievement */}
-                        {state === 'admin-claimable' && isAdmin && !isOwnProfile && (
-                          <ClaimButton
-                            onClaim={() => handleClaimAchievement(`${achievement.id}:${tier.tier}`)}
-                            isLoading={isLoading}
-                            className="shrink-0"
-                          >
-                            Admin Claim
-                          </ClaimButton>
-                        )}
-
-                        {/* Status indicators */}
-                        {state === 'claimed' && (
-                          <div className="shrink-0 flex items-center gap-2 text-green-600">
-                            <CheckCircle className="w-5 h-5" />
-                            <span className="text-sm font-medium">Claimed</span>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {achievement.tier_description}
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Progress</span>
+                            <span>{achievement.current_value} / {achievement.threshold}</span>
                           </div>
+                          <Progress 
+                            value={getProgressPercentage(achievement.current_value, achievement.threshold)} 
+                            className="h-2"
+                          />
+                        </div>
+                      </div>
+                      <div className="ml-4 text-right">
+                        <div className="text-lg font-bold text-primary">
+                          +{achievement.points} XP
+                        </div>
+                        {achievement.is_claimable && (
+                          <Button
+                            size="sm"
+                            onClick={() => claimAchievement(achievement.tier_id)}
+                            className="mt-2"
+                          >
+                            Claim
+                          </Button>
                         )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+
+            <TabsContent value="unlocked" className="space-y-4 max-h-[50vh] overflow-y-auto">
+              {unlockedAchievements.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No achievements unlocked yet</p>
+                </div>
+              ) : (
+                unlockedAchievements.map((achievement) => (
+                  <Card key={achievement.id} className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Trophy className="h-4 w-4 text-yellow-500" />
+                          <h3 className="font-semibold">
+                            {achievement.achievement_tiers?.achievement_definitions?.name}
+                          </h3>
+                          <Badge variant="outline">
+                            Tier {achievement.achievement_tiers?.tier}
+                          </Badge>
+                          {achievement.is_claimed && (
+                            <Badge variant="default">Claimed</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {achievement.achievement_tiers?.description}
+                        </p>
+                        {achievement.unlocked_at && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            Unlocked {new Date(achievement.unlocked_at).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="ml-4 text-right">
+                        <div className="text-lg font-bold text-primary">
+                          +{achievement.achievement_tiers?.points} XP
+                        </div>
+                        {!achievement.is_claimed && (
+                          <Button
+                            size="sm"
+                            onClick={() => claimAchievement(achievement.achievement_tiers?.id)}
+                            className="mt-2"
+                          >
+                            Claim
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );
