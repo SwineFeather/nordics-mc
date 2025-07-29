@@ -1,162 +1,234 @@
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { validatePassword } from '@/utils/passwordValidator';
+import { validateEmail, validateUsername } from '@/utils/inputValidator';
+import { useRateLimit } from '@/hooks/useRateLimit';
 
 interface AuthModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  defaultTab?: 'login' | 'register';
 }
 
-const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
+export const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) => {
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>(defaultTab);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const { signIn, signUp } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    username: '',
+    confirmPassword: ''
+  });
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const { checkRateLimit, getRemainingAttempts } = useRateLimit();
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-
-    const { error } = await signIn(email, password);
-    
-    if (error) {
-      setError(error.message);
-    } else {
-      onOpenChange(false);
+  const handleLogin = async () => {
+    if (!checkRateLimit('login')) {
+      const remaining = getRemainingAttempts('login');
+      toast.error(`Too many login attempts. Try again in ${remaining} seconds.`);
+      return;
     }
-    
-    setLoading(false);
+
+    setLoading(true);
+    setValidationErrors([]);
+
+    try {
+      const emailValidation = validateEmail(formData.email);
+      if (!emailValidation.isValid) {
+        setValidationErrors(emailValidation.errors);
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: emailValidation.sanitizedValue,
+        password: formData.password
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success('Successfully logged in!');
+      onClose();
+    } catch (error) {
+      console.error('Unexpected login error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const fullName = formData.get('fullName') as string;
-
-    const { error } = await signUp(email, password, fullName);
-    
-    if (error) {
-      setError(error.message);
-    } else {
-      setSuccess('Check your email for the confirmation link!');
+  const handleRegister = async () => {
+    if (!checkRateLimit('register')) {
+      const remaining = getRemainingAttempts('register');
+      toast.error(`Too many registration attempts. Try again in ${remaining} seconds.`);
+      return;
     }
-    
-    setLoading(false);
+
+    setLoading(true);
+    setValidationErrors([]);
+
+    try {
+      // Validate all inputs
+      const emailValidation = validateEmail(formData.email);
+      const usernameValidation = validateUsername(formData.username);
+      const passwordValidation = validatePassword(formData.password);
+
+      const allErrors = [
+        ...emailValidation.errors,
+        ...usernameValidation.errors,
+        ...passwordValidation.errors
+      ];
+
+      if (formData.password !== formData.confirmPassword) {
+        allErrors.push('Passwords do not match');
+      }
+
+      if (allErrors.length > 0) {
+        setValidationErrors(allErrors);
+        return;
+      }
+
+      const { error } = await supabase.auth.signUp({
+        email: emailValidation.sanitizedValue,
+        password: formData.password,
+        options: {
+          data: {
+            username: usernameValidation.sanitizedValue
+          }
+        }
+      });
+
+      if (error) {
+        console.error('Registration error:', error);
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success('Registration successful! Please check your email to verify your account.');
+      onClose();
+    } catch (error) {
+      console.error('Unexpected registration error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setValidationErrors([]);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Welcome to Nordics Wiki</DialogTitle>
+          <DialogTitle>{activeTab === 'login' ? 'Sign In' : 'Create Account'}</DialogTitle>
         </DialogHeader>
-        
-        <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-          
-          {error && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+
+        <div className="space-y-4">
+          <div className="flex space-x-1 bg-muted p-1 rounded-lg">
+            <Button
+              variant={activeTab === 'login' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('login')}
+              className="flex-1"
+            >
+              Sign In
+            </Button>
+            <Button
+              variant={activeTab === 'register' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('register')}
+              className="flex-1"
+            >
+              Sign Up
+            </Button>
+          </div>
+
+          {validationErrors.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <ul className="text-sm text-destructive space-y-1">
+                {validationErrors.map((error, index) => (
+                  <li key={index}>• {error}</li>
+                ))}
+              </ul>
+            </div>
           )}
-          
-          {success && (
-            <Alert className="mt-4">
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
-          
-          <TabsContent value="signin">
-            <form onSubmit={handleSignIn} className="space-y-4">
+
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                disabled={loading}
+                autoComplete="email"
+              />
+            </div>
+
+            {activeTab === 'register' && (
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="your@email.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  placeholder="Your password"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign In
-              </Button>
-            </form>
-          </TabsContent>
-          
-          <TabsContent value="signup">
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div>
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  name="fullName"
+                  id="username"
                   type="text"
-                  placeholder="Your full name"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  disabled={loading}
+                  autoComplete="username"
                 />
               </div>
+            )}
+
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                disabled={loading}
+                autoComplete={activeTab === 'login' ? 'current-password' : 'new-password'}
+              />
+            </div>
+
+            {activeTab === 'register' && (
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="your@email.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
+                  id="confirmPassword"
                   type="password"
-                  required
-                  placeholder="Choose a password"
-                  minLength={6}
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  disabled={loading}
+                  autoComplete="new-password"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign Up
-              </Button>
-            </form>
-          </TabsContent>
-        </Tabs>
+            )}
+          </div>
+
+          <Button
+            onClick={activeTab === 'login' ? handleLogin : handleRegister}
+            disabled={loading}
+            className="w-full"
+          >
+            {loading ? 'Please wait...' : (activeTab === 'login' ? 'Sign In' : 'Create Account')}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
 };
-
-export default AuthModal;

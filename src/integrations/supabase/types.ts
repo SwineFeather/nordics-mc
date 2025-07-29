@@ -4659,6 +4659,51 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_log: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          success: boolean | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           details: string | null
@@ -8146,6 +8191,18 @@ export type Database = {
           category_title: string
           author_name: string
         }[]
+      }
+      log_security_event: {
+        Args: {
+          p_action_type: string
+          p_resource_type?: string
+          p_resource_id?: string
+          p_old_values?: Json
+          p_new_values?: Json
+          p_success?: boolean
+          p_error_message?: string
+        }
+        Returns: undefined
       }
       mark_all_notifications_read: {
         Args: { user_id_param: string }
