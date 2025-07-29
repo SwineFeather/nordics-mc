@@ -1,16 +1,17 @@
 
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Award, Crown, Gift } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Trophy, Star, Clock, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export interface Achievement {
+interface Achievement {
   id: string;
-  tier_id: string;
   achievement_id: string;
   achievement_name: string;
   tier_name: string;
@@ -20,279 +21,239 @@ export interface Achievement {
   current_value: number;
   threshold: number;
   is_claimable: boolean;
+  unlocked_at?: string;
+  is_claimed?: boolean;
 }
 
-export interface AllAchievementsModalProps {
+interface AllAchievementsModalProps {
   isOpen: boolean;
   onClose: () => void;
   playerUuid: string;
   playerName: string;
-  playerStats: any;
-  unlockedAchievements: any[];
-  onAchievementClaimed: () => Promise<void>;
 }
 
-export const AllAchievementsModal = ({ 
-  isOpen, 
-  onClose, 
-  playerUuid, 
-  playerName,
-  playerStats,
-  unlockedAchievements,
-  onAchievementClaimed 
-}: AllAchievementsModalProps) => {
+const AllAchievementsModal: React.FC<AllAchievementsModalProps> = ({
+  isOpen,
+  onClose,
+  playerUuid,
+  playerName
+}) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [claimableAchievements, setClaimableAchievements] = useState<Achievement[]>([]);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(false);
-  const [claiming, setClaiming] = useState<string | null>(null);
 
-  const loadAllAchievements = async () => {
-    if (!playerUuid) return;
-    
+  useEffect(() => {
+    if (isOpen && playerUuid) {
+      fetchAchievements();
+    }
+  }, [isOpen, playerUuid]);
+
+  const fetchAchievements = async () => {
     setLoading(true);
     try {
-      // Get all claimable achievements
-      const { data: claimableData } = await supabase.rpc('get_claimable_achievements', {
-        p_player_uuid: playerUuid
-      });
+      // Fetch all available achievements
+      const { data: allAchievements, error: allError } = await supabase
+        .rpc('get_claimable_achievements', { p_player_uuid: playerUuid });
 
-      // Get all unlocked achievements
-      const { data: unlockedData } = await supabase
+      if (allError) throw allError;
+
+      // Fetch unlocked achievements
+      const { data: unlocked, error: unlockedError } = await supabase
         .from('unlocked_achievements')
         .select(`
           *,
-          achievement_tiers!inner(
+          achievement_tiers(
+            id,
             name,
             description,
             points,
             tier,
-            achievement_definitions!inner(
+            threshold,
+            achievement_definitions(
+              id,
               name,
-              description
+              achievement_type
             )
           )
         `)
         .eq('player_uuid', playerUuid);
 
-      const formattedClaimable: Achievement[] = (claimableData || []).map((item: any) => ({
-        id: item.tier_id,
-        tier_id: item.tier_id,
-        achievement_id: item.achievement_id,
-        achievement_name: item.achievement_name,
-        tier_name: item.tier_name,
-        tier_description: item.tier_description,
-        points: item.points,
-        tier_number: item.tier_number,
-        current_value: item.current_value,
-        threshold: item.threshold,
-        is_claimable: item.is_claimable
-      }));
+      if (unlockedError) throw unlockedError;
 
-      const formattedUnlocked: Achievement[] = (unlockedData || []).map((item: any) => ({
-        id: item.id.toString(),
-        tier_id: item.tier_id || '',
-        achievement_id: item.achievement_id,
-        achievement_name: item.achievement_tiers?.achievement_definitions?.name || 'Unknown Achievement',
-        tier_name: item.achievement_tiers?.name || 'Unknown Tier',
-        tier_description: item.achievement_tiers?.description || '',
-        points: item.achievement_tiers?.points || 0,
-        tier_number: item.achievement_tiers?.tier || 1,
-        current_value: 0,
-        threshold: 0,
-        is_claimable: false
-      }));
-
-      setClaimableAchievements(formattedClaimable);
-      setAchievements(formattedUnlocked);
+      setAchievements(allAchievements || []);
+      setUnlockedAchievements(unlocked || []);
     } catch (error) {
-      console.error('Error loading achievements:', error);
+      console.error('Error fetching achievements:', error);
       toast.error('Failed to load achievements');
     } finally {
       setLoading(false);
     }
   };
 
-  const claimAchievement = async (achievement: Achievement) => {
-    if (!achievement.tier_id) return;
-    
-    setClaiming(achievement.tier_id);
+  const claimAchievement = async (tierId: string) => {
     try {
-      const { data, error } = await supabase.rpc('admin_claim_achievement', {
-        p_admin_user_id: playerUuid,
-        p_player_uuid: playerUuid,
-        p_tier_id: achievement.tier_id
+      const { data, error } = await supabase.functions.invoke('claim-achievement', {
+        body: {
+          player_uuid: playerUuid,
+          tier_id: tierId
+        }
       });
 
       if (error) throw error;
 
-      if (data?.success) {
-        toast.success(`Claimed ${achievement.achievement_name} - ${achievement.tier_name}! +${data.xp_awarded} XP`);
-        await onAchievementClaimed();
-        await loadAllAchievements();
+      if (data.success) {
+        toast.success(`Achievement claimed! +${data.xp_awarded} XP`);
+        fetchAchievements();
       } else {
-        throw new Error(data?.message || 'Failed to claim achievement');
+        toast.error(data.message || 'Failed to claim achievement');
       }
     } catch (error) {
       console.error('Error claiming achievement:', error);
       toast.error('Failed to claim achievement');
-    } finally {
-      setClaiming(null);
     }
   };
 
-  const getMedalIcon = (tierNumber: number) => {
-    switch (tierNumber) {
-      case 1: return <Award className="h-4 w-4 text-amber-600" />;
-      case 2: return <Trophy className="h-4 w-4 text-gray-400" />;
-      case 3: return <Crown className="h-4 w-4 text-yellow-500" />;
-      default: return <Gift className="h-4 w-4 text-blue-500" />;
-    }
-  };
-
-  const getMedalColor = (tierNumber: number) => {
-    switch (tierNumber) {
-      case 1: return 'bg-amber-100 border-amber-300';
-      case 2: return 'bg-gray-100 border-gray-300';
-      case 3: return 'bg-yellow-100 border-yellow-300';
-      default: return 'bg-blue-100 border-blue-300';
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen && playerUuid) {
-      loadAllAchievements();
-    }
-  }, [isOpen, playerUuid]);
-
-  const progressPercentage = (current: number, threshold: number) => {
+  const getProgressPercentage = (current: number, threshold: number) => {
     return Math.min((current / threshold) * 100, 100);
+  };
+
+  const getTierIcon = (tier: number) => {
+    switch (tier) {
+      case 1: return <Trophy className="h-4 w-4 text-bronze" />;
+      case 2: return <Trophy className="h-4 w-4 text-gray-400" />;
+      case 3: return <Trophy className="h-4 w-4 text-yellow-500" />;
+      default: return <Star className="h-4 w-4" />;
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-primary" />
+          <DialogTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
             {playerName}'s Achievements
           </DialogTitle>
         </DialogHeader>
 
         {loading ? (
-          <div className="text-center py-8">Loading achievements...</div>
-        ) : (
-          <div className="space-y-6">
-            {/* Claimable Achievements */}
-            {claimableAchievements.filter(a => a.is_claimable).length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-green-600">🎉 Ready to Claim!</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {claimableAchievements
-                    .filter(achievement => achievement.is_claimable)
-                    .map((achievement) => (
-                      <div key={achievement.tier_id} className={`p-4 rounded-lg border-2 border-green-300 bg-green-50`}>
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-center gap-2">
-                            {getMedalIcon(achievement.tier_number)}
-                            <div>
-                              <h4 className="font-semibold text-sm">{achievement.achievement_name}</h4>
-                              <p className="text-xs text-muted-foreground">{achievement.tier_name}</p>
-                            </div>
-                          </div>
-                          <Badge variant="secondary">{achievement.points} XP</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-3">{achievement.tier_description}</p>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-xs">
-                            <span>Progress</span>
-                            <span>{achievement.current_value.toLocaleString()} / {achievement.threshold.toLocaleString()}</span>
-                          </div>
-                          <Progress 
-                            value={progressPercentage(achievement.current_value, achievement.threshold)} 
-                            className="h-2"
-                          />
-                        </div>
-                        <Button 
-                          size="sm" 
-                          className="w-full mt-3 bg-green-600 hover:bg-green-700"
-                          onClick={() => claimAchievement(achievement)}
-                          disabled={claiming === achievement.tier_id}
-                        >
-                          {claiming === achievement.tier_id ? 'Claiming...' : '🏆 Claim Achievement'}
-                        </Button>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* Progress Achievements */}
-            {claimableAchievements.filter(a => !a.is_claimable).length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-4">📈 In Progress</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {claimableAchievements
-                    .filter(achievement => !achievement.is_claimable)
-                    .map((achievement) => (
-                      <div key={achievement.tier_id} className={`p-4 rounded-lg border ${getMedalColor(achievement.tier_number)}`}>
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-center gap-2">
-                            {getMedalIcon(achievement.tier_number)}
-                            <div>
-                              <h4 className="font-semibold text-sm">{achievement.achievement_name}</h4>
-                              <p className="text-xs text-muted-foreground">{achievement.tier_name}</p>
-                            </div>
-                          </div>
-                          <Badge variant="outline">{achievement.points} XP</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-3">{achievement.tier_description}</p>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-xs">
-                            <span>Progress</span>
-                            <span>{achievement.current_value.toLocaleString()} / {achievement.threshold.toLocaleString()}</span>
-                          </div>
-                          <Progress 
-                            value={progressPercentage(achievement.current_value, achievement.threshold)} 
-                            className="h-2"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* Completed Achievements */}
-            {achievements.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-4">✅ Completed</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {achievements.map((achievement) => (
-                    <div key={achievement.id} className="p-3 rounded-lg border bg-green-50 border-green-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getMedalIcon(achievement.tier_number)}
-                        <div>
-                          <h4 className="font-semibold text-sm">{achievement.achievement_name}</h4>
-                          <p className="text-xs text-muted-foreground">{achievement.tier_name}</p>
-                        </div>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        +{achievement.points} XP
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {achievements.length === 0 && claimableAchievements.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No achievements found for this player.
-              </div>
-            )}
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
+        ) : (
+          <Tabs defaultValue="available" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="available">Available</TabsTrigger>
+              <TabsTrigger value="unlocked">Unlocked</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="available" className="space-y-4 max-h-[50vh] overflow-y-auto">
+              {achievements.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No achievements available to claim</p>
+                </div>
+              ) : (
+                achievements.map((achievement) => (
+                  <Card key={achievement.tier_id} className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {getTierIcon(achievement.tier_number)}
+                          <h3 className="font-semibold">{achievement.achievement_name}</h3>
+                          <Badge variant="outline">
+                            Tier {achievement.tier_number}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {achievement.tier_description}
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Progress</span>
+                            <span>{achievement.current_value} / {achievement.threshold}</span>
+                          </div>
+                          <Progress 
+                            value={getProgressPercentage(achievement.current_value, achievement.threshold)} 
+                            className="h-2"
+                          />
+                        </div>
+                      </div>
+                      <div className="ml-4 text-right">
+                        <div className="text-lg font-bold text-primary">
+                          +{achievement.points} XP
+                        </div>
+                        {achievement.is_claimable && (
+                          <Button
+                            size="sm"
+                            onClick={() => claimAchievement(achievement.tier_id)}
+                            className="mt-2"
+                          >
+                            Claim
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+
+            <TabsContent value="unlocked" className="space-y-4 max-h-[50vh] overflow-y-auto">
+              {unlockedAchievements.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No achievements unlocked yet</p>
+                </div>
+              ) : (
+                unlockedAchievements.map((achievement) => (
+                  <Card key={achievement.id} className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Trophy className="h-4 w-4 text-yellow-500" />
+                          <h3 className="font-semibold">
+                            {achievement.achievement_tiers?.achievement_definitions?.name}
+                          </h3>
+                          <Badge variant="outline">
+                            Tier {achievement.achievement_tiers?.tier}
+                          </Badge>
+                          {achievement.is_claimed && (
+                            <Badge variant="default">Claimed</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {achievement.achievement_tiers?.description}
+                        </p>
+                        {achievement.unlocked_at && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            Unlocked {new Date(achievement.unlocked_at).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="ml-4 text-right">
+                        <div className="text-lg font-bold text-primary">
+                          +{achievement.achievement_tiers?.points} XP
+                        </div>
+                        {!achievement.is_claimed && (
+                          <Button
+                            size="sm"
+                            onClick={() => claimAchievement(achievement.achievement_tiers?.id)}
+                            className="mt-2"
+                          >
+                            Claim
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </DialogContent>
     </Dialog>
   );
 };
+
+export default AllAchievementsModal;
