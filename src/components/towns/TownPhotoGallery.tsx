@@ -172,19 +172,6 @@ const TownPhotoGallery = ({ townName, className = "" }: TownPhotoGalleryProps) =
                   )}
                 </Button>
               )}
-              
-              {/* Debug button - remove this later */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  const result = await TownGalleryService.testService();
-                  console.log('Service test result:', result);
-                  alert(`Service test: ${result.success ? 'SUCCESS' : 'FAILED'}\n${result.message || result.error}`);
-                }}
-              >
-                Test Service
-              </Button>
             </div>
           </div>
 

@@ -11,7 +11,6 @@ import {
   Calendar, 
   Building2, 
   MessageCircle, 
-  Heart,
   UserPlus,
   Star,
   Globe,
@@ -20,7 +19,6 @@ import {
   ArrowLeft,
   BookOpen,
   Settings,
-  Share2,
   Home,
 
   Image
@@ -32,8 +30,9 @@ import { TownProfilePicture } from '@/components/towns/TownProfilePicture';
 import { SupabaseTownService, SupabaseTownData, TownResident } from '@/services/supabaseTownService';
 
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import PlayerProfile from '@/components/PlayerProfile';
-import { usePlayerProfile } from '@/hooks/usePlayerProfile';
+import PlayerStatsDetail from '@/components/community/PlayerStatsDetail';
+import { useProfiles } from '@/hooks/useProfiles';
+import { useAuth } from '@/hooks/useAuth';
 
 const TownPage = () => {
   const { townName } = useParams<{ townName: string }>();
@@ -46,14 +45,14 @@ const TownPage = () => {
   const [showMap, setShowMap] = useState(true);
 
   const [showGallery, setShowGallery] = useState(true);
-  const [favorited, setFavorited] = useState(false);
   const [dataSource, setDataSource] = useState<'supabase' | 'mock'>('supabase');
 
-  const [selectedPlayerUuid, setSelectedPlayerUuid] = useState<string | null>(null);
+  const [selectedPlayerUsername, setSelectedPlayerUsername] = useState<string | null>(null);
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
   
-  // Move usePlayerProfile to the top level, before any early returns
-  const selectedProfileQuery = usePlayerProfile(selectedPlayerUuid || '');
+  // Use the same profiles hook as the community page
+  const { profiles, getProfileByUsername } = useProfiles({ fetchAll: true });
+  const { user, userRole } = useAuth();
 
   useEffect(() => {
     const fetchTownData = async () => {
@@ -109,10 +108,7 @@ const TownPage = () => {
 
 
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    // You could add a toast notification here
-  };
+
 
 
 
@@ -175,7 +171,7 @@ const TownPage = () => {
             <div className="flex items-center gap-4">
               <TownProfilePicture 
                 townName={townData.name}
-                className="h-32 w-32 object-cover"
+                className="h-64 w-64 object-cover"
                 imageUrl={(townData as any).image_url}
               />
               
@@ -220,26 +216,17 @@ const TownPage = () => {
               <MessageCircle className="w-4 h-4" />
               Message Mayor
             </Button>
-            <Button 
-              variant={favorited ? "default" : "outline"} 
-              className="flex items-center gap-2"
-              onClick={() => setFavorited(!favorited)}
-            >
-              <Heart className={`w-4 h-4 ${favorited ? 'fill-current' : ''}`} />
-              {favorited ? 'Favorited' : 'Favorite'}
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2" onClick={copyLink}>
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={() => setShowImageUploadDialog(true)}
-            >
-              <Image className="w-4 h-4" />
-              Update Image
-            </Button>
+            {/* Only show Update Image button if user is the mayor or has admin privileges */}
+            {(townData?.mayor === user?.username || userRole === 'admin' || userRole === 'moderator') && (
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={() => setShowImageUploadDialog(true)}
+              >
+                <Image className="w-4 h-4" />
+                Update Image
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -324,11 +311,7 @@ const TownPage = () => {
                       Mock Data
                     </Badge>
                   )}
-                  {dataSource === 'supabase' && (
-                    <Badge variant="default" className="text-xs bg-green-600">
-                      Live Data
-                    </Badge>
-                  )}
+
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -343,7 +326,7 @@ const TownPage = () => {
                         <div className="flex items-center gap-2">
                           <button
                             className="font-medium truncate hover:underline text-left"
-                            onClick={() => setSelectedPlayerUuid(resident.uuid)}
+                            onClick={() => setSelectedPlayerUsername(resident.name)}
                           >
                             {resident.name}
                           </button>
@@ -370,31 +353,22 @@ const TownPage = () => {
                     </div>
                   ))}
                 </div>
-                {selectedPlayerUuid && (
-                  selectedProfileQuery.loading ? (
-                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
-                      <div className="bg-white dark:bg-card p-8 rounded-lg shadow-lg flex flex-col items-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-                        <div className="text-muted-foreground">Loading player profile...</div>
-                        <button className="mt-4 text-sm underline" onClick={() => setSelectedPlayerUuid(null)}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : selectedProfileQuery.profile ? (
-                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
-                      <PlayerProfile
-                        profile={selectedProfileQuery.profile}
-                        onClose={() => setSelectedPlayerUuid(null)}
-                      />
-                    </div>
+                {selectedPlayerUsername && (() => {
+                  const selectedProfile = getProfileByUsername(selectedPlayerUsername);
+                  return selectedProfile ? (
+                    <PlayerStatsDetail
+                      profile={selectedProfile}
+                      onClose={() => setSelectedPlayerUsername(null)}
+                    />
                   ) : (
                     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
                       <div className="bg-white dark:bg-card p-8 rounded-lg shadow-lg flex flex-col items-center">
                         <div className="text-muted-foreground mb-4">Player profile not found.</div>
-                        <button className="text-sm underline" onClick={() => setSelectedPlayerUuid(null)}>Close</button>
+                        <button className="text-sm underline" onClick={() => setSelectedPlayerUsername(null)}>Close</button>
                       </div>
                     </div>
-                  )
-                )}
+                  );
+                })()}
                 {dataSource === 'mock' && (
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-center gap-2 text-sm text-yellow-800">
