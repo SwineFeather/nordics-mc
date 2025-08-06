@@ -451,7 +451,7 @@ This is an automatically generated page for ${town.name}. More information will 
       console.log('🏘️ Towns category ID:', townsCategoryId);
 
       // Fetch all nations
-      console.log('🔍 Fetching nations from database...');
+      // Fetching nations from database...
       const { data: nations, error: nationsError } = await supabase
         .from('nations')
         .select('*')
@@ -462,7 +462,7 @@ This is an automatically generated page for ${town.name}. More information will 
         throw nationsError;
       }
 
-      console.log(`✅ Found ${nations?.length || 0} nations in database`);
+      // Found nations in database
 
       // Fetch all towns
       console.log('🔍 Fetching towns from database...');

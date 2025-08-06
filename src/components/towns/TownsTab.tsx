@@ -197,6 +197,8 @@ const TownsTab: React.FC<TownsTabProps> = ({ searchTerm: externalSearchTerm }) =
             total_xp: selectedTown.total_xp || 0,
             level: selectedTown.level || 1,
             balance: selectedTown.balance || 0,
+            location_x: selectedTown.location_x,
+            location_z: selectedTown.location_z,
             created_at: selectedTown.created_at,
             updated_at: selectedTown.updated_at
           }}

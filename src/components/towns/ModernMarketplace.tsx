@@ -81,10 +81,9 @@ const ModernMarketplace: React.FC = () => {
       
       const matchesType = filterType === 'all' || shop.type === filterType;
       const matchesCategory = selectedCategory === 'all' || shop.item_type === selectedCategory;
-      const matchesFavorites = !showFavorites || isFavorite(shop.id);
       const matchesFeatured = activeTab !== 'featured' || (shop.is_featured === true);
       
-      return matchesSearch && matchesType && matchesCategory && matchesFavorites && matchesFeatured;
+      return matchesSearch && matchesType && matchesCategory && matchesFeatured;
     });
 
     // Sort shops
@@ -104,7 +103,7 @@ const ModernMarketplace: React.FC = () => {
     });
 
     return filtered;
-  }, [shops, searchTerm, filterType, sortBy, selectedCategory, showFavorites, activeTab]);
+  }, [shops, searchTerm, filterType, sortBy, selectedCategory, activeTab]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -335,18 +334,7 @@ const ModernMarketplace: React.FC = () => {
                 </Select>
               </div>
 
-              {/* Favorites Filter */}
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-muted-foreground" />
-                <Button
-                  variant={showFavorites ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setShowFavorites(!showFavorites)}
-                >
-                  <Heart className="w-4 h-4 mr-2" />
-                  {showFavorites ? 'Favorites' : 'All Shops'}
-                </Button>
-              </div>
+              {/* Favorites Filter - Removed */}
 
               {/* Sort Options */}
               <div className="flex items-center gap-2">
@@ -407,8 +395,6 @@ const ModernMarketplace: React.FC = () => {
               shop={shop} 
               formatPrice={formatPrice} 
               formatLastUpdated={formatLastUpdated}
-              onToggleFavorite={toggleFavorite}
-              isFavorite={isFavorite}
             />
           ))}
         </div>
@@ -420,8 +406,6 @@ const ModernMarketplace: React.FC = () => {
               shop={shop} 
               formatPrice={formatPrice} 
               formatLastUpdated={formatLastUpdated}
-              onToggleFavorite={toggleFavorite}
-              isFavorite={isFavorite}
             />
           ))}
         </div>

@@ -120,7 +120,7 @@ export class WikiSyncService {
   }
   
   async loadWikiDataFromSupabase(): Promise<WikiCategory[]> {
-    console.log('📖 Loading wiki data from Supabase...');
+    // Loading wiki data from Supabase
     
     try {
       // Fetch visible categories with hierarchical structure
@@ -135,7 +135,7 @@ export class WikiSyncService {
         throw categoriesError;
       }
 
-      console.log('📚 Raw categories from database:', categories);
+      // Raw categories from database
 
       // Fetch visible pages
       const { data: pages, error: pagesError } = await supabase
@@ -165,14 +165,8 @@ export class WikiSyncService {
         throw pagesError;
       }
 
-      console.log('📄 Raw pages from database:', pages);
-      console.log('🔍 Page count by category:');
-      if (pages && categories) {
-        categories.forEach(cat => {
-          const pageCount = pages.filter(page => page.category_id === cat.id).length;
-          console.log(`  - ${cat.title}: ${pageCount} pages`);
-        });
-      }
+      // Raw pages from database
+      // Page count by category
 
       // Build hierarchical structure
       const buildHierarchy = (categories: any[], parentId: string | null = null): WikiCategory[] => {
@@ -209,8 +203,7 @@ export class WikiSyncService {
 
       const hierarchicalCategories = buildHierarchy(categories || []);
 
-      console.log(`✅ Loaded ${hierarchicalCategories.length} categories from Supabase (hierarchical structure)`);
-      console.log('🏗️ Final categories structure:', hierarchicalCategories);
+      // Loaded categories from Supabase
       return hierarchicalCategories;
       
     } catch (error) {

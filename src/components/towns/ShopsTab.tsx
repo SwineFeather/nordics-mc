@@ -83,10 +83,9 @@ const ShopsTab: React.FC = () => {
       
       const matchesType = filterType === 'all' || shop.type === filterType;
       const matchesCategory = selectedCategory === 'all' || shop.item_type === selectedCategory;
-      const matchesFavorites = !showFavorites || isFavorite(shop.id);
       const matchesStock = !hideEmpty || shop.stock > 0;
       
-      return matchesSearch && matchesType && matchesCategory && matchesFavorites && matchesStock;
+      return matchesSearch && matchesType && matchesCategory && matchesStock;
     });
 
     // Sort shops - Featured shops always come first
@@ -111,7 +110,7 @@ const ShopsTab: React.FC = () => {
     });
 
     return filtered;
-  }, [shops, searchTerm, filterType, sortBy, selectedCategory, showFavorites, hideEmpty]);
+  }, [shops, searchTerm, filterType, sortBy, selectedCategory, hideEmpty]);
 
   // Get shops to display (limited by displayCount)
   const displayedShops = filteredAndSortedShops.slice(0, displayCount);
@@ -205,74 +204,62 @@ const ShopsTab: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <Card className="bg-card/50 border-border">
+          <CardContent className="p-3">
             <div className="flex items-center gap-2">
-              <Store className="w-5 h-5 text-blue-600" />
+              <Store className="w-4 h-4 text-muted-foreground" />
               <div>
-                <p className="text-2xl font-bold text-blue-600">{stats.totalShops}</p>
-                <p className="text-xs text-blue-600/70">Total Shops</p>
+                <p className="text-lg font-semibold">{stats.totalShops}</p>
+                <p className="text-xs text-muted-foreground">Total Shops</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
-          <CardContent className="p-4">
+        <Card className="bg-card/50 border-border">
+          <CardContent className="p-3">
             <div className="flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-green-600" />
+              <TrendingDown className="w-4 h-4 text-muted-foreground" />
               <div>
-                <p className="text-2xl font-bold text-green-600">{stats.buyShops}</p>
-                <p className="text-xs text-green-600/70">Buying Shops</p>
+                <p className="text-lg font-semibold">{stats.buyShops}</p>
+                <p className="text-xs text-muted-foreground">Buying</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800">
-          <CardContent className="p-4">
+        <Card className="bg-card/50 border-border">
+          <CardContent className="p-3">
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
+              <TrendingUp className="w-4 h-4 text-muted-foreground" />
               <div>
-                <p className="text-2xl font-bold text-purple-600">{stats.sellShops}</p>
-                <p className="text-xs text-purple-600/70">Selling Shops</p>
+                <p className="text-lg font-semibold">{stats.sellShops}</p>
+                <p className="text-xs text-muted-foreground">Selling</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 border-yellow-200 dark:border-yellow-800">
-          <CardContent className="p-4">
+        <Card className="bg-card/50 border-border">
+          <CardContent className="p-3">
             <div className="flex items-center gap-2">
-              <Coins className="w-5 h-5 text-yellow-600" />
+              <Coins className="w-4 h-4 text-muted-foreground" />
               <div>
-                <p className="text-2xl font-bold text-yellow-600">{formatPrice(stats.totalValue)}</p>
-                <p className="text-xs text-yellow-600/70">Total Value</p>
+                <p className="text-lg font-semibold">{formatPrice(stats.totalValue)}</p>
+                <p className="text-xs text-muted-foreground">Value</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 border-red-200 dark:border-red-800">
-          <CardContent className="p-4">
+        <Card className="bg-card/50 border-border">
+          <CardContent className="p-3">
             <div className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-red-600" />
+              <Package className="w-4 h-4 text-muted-foreground" />
               <div>
-                <p className="text-2xl font-bold text-red-600">{stats.uniqueItems}</p>
-                <p className="text-xs text-red-600/70">Unique Items</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 border-amber-200 dark:border-amber-800">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-amber-600" />
-              <div>
-                <p className="text-2xl font-bold text-amber-600">{stats.featuredShops}</p>
-                <p className="text-xs text-amber-600/70">Featured Shops</p>
+                <p className="text-lg font-semibold">{stats.uniqueItems}</p>
+                <p className="text-xs text-muted-foreground">Items</p>
               </div>
             </div>
           </CardContent>
@@ -342,18 +329,7 @@ const ShopsTab: React.FC = () => {
                 </Select>
               </div>
 
-              {/* Favorites Filter */}
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-muted-foreground" />
-                <Button
-                  variant={showFavorites ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setShowFavorites(!showFavorites)}
-                >
-                  <Heart className="w-4 h-4 mr-2" />
-                  {showFavorites ? 'Favorites' : 'All Shops'}
-                </Button>
-              </div>
+              {/* Favorites Filter - Removed */}
 
               {/* Sort Options */}
               <div className="flex items-center gap-2">
@@ -420,16 +396,12 @@ const ShopsTab: React.FC = () => {
                       shop={shop} 
                       formatPrice={formatPrice} 
                       formatLastUpdated={formatLastUpdated}
-                      onToggleFavorite={toggleFavorite}
-                      isFavorite={isFavorite}
                     />
                   ) : (
                     <ShopListItem 
                       shop={shop} 
                       formatPrice={formatPrice} 
                       formatLastUpdated={formatLastUpdated}
-                      onToggleFavorite={toggleFavorite}
-                      isFavorite={isFavorite}
                     />
                   )}
                 </div>
@@ -467,8 +439,6 @@ const ShopsTab: React.FC = () => {
               shop={shop} 
               formatPrice={formatPrice} 
               formatLastUpdated={formatLastUpdated}
-              onToggleFavorite={toggleFavorite}
-              isFavorite={isFavorite}
             />
           ))}
         </div>
@@ -480,8 +450,6 @@ const ShopsTab: React.FC = () => {
               shop={shop} 
               formatPrice={formatPrice} 
               formatLastUpdated={formatLastUpdated}
-              onToggleFavorite={toggleFavorite}
-              isFavorite={isFavorite}
             />
           ))}
         </div>

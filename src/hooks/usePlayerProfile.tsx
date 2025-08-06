@@ -163,7 +163,7 @@ export const usePlayerProfile = (uuid: string) => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['playerProfile', uuid],
     queryFn: async () => {
-      console.log('Fetching individual player profile for UUID:', uuid);
+      // Fetching individual player profile for UUID
 
       // 1. Fetch the latest stats for the player
       const { data: playerData, error } = await supabase
@@ -175,7 +175,7 @@ export const usePlayerProfile = (uuid: string) => {
       }
 
       if (!playerData || playerData.length === 0) {
-        console.log('No player found with UUID:', uuid);
+        // No player found with UUID
         return null;
       }
 

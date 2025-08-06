@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -16,26 +17,22 @@ import {
   Calendar, 
   Building2, 
   MessageCircle, 
-  Heart,
   ExternalLink,
   UserPlus,
   Shield,
-  Star,
   TrendingUp,
   Globe,
   Eye,
   EyeOff,
-  Trophy,
   Camera,
   ChevronDown,
   ChevronUp,
-  Coins
+  Coins,
+  ArrowUpRight
 } from 'lucide-react';
 import { Town } from '@/types/town';
 import DynmapEmbed from './DynmapEmbed';
-import TownAchievements from './TownAchievements';
 import TownPhotoGallery from './TownPhotoGallery';
-import TownLevelDisplay from './TownLevelDisplay';
 import { TownProfilePicture } from './TownProfilePicture';
 
 interface TownProfileModalProps {
@@ -45,8 +42,8 @@ interface TownProfileModalProps {
 }
 
 const TownProfileModal = ({ town, isOpen, onClose }: TownProfileModalProps) => {
+  const navigate = useNavigate();
   const [showMap, setShowMap] = useState(true);
-  const [showAchievements, setShowAchievements] = useState(true);
   const [showGallery, setShowGallery] = useState(true);
 
   const formatDate = (dateString: string) => {
@@ -138,13 +135,7 @@ const TownProfileModal = ({ town, isOpen, onClose }: TownProfileModalProps) => {
               </div>
             </div>
 
-            {/* Town Level Display */}
-            <div className="flex-1 min-w-0">
-              <TownLevelDisplay 
-                totalXp={town.total_xp || 0} 
-                currentLevel={town.level || 1}
-              />
-            </div>
+
           </div>
 
           {/* Town Stats */}
@@ -161,11 +152,7 @@ const TownProfileModal = ({ town, isOpen, onClose }: TownProfileModalProps) => {
               <span className="font-medium">{formatDate(town.founded)}</span>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Total XP:</span>
-              <span className="font-medium">{(town.total_xp || 0).toLocaleString()}</span>
-            </div>
+
             
             <div className="flex items-center gap-2">
               <Coins className="w-4 h-4 text-muted-foreground" />
@@ -184,13 +171,21 @@ const TownProfileModal = ({ town, isOpen, onClose }: TownProfileModalProps) => {
               <MessageCircle className="w-4 h-4" />
               Message Mayor
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Heart className="w-4 h-4" />
-              Favorite
-            </Button>
+
             <Button variant="outline" className="flex items-center gap-2">
               <ExternalLink className="w-4 h-4" />
               Copy Link
+            </Button>
+            <Button 
+              variant="default" 
+              className="flex items-center gap-2"
+              onClick={() => {
+                navigate(`/town/${encodeURIComponent(town.name)}`);
+                onClose();
+              }}
+            >
+              <ArrowUpRight className="w-4 h-4" />
+              Full Page
             </Button>
           </div>
 
@@ -211,35 +206,15 @@ const TownProfileModal = ({ town, isOpen, onClose }: TownProfileModalProps) => {
               <DynmapEmbed 
                 townName={town.name}
                 coordinates={{ 
-                  x: (town as any).location_x ?? 1708, 
-                  z: (town as any).location_z ?? 7549 
+                  x: town.location_x ?? 1708, 
+                  z: town.location_z ?? 7549 
                 }}
                 className="w-full"
               />
             )}
           </div>
 
-          {/* Town Achievements */}
-          <div className="space-y-3">
-            <div 
-              className="flex items-center justify-between cursor-pointer p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
-              onClick={() => setShowAchievements(!showAchievements)}
-            >
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-primary" />
-                <h3 className="font-semibold">Town Achievements</h3>
-              </div>
-              {showAchievements ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </div>
-            
-            {showAchievements && (
-              <TownAchievements 
-                townId={town.id}
-                townName={town.name}
-                townData={town}
-              />
-            )}
-          </div>
+
 
           {/* Town Photo Gallery */}
           <div className="space-y-3">

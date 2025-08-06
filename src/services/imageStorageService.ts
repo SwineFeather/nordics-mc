@@ -7,6 +7,7 @@ export interface ImageStorageConfig {
   allowedDomains: string[];
   maxFileSize: number; // in bytes
   allowedFormats: string[];
+  storageBucket: string;
 }
 
 export class ImageStorageService {
@@ -15,8 +16,34 @@ export class ImageStorageService {
     uploadPath: IMAGE_STORAGE_CONFIG.uploadPath,
     allowedDomains: IMAGE_STORAGE_CONFIG.allowedDomains,
     maxFileSize: IMAGE_STORAGE_CONFIG.maxFileSize,
-    allowedFormats: IMAGE_STORAGE_CONFIG.allowedFormats
+    allowedFormats: IMAGE_STORAGE_CONFIG.allowedFormats,
+    storageBucket: IMAGE_STORAGE_CONFIG.storageBucket
   };
+
+  /**
+   * Generate a custom domain URL for a storage path
+   */
+  static generateCustomUrl(storagePath: string): string {
+    const customDomain = import.meta.env.VITE_STORAGE_DOMAIN;
+    const cdnDomain = import.meta.env.VITE_CDN_DOMAIN;
+    
+    // If clean CDN domain is configured, use it without Supabase path
+    if (cdnDomain) {
+      return `${cdnDomain}/${IMAGE_STORAGE_CONFIG.storageBucket}/${storagePath}`;
+    }
+    
+    // If custom domain is configured, use it with full Supabase path
+    if (customDomain) {
+      return `${customDomain}${IMAGE_STORAGE_CONFIG.uploadPath}/${IMAGE_STORAGE_CONFIG.storageBucket}/${storagePath}`;
+    }
+    
+    // Fallback to Supabase URL
+    const { data } = supabase.storage
+      .from(IMAGE_STORAGE_CONFIG.storageBucket)
+      .getPublicUrl(storagePath);
+    
+    return data.publicUrl;
+  }
 
   /**
    * Download and store an image from an external URL
@@ -57,8 +84,8 @@ export class ImageStorageService {
         throw new Error(`Failed to store image: ${error.message}`);
       }
 
-      // Generate public URL
-      const publicUrl = this.generatePublicUrl(storagePath, finalConfig);
+      // Generate custom domain URL
+      const publicUrl = this.generateCustomUrl(storagePath);
       
       return publicUrl;
     } catch (error) {
@@ -98,12 +125,10 @@ export class ImageStorageService {
         throw new Error(`Failed to upload file: ${error.message}`);
       }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from(IMAGE_STORAGE_CONFIG.storageBucket)
-        .getPublicUrl(storagePath);
+      // Generate custom domain URL
+      const publicUrl = this.generateCustomUrl(storagePath);
 
-      return urlData.publicUrl;
+      return publicUrl;
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
@@ -118,7 +143,7 @@ export class ImageStorageService {
     const filename = this.generateFilename(entityName, entityType);
     const storagePath = `${entityType}s/${filename}`;
     
-    return this.generatePublicUrl(storagePath, config);
+    return this.generateCustomUrl(storagePath);
   }
 
   /**
@@ -366,6 +391,6 @@ export class ImageStorageService {
     const filename = `${placeholder}.png`;
     const storagePath = `${entityType}s/${filename}`;
     
-    return this.generatePublicUrl(storagePath, config);
+    return this.generateCustomUrl(storagePath);
   }
 } 

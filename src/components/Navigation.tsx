@@ -47,7 +47,6 @@ const Navigation = () => {
 
   // --- Desktop Navigation ---
   const navItems = [
-    { href: '/nyrvalos', label: 'Nyrvalos' },
     { href: '/community', label: 'Community' },
     { href: '/forum', label: 'Forum' },
     { href: '/map', label: 'Map' },
@@ -90,13 +89,6 @@ const Navigation = () => {
 
           {/* Desktop navigation */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            {/* Logo is already on the left */}
-            <Link
-              to="/nyrvalos"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/nyrvalos') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
-            >
-              Nyrvalos
-            </Link>
             {/* Community Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -269,13 +261,7 @@ const Navigation = () => {
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
-              <Link
-                to="/nyrvalos"
-                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${isActive('/nyrvalos') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
-                onClick={() => setIsOpen(false)}
-              >
-                Nyrvalos
-              </Link>
+
               {/* Community Dropdown (as section) */}
               <div className="border-t border-border pt-2 mt-2">
                 <div className="px-3 py-2 text-sm font-medium text-muted-foreground flex items-center gap-2">

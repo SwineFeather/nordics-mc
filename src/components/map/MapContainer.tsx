@@ -45,7 +45,8 @@ const MapContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showGrid, setShowGrid] = useState(false);
-  const [showHiddenPins, setShowHiddenPins] = useState(false);
+  const [showHiddenPins, setShowHiddenPins] = useState(true);
+  const [showPins, setShowPins] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -106,6 +107,7 @@ const MapContainer = () => {
   // Mouse-anchored zoom implementation
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -297,7 +299,7 @@ const MapContainer = () => {
             </div>
 
             {/* Pins Layer */}
-            {imageLoaded && (
+            {imageLoaded && showPins && (
               <MapPins 
                 mapDate={selectedDate} 
                 zoom={zoom}
@@ -330,8 +332,8 @@ const MapContainer = () => {
             onCategoryFilterChange={setCategoryFilter}
             showGrid={showGrid}
             onToggleGrid={() => setShowGrid(!showGrid)}
-            showHiddenPins={showHiddenPins}
-            onToggleHiddenPins={() => setShowHiddenPins(!showHiddenPins)}
+            showPins={showPins}
+            onTogglePins={() => setShowPins(!showPins)}
           />
         </div>
       </div>

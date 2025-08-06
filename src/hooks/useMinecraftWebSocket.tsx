@@ -152,13 +152,13 @@ export const useMinecraftWebSocket = () => {
     }
 
     if (isGloballyConnected || connectionAttemptInProgress) {
-      console.log('Already connected or connection in progress');
+      // Already connected or connection in progress
       setConnectionState({ status: 'connected' });
       return;
     }
 
     if (globalPlayerName && globalPlayerName !== playerName) {
-      console.log(`Another user (${globalPlayerName}) is already connected`);
+      // Another user is already connected
       setConnectionState({ status: 'error', error: 'Another user is already connected' });
       return;
     }
@@ -168,13 +168,13 @@ export const useMinecraftWebSocket = () => {
     
     try {
       const wsUrl = 'wss://webchat.nordics.world';
-      console.log('Connecting to WebSocket:', wsUrl, 'as player:', playerName);
+      // Connecting to WebSocket
       const ws = new WebSocket(wsUrl);
       globalWsInstance = ws;
       globalPlayerName = playerName;
 
       ws.onopen = () => {
-        console.log('Connected to Minecraft WebSocket as:', playerName);
+        // Connected to Minecraft WebSocket
         isGloballyConnected = true;
         connectionAttemptInProgress = false;
         reconnectAttempts.current = 0;
@@ -195,7 +195,7 @@ export const useMinecraftWebSocket = () => {
         hasJoinedRef.current = true;
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = async (event) => {
         try {
           const data = JSON.parse(event.data);
           console.log('Received WebSocket message:', data);
@@ -209,9 +209,14 @@ export const useMinecraftWebSocket = () => {
             
             // Set API key if not already set
             if (!thorService.isApiKeyConfigured()) {
-              const apiKey = (window as any).XAI_API_KEY || import.meta.env.VITE_XAI_API_KEY || 'xai-mAYQCOyF28KXu1bePNLiPgtdNfIWgTEw1nddojyASc1tMEEgs22upLOY5KgvA5YXNk4NFiA5zmE6lE7i';
-              if (apiKey) {
-                thorService.setApiKey(apiKey);
+              try {
+                const { getXaiApiKey } = await import('@/config/apiKeys');
+                const apiKey = getXaiApiKey();
+                if (apiKey) {
+                  thorService.setApiKey(apiKey);
+                }
+              } catch (error) {
+                console.error('Failed to configure Thor API key:', error);
               }
             }
             
@@ -320,7 +325,7 @@ export const useMinecraftWebSocket = () => {
       };
 
       ws.onclose = (event) => {
-        console.log('Minecraft WebSocket closed:', event.code, event.reason);
+        // Minecraft WebSocket closed
         isGloballyConnected = false;
         connectionAttemptInProgress = false;
         
@@ -339,7 +344,7 @@ export const useMinecraftWebSocket = () => {
           reconnectAttempts.current++;
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
           
-          console.log(`Reconnect attempt ${reconnectAttempts.current}/${maxReconnectAttempts} in ${delay}ms`);
+          // Reconnect attempt
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
           }, delay);
@@ -555,9 +560,14 @@ export const useMinecraftWebSocket = () => {
       
       // Set API key if not already set
       if (!thorService.isApiKeyConfigured()) {
-        const apiKey = (window as any).XAI_API_KEY || import.meta.env.VITE_XAI_API_KEY || 'xai-mAYQCOyF28KXu1bePNLiPgtdNfIWgTEw1nddojyASc1tMEEgs22upLOY5KgvA5YXNk4NFiA5zmE6lE7i';
-        if (apiKey) {
-          thorService.setApiKey(apiKey);
+        try {
+          const { getXaiApiKey } = await import('@/config/apiKeys');
+          const apiKey = getXaiApiKey();
+          if (apiKey) {
+            thorService.setApiKey(apiKey);
+          }
+        } catch (error) {
+          console.error('Failed to configure Thor API key:', error);
         }
       }
       

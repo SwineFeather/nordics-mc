@@ -85,7 +85,7 @@ export const useWikiData = () => {
         }
       }
 
-      console.log('🔄 Loading wiki data...');
+      // Loading wiki data
       
       // Load from Supabase
       const data = await wikiSyncService.loadWikiDataFromSupabase();
@@ -99,7 +99,7 @@ export const useWikiData = () => {
       setLastUpdated(new Date());
       setCachedData(data);
       
-      console.log(`✅ Loaded ${data.length} categories`);
+      // Loaded categories
     } catch (err) {
       // Don't set error if request was cancelled
       if (abortControllerRef.current.signal.aborted) {
@@ -112,7 +112,7 @@ export const useWikiData = () => {
       // Try to use cached data as fallback
       const cachedData = getCachedData();
       if (cachedData) {
-        console.log('📦 Using cached data as fallback');
+        // Using cached data as fallback
         setCategories(cachedData);
       }
     } finally {
@@ -139,7 +139,7 @@ export const useWikiData = () => {
 
     const delay = baseDelay * Math.pow(2, attempt - 1);
     
-    console.log(`🔄 Retrying in ${delay}ms (attempt ${attempt}/${maxAttempts})`);
+    // Retrying with backoff
     
     setTimeout(() => {
       loadWikiData(true);
@@ -158,7 +158,7 @@ export const useWikiData = () => {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'wiki_pages' }, 
         (payload) => {
-          console.log('🔄 Wiki pages changed:', payload.eventType, (payload.new as any)?.title);
+          // Wiki pages changed
           // Invalidate cache and reload
           clearCache();
           loadWikiData(true);
@@ -167,7 +167,7 @@ export const useWikiData = () => {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'wiki_categories' }, 
         (payload) => {
-          console.log('🔄 Wiki categories changed:', payload.eventType, (payload.new as any)?.title);
+          // Wiki categories changed
           // Invalidate cache and reload
           clearCache();
           loadWikiData(true);
@@ -176,7 +176,7 @@ export const useWikiData = () => {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'page_revisions' },
         (payload) => {
-          console.log('🔄 Page revisions changed:', payload.eventType);
+          // Page revisions changed
           // Only reload if it's a new revision (not just viewing history)
           if (payload.eventType === 'INSERT') {
             clearCache();
@@ -185,11 +185,11 @@ export const useWikiData = () => {
         }
       )
       .subscribe((status) => {
-        console.log('📡 Wiki subscription status:', status);
+        // Wiki subscription status
       });
 
     return () => {
-      console.log('🧹 Cleaning up wiki subscription');
+      // Cleaning up wiki subscription
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }

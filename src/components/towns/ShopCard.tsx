@@ -55,6 +55,13 @@ const ShopCard: React.FC<ShopCardProps> = ({
     navigate(`/shop/${shop.id}`);
   };
 
+  const handleMiddleClick = (e: React.MouseEvent) => {
+    if (e.button === 1) { // Middle mouse button
+      e.preventDefault();
+      window.open(`/shop/${shop.id}`, '_blank');
+    }
+  };
+
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleFavorite(shop.id);
@@ -261,17 +268,16 @@ const ShopCard: React.FC<ShopCardProps> = ({
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
-          <Button variant="outline" size="sm" onClick={handleViewShop} className="flex-1">
-            <Eye className="w-4 h-4 mr-2" />
-            View Details
-          </Button>
-          <Button 
-            variant={isFavorite(shop.id) ? "default" : "outline"} 
-            size="sm"
-            onClick={handleToggleFavorite}
-          >
-            <Heart className={`w-4 h-4 ${isFavorite(shop.id) ? 'fill-current' : ''}`} />
-          </Button>
+                  <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleViewShop}
+          onMouseDown={handleMiddleClick}
+          className="flex-1"
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          View Details
+        </Button>
         </div>
       </CardContent>
     </Card>

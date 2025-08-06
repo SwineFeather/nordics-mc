@@ -50,7 +50,7 @@ export const useAuth = () => {
   const tokenLinkAuth = useTokenLinkAuth();
 
   useEffect(() => {
-    console.log('useAuth: Setting up auth listeners');
+    // Setting up auth listeners
     
     // Check for TokenLink authentication first
     if (tokenLinkAuth.isTokenLinkUser && tokenLinkAuth.profile) {
@@ -82,11 +82,7 @@ export const useAuth = () => {
     
     // Regular Supabase auth
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('useAuth: Initial session check:', {
-        hasSession: !!session,
-        userId: session?.user?.id,
-        userEmail: session?.user?.email
-      });
+      // Initial session check
       
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -99,22 +95,17 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('useAuth: Auth state changed:', {
-          event,
-          hasSession: !!session,
-          userId: session?.user?.id,
-          userEmail: session?.user?.email
-        });
+        // Auth state changed
         
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('useAuth: User signed in, loading profile');
+          // User signed in, loading profile
           setTimeout(() => {
             loadUserProfile(session.user.id);
           }, 0);
         } else {
-          console.log('useAuth: User signed out or no session');
+          // User signed out or no session
           setProfile(null);
           setLoading(false);
         }
@@ -147,7 +138,7 @@ export const useAuth = () => {
 
   const loadUserProfile = async (userId: string) => {
     try {
-      console.log('useAuth: Loading profile for user:', userId);
+      // Loading profile for user
       
       const { data, error } = await supabase
         .from('profiles')
@@ -155,22 +146,14 @@ export const useAuth = () => {
         .eq('id', userId)
         .single();
 
-      console.log('useAuth: Profile query result:', {
-        data,
-        error,
-        hasData: !!data
-      });
+      // Profile query result
 
       if (error) {
         console.error('useAuth: Error loading profile:', error);
         throw error;
       }
       
-      console.log('useAuth: Profile loaded successfully:', {
-        id: data.id,
-        email: data.email,
-        role: data.role
-      });
+      // Profile loaded successfully
       
       setProfile(data);
     } catch (error) {

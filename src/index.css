@@ -76,6 +76,10 @@
     @apply bg-gradient-to-r from-primary via-purple-500 to-secondary bg-clip-text text-transparent;
   }
   
+  .gradient-text-dark {
+    @apply bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent;
+  }
+  
   .glass-card {
     @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
   }

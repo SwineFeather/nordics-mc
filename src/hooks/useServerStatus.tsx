@@ -28,7 +28,7 @@ export const useServerStatus = () => {
         const response = await fetch(`https://api.mcsrvstat.us/3/nordics.world`);
         const data = await response.json();
         
-        console.log('Server status data:', data);
+        // Server status data
         
         if (data.online !== undefined) {
             setStatus({

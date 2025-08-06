@@ -18,6 +18,7 @@ CREATE POLICY "Authenticated users can upload nation-town-images" ON storage.obj
     AND auth.role() = 'authenticated'
   );
 
+-- Nation leaders and staff can update nation-town-images
 CREATE POLICY "Nation leaders and staff can update nation-town-images" ON storage.objects
   FOR UPDATE USING (
     bucket_id = 'nation-town-images' 
@@ -41,6 +42,47 @@ CREATE POLICY "Nation leaders and staff can update nation-town-images" ON storag
     )
   );
 
+-- Town mayors and co-mayors can update town images and gallery photos
+CREATE POLICY "Town mayors and co-mayors can update town-town-images" ON storage.objects
+  FOR UPDATE USING (
+    bucket_id = 'nation-town-images' 
+    AND (
+      auth.role() = 'authenticated' 
+      AND (
+        EXISTS (
+          SELECT 1 FROM profiles 
+          WHERE profiles.id = auth.uid() 
+          AND profiles.role IN ('admin', 'moderator')
+        )
+        OR
+        EXISTS (
+          SELECT 1 FROM towns 
+          WHERE towns.mayor_name = (
+            SELECT minecraft_username FROM profiles WHERE profiles.id = auth.uid()
+          )
+          AND (
+            storage.objects.name LIKE '%' || LOWER(towns.name) || '.png'
+            OR storage.objects.name LIKE '%' || LOWER(towns.name) || '/gallery/%'
+          )
+        )
+        OR
+        EXISTS (
+          SELECT 1 FROM towns t
+          WHERE EXISTS (
+            SELECT 1 FROM jsonb_array_elements(t.residents) AS resident
+            WHERE resident->>'name' = (SELECT minecraft_username FROM profiles WHERE profiles.id = auth.uid())
+            AND (resident->>'is_co_mayor')::boolean = true
+          )
+          AND (
+            storage.objects.name LIKE '%' || LOWER(t.name) || '.png'
+            OR storage.objects.name LIKE '%' || LOWER(t.name) || '/gallery/%'
+          )
+        )
+      )
+    )
+  );
+
+-- Nation leaders and staff can delete nation-town-images
 CREATE POLICY "Nation leaders and staff can delete nation-town-images" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'nation-town-images' 
@@ -59,6 +101,46 @@ CREATE POLICY "Nation leaders and staff can delete nation-town-images" ON storag
             SELECT full_name FROM profiles WHERE profiles.id = auth.uid()
           )
           AND storage.objects.name LIKE '%' || LOWER(nations.name) || '.png'
+        )
+      )
+    )
+  );
+
+-- Town mayors and co-mayors can delete town images and gallery photos
+CREATE POLICY "Town mayors and co-mayors can delete town-town-images" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'nation-town-images' 
+    AND (
+      auth.role() = 'authenticated' 
+      AND (
+        EXISTS (
+          SELECT 1 FROM profiles 
+          WHERE profiles.id = auth.uid() 
+          AND profiles.role IN ('admin', 'moderator')
+        )
+        OR
+        EXISTS (
+          SELECT 1 FROM towns 
+          WHERE towns.mayor_name = (
+            SELECT minecraft_username FROM profiles WHERE profiles.id = auth.uid()
+          )
+          AND (
+            storage.objects.name LIKE '%' || LOWER(towns.name) || '.png'
+            OR storage.objects.name LIKE '%' || LOWER(towns.name) || '/gallery/%'
+          )
+        )
+        OR
+        EXISTS (
+          SELECT 1 FROM towns t
+          WHERE EXISTS (
+            SELECT 1 FROM jsonb_array_elements(t.residents) AS resident
+            WHERE resident->>'name' = (SELECT minecraft_username FROM profiles WHERE profiles.id = auth.uid())
+            AND (resident->>'is_co_mayor')::boolean = true
+          )
+          AND (
+            storage.objects.name LIKE '%' || LOWER(t.name) || '.png'
+            OR storage.objects.name LIKE '%' || LOWER(t.name) || '/gallery/%'
+          )
         )
       )
     )

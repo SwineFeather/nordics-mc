@@ -26,6 +26,7 @@ const SupabaseWikiTest = lazy(() => import('./components/wiki/SupabaseWikiTest')
 const SimpleWikiTest = lazy(() => import('./components/wiki/SimpleWikiTest'));
 const Store = lazy(() => import('./pages/Store'));
 const Rules = lazy(() => import('./pages/Rules'));
+const Contact = lazy(() => import('./pages/Contact'));
 const Messages = lazy(() => import('./pages/Messages'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -46,7 +47,7 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <TooltipProvider>
           <BrowserRouter>
             <Suspense fallback={
@@ -60,7 +61,7 @@ function App() {
                 <Route path="/login-debug" element={<LoginDebug />} />
                 <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
                 <Route path="/home" element={<Layout><Home /></Layout>} />
-                <Route path="/nyrvalos" element={<Layout><Nyrvalos /></Layout>} />
+                <Route path="/nyrvalos" element={<Nyrvalos />} />
                 <Route path="/community" element={<Layout><Community /></Layout>} />
                 <Route path="/forum" element={<Layout><Forum /></Layout>} />
                 <Route path="/forum/category/:categoryId" element={<Layout><Forum /></Layout>} />
@@ -85,6 +86,7 @@ function App() {
                 <Route path="/simple-wiki-test" element={<Layout><SimpleWikiTest /></Layout>} />
                 <Route path="/store" element={<Layout><Store /></Layout>} />
                 <Route path="/rules" element={<Layout><Rules /></Layout>} />
+                <Route path="/contact" element={<Layout><Contact /></Layout>} />
                 <Route path="/messages" element={<Layout><Messages /></Layout>} />
                 <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
                 <Route path="/admin" element={<Layout><Admin /></Layout>} />

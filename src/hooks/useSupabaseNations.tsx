@@ -36,6 +36,8 @@ export interface Town {
   is_independent: boolean;
   level?: number;
   total_xp?: number;
+  location_x?: number;
+  location_z?: number;
   created_at: string;
   updated_at: string;
   nation?: {
@@ -71,11 +73,13 @@ export const useSupabaseNations = () => {
 
       if (townsError) throw townsError;
 
-      // Fetch nation data and mayor names for each town separately
+      // Fetch nation data, mayor names, and coordinates for each town separately
       const townsWithNations = await Promise.all(
         (townsData || []).map(async (town) => {
           let nationData = null;
           let mayorName = town.mayor;
+          let locationX = null;
+          let locationZ = null;
 
           // Fetch nation data if town has a nation
           if (town.nation_id) {
@@ -115,10 +119,29 @@ export const useSupabaseNations = () => {
             }
           }
 
+          // Fetch town coordinates from map_pins
+          try {
+            const { data: pinData, error: pinError } = await supabase
+              .from('map_pins')
+              .select('x_position, y_position')
+              .eq('town_id', town.id)
+              .eq('category', 'town')
+              .single();
+            
+            if (pinData && !pinError) {
+              locationX = pinData.x_position;
+              locationZ = pinData.y_position;
+            }
+          } catch (error) {
+            console.warn('Could not fetch coordinates for town:', town.name, error);
+          }
+
           return { 
             ...town, 
             nation: nationData,
-            mayor_name: mayorName
+            mayor_name: mayorName,
+            location_x: locationX,
+            location_z: locationZ
           };
         })
       );

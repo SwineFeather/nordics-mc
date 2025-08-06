@@ -14,6 +14,8 @@ export interface Town {
   total_xp?: number;
   level?: number;
   balance?: number;
+  location_x?: number | null;
+  location_z?: number | null;
   nation?: {
     name: string;
     color?: string;

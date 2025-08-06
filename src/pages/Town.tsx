@@ -22,7 +22,7 @@ import {
   Settings,
   Share2,
   Home,
-  Trophy,
+
   Image
 } from 'lucide-react';
 import TownImageUploadDialog from '@/components/towns/TownImageUploadDialog';
@@ -30,9 +30,7 @@ import DynmapEmbed from '@/components/towns/DynmapEmbed';
 import TownPhotoGallery from '@/components/towns/TownPhotoGallery';
 import { TownProfilePicture } from '@/components/towns/TownProfilePicture';
 import { SupabaseTownService, SupabaseTownData, TownResident } from '@/services/supabaseTownService';
-import TownLevelDisplay from '@/components/towns/TownLevelDisplay';
-import TownAchievements from '@/components/towns/TownAchievements';
-import { getTownAchievements, calculateTownLevelInfo } from '@/lib/townLeveling';
+
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import PlayerProfile from '@/components/PlayerProfile';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
@@ -46,11 +44,11 @@ const TownPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [showMap, setShowMap] = useState(true);
-  const [showAchievements, setShowAchievements] = useState(true);
+
   const [showGallery, setShowGallery] = useState(true);
   const [favorited, setFavorited] = useState(false);
   const [dataSource, setDataSource] = useState<'supabase' | 'mock'>('supabase');
-  const [townXp, setTownXp] = useState(0);
+
   const [selectedPlayerUuid, setSelectedPlayerUuid] = useState<string | null>(null);
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
   
@@ -84,8 +82,7 @@ const TownPage = () => {
         setResidents(townResult.residents || []);
         setDataSource('supabase');
 
-        // Use the town's actual XP and level from the database
-        setTownXp(townResult.total_xp || 0);
+
       } catch (err) {
         console.error('Error fetching town data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch town data');
@@ -210,10 +207,7 @@ const TownPage = () => {
               </div>
             </div>
 
-            {/* Town Level Display - full width, player profile style */}
-            <div className="mt-4 mb-8">
-              <TownLevelDisplay totalXp={townXp} currentLevel={townData?.level || 1} />
-            </div>
+
           </div>
 
           {/* Action Buttons */}
@@ -253,14 +247,10 @@ const TownPage = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-8">
+                  <TabsList className="grid w-full grid-cols-2 mb-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Home className="w-4 h-4" />
             Overview
-          </TabsTrigger>
-          <TabsTrigger value="achievements" className="flex items-center gap-2">
-            <Trophy className="w-4 h-4" />
-            Achievements
           </TabsTrigger>
           <TabsTrigger value="gallery" className="flex items-center gap-2">
             <Camera className="w-4 h-4" />
@@ -514,14 +504,7 @@ const TownPage = () => {
                         <span className="text-muted-foreground">Total Plots:</span>
                         <span className="font-medium">{townData.plots?.[0]?.count || 0}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Town Level:</span>
-                        <span className="font-medium">Level {townData.level || 1}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total XP:</span>
-                        <span className="font-medium">{townXp.toLocaleString()} XP</span>
-                      </div>
+
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Balance:</span>
                         <span className="font-medium">${(townData.balance || 0).toFixed(2)}</span>
@@ -547,34 +530,7 @@ const TownPage = () => {
             </div>
           </TabsContent>
 
-          {/* Achievements Tab */}
-          <TabsContent value="achievements">
-            <div className="space-y-6">
-              {/* Town Level Display */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5" />
-                    Town Level & Progress
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TownLevelDisplay 
-                    totalXp={townXp}
-                    currentLevel={townData.level}
-                    className="w-full"
-                  />
-                </CardContent>
-              </Card>
 
-              {/* Town Achievements */}
-              <TownAchievements 
-                townId={townData.id}
-                townName={townData.name}
-                townData={townData}
-              />
-            </div>
-          </TabsContent>
 
           {/* Gallery Tab */}
           <TabsContent value="gallery">

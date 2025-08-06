@@ -127,18 +127,13 @@ const Admin = () => {
 
   // Debug logging to see what's happening
   useEffect(() => {
-    console.log('Admin component render - Debug info:', {
-      user: user ? { id: user.id, email: user.email } : null,
-      profile: profile ? { id: profile.id, role: profile.role, email: profile.email } : null,
-      loading,
-      isAuthenticated,
-      timestamp: new Date().toISOString()
-    });
+    // Admin component render - Debug info
+    // Removed debug logging to reduce console noise
   }, [user, profile, loading, isAuthenticated]);
 
   // Show loading state while authentication is being determined
   if (loading) {
-    console.log('Admin: Showing loading state');
+          // Admin: Showing loading state
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -148,13 +143,13 @@ const Admin = () => {
 
   // Check if user is authenticated first
   if (!isAuthenticated || !user) {
-    console.log('Admin: User not authenticated, redirecting to home');
+          // Admin: User not authenticated, redirecting to home
     return <Navigate to="/" replace />;
   }
 
   // If user is authenticated but profile hasn't loaded yet, show loading
   if (!profile) {
-    console.log('Admin: User authenticated but profile not loaded, showing loading');
+          // Admin: User authenticated but profile not loaded, showing loading
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -164,11 +159,11 @@ const Admin = () => {
 
   // Now check if user has admin role
   if (profile.role !== 'admin') {
-    console.log('Admin: User does not have admin role:', profile.role, 'redirecting to home');
+          // Admin: User does not have admin role, redirecting to home
     return <Navigate to="/" replace />;
   }
 
-  console.log('Admin: All checks passed, rendering admin panel');
+        // Admin: All checks passed, rendering admin panel
 
   const handlePopulateTownAchievements = async () => {
     try {

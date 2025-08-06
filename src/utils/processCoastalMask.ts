@@ -66,7 +66,7 @@ export const processCoastalMask = async (): Promise<CoastalMaskData> => {
       reject(new Error('Failed to load coastal mask image'));
     };
     
-    img.src = '/nyrvalos/heightmapVector-full.png';
+    img.src = '/nyrvalos/baselayer-full.png';
   });
 };
 

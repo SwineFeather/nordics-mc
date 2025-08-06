@@ -446,7 +446,7 @@ export const fetchPlayerProfilesOptimized = async ({
   skipDetailedStats?: boolean;
 }): Promise<PlayerStatsResponse> => {
   try {
-    console.log('Fetching optimized player profiles with efficient priority sorting...');
+    // Fetching optimized player profiles with efficient priority sorting
     
     // If first page, fetch only the top 50 players by UUID, in the provided order
     if (offset === 0) {

@@ -69,7 +69,7 @@ export const isRedisAvailable = async (): Promise<boolean> => {
     await client.ping();
     return true;
   } catch (error) {
-    console.warn('Redis not available:', error);
+    // Redis not available - silent fail
     return false;
   }
 };

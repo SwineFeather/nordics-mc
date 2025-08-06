@@ -205,7 +205,7 @@ export const MessageNotificationsProvider: React.FC<{ children: React.ReactNode 
         )
         .subscribe((status, err) => {
           if (status === 'SUBSCRIBED') {
-            console.log(`Subscribed to new messages for user ${currentUser.id}`);
+            // Subscribed to new messages for user
           }
           if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             console.error(`Realtime subscription error for new_messages_for_${currentUser.id}:`, err, status);

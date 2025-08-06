@@ -210,6 +210,8 @@ const NationsTab: React.FC = () => {
             total_xp: selectedTown.total_xp || 0,
             level: selectedTown.level || 1,
             balance: selectedTown.balance || 0,
+            location_x: selectedTown.location_x,
+            location_z: selectedTown.location_z,
             is_independent: selectedTown.is_independent,
             created_at: selectedTown.created_at || new Date().toISOString(),
             updated_at: selectedTown.updated_at || new Date().toISOString()

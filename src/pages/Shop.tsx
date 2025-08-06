@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   ArrowLeft,
   MapPin, 
@@ -24,10 +25,14 @@ import {
   Save,
   X,
   Eye,
-  FileText
+  FileText,
+  Building,
+  Plus,
+  Users
 } from 'lucide-react';
 import { useShopsData, ShopWithOwner } from '@/hooks/useShopsData';
 import { useAuth } from '@/hooks/useAuth';
+import { useCompaniesData, Company } from '@/hooks/useCompaniesData';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   formatPrice, 
@@ -49,11 +54,15 @@ const ShopPage = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { shops, loading, error } = useShopsData();
+  const { companies, loading: companiesLoading } = useCompaniesData();
   const [shop, setShop] = useState<ShopWithOwner | null>(null);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [description, setDescription] = useState('');
   const [savingDescription, setSavingDescription] = useState(false);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<string>('');
+  const [addingToCompany, setAddingToCompany] = useState(false);
+  const [shopCompany, setShopCompany] = useState<Company | null>(null);
 
   useEffect(() => {
     if (shopId && shops.length > 0) {
@@ -64,6 +73,13 @@ const ShopPage = () => {
       }
     }
   }, [shopId, shops]);
+
+  // Fetch shop's company when shop or companies data changes
+  useEffect(() => {
+    if (shop && companies.length > 0) {
+      fetchShopCompany();
+    }
+  }, [shop, companies]);
 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -183,6 +199,79 @@ const ShopPage = () => {
     }
   };
 
+  // Fetch shop's current company
+  const fetchShopCompany = async () => {
+    if (!shop?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('shops')
+        .select('company_id')
+        .eq('id', shop.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching shop company:', error);
+        return;
+      }
+      
+      if (data?.company_id) {
+        const company = companies.find(c => c.id === data.company_id);
+        setShopCompany(company || null);
+      }
+    } catch (err) {
+      console.error('Error fetching shop company:', err);
+    }
+  };
+
+  // Add shop to company
+  const handleAddToCompany = async () => {
+    if (!shop?.id || !selectedCompany) return;
+    
+    setAddingToCompany(true);
+    try {
+      const { error } = await supabase
+        .from('shops')
+        .update({ company_id: selectedCompany })
+        .eq('id', shop.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success('Shop added to company successfully!');
+      setSelectedCompany('');
+      fetchShopCompany();
+    } catch (err) {
+      console.error('Error adding shop to company:', err);
+      toast.error('Failed to add shop to company');
+    } finally {
+      setAddingToCompany(false);
+    }
+  };
+
+  // Remove shop from company
+  const handleRemoveFromCompany = async () => {
+    if (!shop?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('shops')
+        .update({ company_id: null })
+        .eq('id', shop.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success('Shop removed from company successfully!');
+      setShopCompany(null);
+    } catch (err) {
+      console.error('Error removing shop from company:', err);
+      toast.error('Failed to remove shop from company');
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -272,10 +361,7 @@ const ShopPage = () => {
                 {shop.is_featured ? 'Featured' : 'Feature'}
               </Button>
             )}
-            <Button className="bg-primary text-primary-foreground" size="sm">
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              {shop.type === 'buy' ? 'Buy' : 'Sell'}
-            </Button>
+
           </div>
         </div>
       </div>
@@ -444,6 +530,85 @@ You can use Markdown formatting:
               )}
             </CardContent>
           </Card>
+
+          {/* Company Management */}
+          {canEditDescription() && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="w-5 h-5" />
+                  Company Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {shopCompany ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Building className="w-5 h-5 text-primary" />
+                        <div>
+                          <h4 className="font-semibold">{shopCompany.name}</h4>
+                          <p className="text-sm text-muted-foreground">{shopCompany.tagline}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleRemoveFromCompany}
+                      >
+                        Remove from Company
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Add this shop to a company to manage it as part of a larger business.
+                    </p>
+                    <div className="flex gap-3">
+                      <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select a company..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {companies.map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              <div className="flex items-center gap-2">
+                                <Building className="w-4 h-4" />
+                                {company.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button 
+                        onClick={handleAddToCompany}
+                        disabled={!selectedCompany || addingToCompany}
+                        size="sm"
+                      >
+                        {addingToCompany ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Adding...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add to Company
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    {companies.length === 0 && !companiesLoading && (
+                      <p className="text-sm text-muted-foreground">
+                        No companies available. Create a company first to add this shop.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Item Details */}
           <Card>

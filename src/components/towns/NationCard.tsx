@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Crown, Banknote, BookOpen, ChevronDown, ChevronRight, Eye, Users, MapPin, MessageCircle, Link2, Heart, ChevronUp, Upload, ExternalLink, Loader2 } from 'lucide-react';
+import { Crown, Banknote, BookOpen, ChevronDown, ChevronRight, Eye, Users, MapPin, MessageCircle, Link2, ChevronUp, Upload, ExternalLink, Loader2 } from 'lucide-react';
 import { SupabaseNationData, SupabaseTownData } from '@/services/supabaseTownService';
 import TownRow from './TownRow';
 import NationImageUploadDialog from './NationImageUploadDialog';
@@ -22,7 +22,6 @@ interface NationCardProps {
 }
 
 const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExpand, onViewTown, loading }) => {
-  const [favorited, setFavorited] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [canUpdateImage, setCanUpdateImage] = useState(false);
   const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
@@ -88,11 +87,7 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
           </Button>
         )}
         
-        <div className="absolute right-8 top-4 flex gap-2">
-          <Button size="icon" variant={favorited ? 'default' : 'outline'} aria-label="Favorite" onClick={() => setFavorited(f => !f)}>
-            <Heart className={favorited ? 'text-red-500 fill-red-500' : 'text-muted-foreground'} />
-          </Button>
-        </div>
+
       </div>
       
       <CardHeader className="pb-0 pt-8 relative">

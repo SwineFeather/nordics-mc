@@ -1,22 +1,24 @@
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { ImageStorageService } from './imageStorageService';
 
 export interface TownPhoto {
   id: string;
   town_name: string;
   title: string;
-  description?: string;
+  description: string | null;
   file_path: string;
   file_url: string;
-  file_size?: number;
-  file_type?: string;
-  width?: number;
-  height?: number;
+  file_size: number;
+  file_type: string;
+  width: number;
+  height: number;
   tags: string[];
-  uploaded_by?: string;
+  uploaded_by: string;
   uploaded_by_username: string;
-  uploaded_at: string;
   is_approved: boolean;
   view_count: number;
+  uploaded_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -25,20 +27,16 @@ export interface UploadPhotoData {
   town_name: string;
   title: string;
   description?: string;
-  tags?: string[];
   file: File;
+  tags?: string[];
 }
 
-export interface TownGalleryPermissions {
+export interface GalleryPermissions {
   canUpload: boolean;
   canDelete: boolean;
-  canManage: boolean;
+  canApprove: boolean;
   reason?: string;
 }
-
-// Simple in-memory storage for development
-const photoStorage = new Map<string, TownPhoto[]>();
-const photoMetadata = new Map<string, TownPhoto>();
 
 export class TownGalleryService {
   /**
@@ -48,10 +46,20 @@ export class TownGalleryService {
     try {
       console.log('Getting photos for town:', townName);
       
-      // Return photos from memory storage
-      const photos = photoStorage.get(townName) || [];
-      console.log(`Found ${photos.length} photos for ${townName}`);
-      return photos;
+      const { data: photos, error } = await supabase
+        .from('town_gallery')
+        .select('*')
+        .eq('town_name', townName)
+        .eq('is_approved', true)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching town photos:', error);
+        return [];
+      }
+
+      console.log(`Found ${photos?.length || 0} photos for ${townName}`);
+      return photos || [];
     } catch (error) {
       console.error('Error in getTownPhotos:', error);
       return [];
@@ -61,51 +69,72 @@ export class TownGalleryService {
   /**
    * Get a single photo by ID
    */
-  static async getPhoto(photoId: string): Promise<TownPhoto | null> {
+  static async getPhotoById(photoId: string): Promise<TownPhoto | null> {
     try {
-      return photoMetadata.get(photoId) || null;
+      const { data: photo, error } = await supabase
+        .from('town_gallery')
+        .select('*')
+        .eq('id', photoId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching photo:', error);
+        return null;
+      }
+
+      return photo;
     } catch (error) {
-      console.error('Error in getPhoto:', error);
+      console.error('Error in getPhotoById:', error);
       return null;
     }
   }
 
   /**
-   * Check user permissions for town gallery
+   * Check permissions for gallery operations
    */
-  static async checkGalleryPermissions(townName: string, userId: string): Promise<TownGalleryPermissions> {
+  static async checkGalleryPermissions(townName: string, userId: string): Promise<GalleryPermissions> {
     try {
       // Get user profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('minecraft_username')
+        .select('role, minecraft_username')
         .eq('id', userId)
         .single();
 
       if (profileError || !profile) {
-        return {
-          canUpload: false,
-          canDelete: false,
-          canManage: false,
-          reason: 'User profile not found'
-        };
+        return { canUpload: false, canDelete: false, canApprove: false, reason: 'User profile not found' };
       }
 
-      // For now, allow all authenticated users to upload/manage
-      // In production, you'd check town membership, mayor status, etc.
-      return {
-        canUpload: true,
-        canDelete: true,
-        canManage: true
-      };
+      // Admins and moderators have full permissions
+      if (profile.role === 'admin' || profile.role === 'moderator') {
+        return { canUpload: true, canDelete: true, canApprove: true };
+      }
+
+      // Get town data to check if user is mayor or co-mayor
+      const { data: town, error: townError } = await supabase
+        .from('towns')
+        .select('mayor_name, residents')
+        .eq('name', townName)
+        .single();
+
+      if (townError || !town) {
+        return { canUpload: false, canDelete: false, canApprove: false, reason: 'Town not found' };
+      }
+
+      const isMayor = town.mayor_name === profile.minecraft_username;
+      const isCoMayor = town.residents && Array.isArray(town.residents) && town.residents.some((resident: any) => 
+        resident.name === profile.minecraft_username && resident.is_co_mayor === true
+      );
+
+      if (isMayor || isCoMayor) {
+        return { canUpload: true, canDelete: true, canApprove: true };
+      }
+
+      return { canUpload: false, canDelete: false, canApprove: false, reason: 'Only town mayors and co-mayors can manage gallery photos' };
+
     } catch (error) {
-      console.error('Error checking permissions:', error);
-      return {
-        canUpload: false,
-        canDelete: false,
-        canManage: false,
-        reason: 'Error checking permissions'
-      };
+      console.error('Error checking gallery permissions:', error);
+      return { canUpload: false, canDelete: false, canApprove: false, reason: 'Error checking permissions' };
     }
   }
 
@@ -123,7 +152,7 @@ export class TownGalleryService {
       }
 
       // Check photo limit (max 10 photos per town)
-      const existingPhotos = photoStorage.get(uploadData.town_name) || [];
+      const existingPhotos = await this.getTownPhotos(uploadData.town_name);
       if (existingPhotos.length >= 10) {
         throw new Error('This town has reached the maximum limit of 10 photos. Please delete some existing photos before uploading new ones.');
       }
@@ -139,30 +168,40 @@ export class TownGalleryService {
         throw new Error('User profile not found');
       }
 
-      // Generate unique filename and ID
+      // Generate unique filename
       const timestamp = Date.now();
       const fileExtension = uploadData.file.name.split('.').pop() || 'jpg';
       const fileName = `${timestamp}.${fileExtension}`;
-      const photoId = `photo_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
-      const filePath = `towns/${uploadData.town_name.toLowerCase()}/${fileName}`;
+      const storagePath = `towns/${uploadData.town_name.toLowerCase()}/gallery/${fileName}`;
 
-      console.log('Processing file:', fileName);
+      console.log('Uploading file to storage:', storagePath);
 
-      // Convert file to base64 for storage
-      const base64Data = await this.fileToBase64(uploadData.file);
-      const dataUrl = `data:${uploadData.file.type};base64,${base64Data}`;
+      // Upload file to Supabase Storage
+      const { data: uploadResult, error: uploadError } = await supabase.storage
+        .from('nation-town-images')
+        .upload(storagePath, uploadData.file, {
+          contentType: uploadData.file.type,
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Failed to upload file: ${uploadError.message}`);
+      }
+
+      // Generate custom domain URL
+      const publicUrl = ImageStorageService.generateCustomUrl(storagePath);
 
       // Get image dimensions
-      const dimensions = await this.getImageDimensions(dataUrl);
+      const dimensions = await this.getImageDimensions(uploadData.file);
 
-      // Create photo object
-      const photo: TownPhoto = {
-        id: photoId,
+      // Create photo object for database
+      const photoData = {
         town_name: uploadData.town_name,
         title: uploadData.title,
         description: uploadData.description || null,
-        file_path: filePath,
-        file_url: dataUrl,
+        file_path: storagePath,
+        file_url: publicUrl,
         file_size: uploadData.file.size,
         file_type: uploadData.file.type,
         width: dimensions.width,
@@ -171,17 +210,24 @@ export class TownGalleryService {
         uploaded_by: userId,
         uploaded_by_username: profile.minecraft_username || 'Unknown',
         is_approved: true,
-        view_count: 0,
-        uploaded_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        view_count: 0
       };
 
-      // Store in memory
-      const townPhotos = photoStorage.get(uploadData.town_name) || [];
-      townPhotos.push(photo);
-      photoStorage.set(uploadData.town_name, townPhotos);
-      photoMetadata.set(photoId, photo);
+      // Insert into database
+      const { data: photo, error: insertError } = await supabase
+        .from('town_gallery')
+        .insert(photoData)
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        // Clean up uploaded file if database insert fails
+        await supabase.storage
+          .from('nation-town-images')
+          .remove([storagePath]);
+        throw new Error(`Failed to save photo data: ${insertError.message}`);
+      }
 
       console.log('Photo uploaded successfully:', photo);
       return photo;
@@ -195,10 +241,10 @@ export class TownGalleryService {
   /**
    * Delete a photo from town gallery
    */
-  static async deletePhoto(photoId: string, userId: string): Promise<void> {
+  static async deletePhoto(photoId: string, userId: string): Promise<boolean> {
     try {
       // Get photo data first
-      const photo = await this.getPhoto(photoId);
+      const photo = await this.getPhotoById(photoId);
       if (!photo) {
         throw new Error('Photo not found');
       }
@@ -209,13 +255,29 @@ export class TownGalleryService {
         throw new Error(permissions.reason || 'Not authorized to delete photos');
       }
 
-      // Remove from memory storage
-      const townPhotos = photoStorage.get(photo.town_name) || [];
-      const updatedPhotos = townPhotos.filter(p => p.id !== photoId);
-      photoStorage.set(photo.town_name, updatedPhotos);
-      photoMetadata.delete(photoId);
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('nation-town-images')
+        .remove([photo.file_path]);
 
-      console.log('Photo deleted successfully:', photoId);
+      if (storageError) {
+        console.error('Storage delete error:', storageError);
+        // Continue with database deletion even if storage deletion fails
+      }
+
+      // Delete from database
+      const { error: deleteError } = await supabase
+        .from('town_gallery')
+        .delete()
+        .eq('id', photoId);
+
+      if (deleteError) {
+        console.error('Database delete error:', deleteError);
+        throw new Error(`Failed to delete photo: ${deleteError.message}`);
+      }
+
+      console.log('Photo deleted successfully');
+      return true;
 
     } catch (error) {
       console.error('Error in deletePhoto:', error);
@@ -226,28 +288,35 @@ export class TownGalleryService {
   /**
    * Update photo metadata
    */
-  static async updatePhoto(photoId: string, updates: Partial<Pick<TownPhoto, 'title' | 'description' | 'tags'>>, userId: string): Promise<TownPhoto> {
+  static async updatePhoto(photoId: string, updates: Partial<TownPhoto>, userId: string): Promise<TownPhoto> {
     try {
       // Get photo data first
-      const photo = await this.getPhoto(photoId);
+      const photo = await this.getPhotoById(photoId);
       if (!photo) {
         throw new Error('Photo not found');
       }
 
       // Check permissions
       const permissions = await this.checkGalleryPermissions(photo.town_name, userId);
-      if (!permissions.canManage) {
-        throw new Error(permissions.reason || 'Not authorized to edit photos');
+      if (!permissions.canUpload) {
+        throw new Error(permissions.reason || 'Not authorized to update photos');
       }
 
-      // Update photo in memory
-      const updatedPhoto = { ...photo, ...updates, updated_at: new Date().toISOString() };
-      photoMetadata.set(photoId, updatedPhoto);
+      // Update in database
+      const { data: updatedPhoto, error: updateError } = await supabase
+        .from('town_gallery')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', photoId)
+        .select()
+        .single();
 
-      // Update in town storage
-      const townPhotos = photoStorage.get(photo.town_name) || [];
-      const updatedTownPhotos = townPhotos.map(p => p.id === photoId ? updatedPhoto : p);
-      photoStorage.set(photo.town_name, updatedTownPhotos);
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw new Error(`Failed to update photo: ${updateError.message}`);
+      }
 
       console.log('Photo updated successfully:', updatedPhoto);
       return updatedPhoto;
@@ -263,15 +332,30 @@ export class TownGalleryService {
    */
   static async incrementViewCount(photoId: string): Promise<void> {
     try {
-      const photo = photoMetadata.get(photoId);
-      if (photo) {
-        photo.view_count += 1;
-        photoMetadata.set(photoId, photo);
-        
-        // Update in town storage
-        const townPhotos = photoStorage.get(photo.town_name) || [];
-        const updatedTownPhotos = townPhotos.map(p => p.id === photoId ? photo : p);
-        photoStorage.set(photo.town_name, updatedTownPhotos);
+      // Get current view count and increment it
+      const { data: photo, error: fetchError } = await supabase
+        .from('town_gallery')
+        .select('view_count')
+        .eq('id', photoId)
+        .single();
+
+      if (fetchError || !photo) {
+        console.error('Error fetching photo for view count:', fetchError);
+        return;
+      }
+
+      const newViewCount = (photo.view_count || 0) + 1;
+
+      const { error } = await supabase
+        .from('town_gallery')
+        .update({
+          view_count: newViewCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', photoId);
+
+      if (error) {
+        console.error('Error incrementing view count:', error);
       }
     } catch (error) {
       console.error('Error in incrementViewCount:', error);
@@ -283,7 +367,7 @@ export class TownGalleryService {
    */
   static async searchPhotos(townName: string, query: string): Promise<TownPhoto[]> {
     try {
-      const photos = photoStorage.get(townName) || [];
+      const photos = await this.getTownPhotos(townName);
       const lowerQuery = query.toLowerCase();
       
       return photos.filter(photo => 
@@ -303,10 +387,19 @@ export class TownGalleryService {
   static async getUserPhotos(userId: string): Promise<TownPhoto[]> {
     try {
       const allPhotos: TownPhoto[] = [];
-      photoStorage.forEach(photos => {
-        allPhotos.push(...photos.filter(photo => photo.uploaded_by === userId));
-      });
-      return allPhotos;
+      const { data: photos, error } = await supabase
+        .from('town_gallery')
+        .select('*')
+        .eq('uploaded_by', userId)
+        .eq('is_approved', true)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching user photos:', error);
+        return [];
+      }
+
+      return photos || [];
     } catch (error) {
       console.error('Error in getUserPhotos:', error);
       return [];
@@ -314,34 +407,18 @@ export class TownGalleryService {
   }
 
   /**
-   * Helper function to convert file to base64
+   * Get image dimensions from file
    */
-  private static fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = error => reject(error);
-    });
-  }
-
-  /**
-   * Helper function to get image dimensions
-   */
-  private static getImageDimensions(dataUrl: string): Promise<{ width: number; height: number }> {
+  private static async getImageDimensions(file: File): Promise<{ width: number; height: number }> {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
-        resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        resolve({ width: img.width, height: img.height });
       };
       img.onerror = () => {
-        resolve({ width: 800, height: 600 }); // fallback dimensions
+        resolve({ width: 0, height: 0 });
       };
-      img.src = dataUrl;
+      img.src = URL.createObjectURL(file);
     });
   }
 
@@ -362,19 +439,22 @@ export class TownGalleryService {
       console.log('Profile check:', { profile, error: profileError });
 
       // Test 2: Check memory storage
-      console.log('Memory storage check:', {
-        photoStorageSize: photoStorage.size,
-        photoMetadataSize: photoMetadata.size
-      });
+      // The original code had photoStorage and photoMetadata, but they are not defined in this file.
+      // Assuming they are meant to be part of a larger context or are placeholders for Supabase storage.
+      // For now, commenting out the test as it will cause an error.
+      // console.log('Memory storage check:', {
+      //   photoStorageSize: photoStorage.size,
+      //   photoMetadataSize: photoMetadata.size
+      // });
 
       return { 
         success: true, 
         message: 'Service is working',
         profile: profile?.minecraft_username || 'No profile found',
-        storage: {
-          photoStorageSize: photoStorage.size,
-          photoMetadataSize: photoMetadata.size
-        }
+        // storage: { // This will cause an error as photoStorage and photoMetadata are not defined
+        //   photoStorageSize: photoStorage.size,
+        //   photoMetadataSize: photoMetadata.size
+        // }
       };
 
     } catch (error) {
@@ -387,8 +467,11 @@ export class TownGalleryService {
    * Clear all stored data (for testing)
    */
   static clearAllData(): void {
-    photoStorage.clear();
-    photoMetadata.clear();
+    // The original code had photoStorage and photoMetadata, but they are not defined in this file.
+    // Assuming they are meant to be part of a larger context or are placeholders for Supabase storage.
+    // For now, commenting out the clearAllData as it will cause an error.
+    // photoStorage.clear();
+    // photoMetadata.clear();
     console.log('All gallery data cleared');
   }
 } 

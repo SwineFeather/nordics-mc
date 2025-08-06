@@ -24,7 +24,8 @@ import {
   Target, 
   Compass, 
   Home,
-  Circle
+  Circle,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,7 +41,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import EditPinModal from './EditPinModal';
 import { useSupabaseNations } from '@/hooks/useSupabaseNations';
-import TownDetails from '@/components/TownDetails';
+import TownProfileModal from '@/components/towns/TownProfileModal';
 
 interface MapPin {
   id: string;
@@ -198,14 +199,29 @@ const MapPins = ({
 
   const handlePinClick = (pin: MapPin) => {
     if (pin.category === 'town' && pin.town_id) {
-      // Find the town by name from our Supabase data
-      const town = towns.find(t => t.name === pin.town_id);
+      // Find the town by ID from our Supabase data
+      const town = towns.find(t => t.id === pin.town_id);
       if (town) {
-        // Convert to the format expected by TownDetails
+        // Ensure the town object has all required fields for TownProfileModal
         const townDetail = {
-          ...town,
-          nation: town.is_independent ? 'Independent' : (town.nation?.name || 'Unknown'),
-          nationColor: town.is_independent ? 'text-gray-500' : (town.nation?.color || 'text-gray-500')
+          id: town.id,
+          name: town.name,
+          mayor: town.mayor,
+          mayor_name: town.mayor_name,
+          population: town.population,
+          type: town.type,
+          status: town.status,
+          founded: town.founded,
+          nation_id: town.nation_id,
+          is_independent: town.is_independent,
+          created_at: town.created_at,
+          updated_at: town.updated_at,
+          total_xp: town.total_xp,
+          level: town.level,
+          balance: town.balance,
+          location_x: town.location_x,
+          location_z: town.location_z,
+          nation: town.nation
         };
         setSelectedTown(townDetail);
       } else {
@@ -289,9 +305,6 @@ const MapPins = ({
                     />
                   )}
                 </div>
-                {pin.category === 'town' && (
-                  <Building className="w-2 h-2 absolute -top-1 -right-1 text-blue-500" />
-                )}
                 {pin.category === 'lore' && (
                   <Eye className="w-2 h-2 absolute -top-1 -right-1 text-purple-500" />
                 )}
@@ -329,30 +342,43 @@ const MapPins = ({
                         </Badge>
                       </div>
                       
-                      {isStaff && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => setEditingPin(pin)}
-                            >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit Pin
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDeletePin(pin.id)}
-                              className="text-red-600"
-                            >
-                              <Pin className="w-4 h-4 mr-2" />
-                              Delete Pin
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
+                      <div className="flex items-center gap-1">
+                        {/* Close Button */}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => setSelectedPin(null)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                        
+                        {/* Staff Menu */}
+                        {isStaff && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => setEditingPin(pin)}
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit Pin
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeletePin(pin.id)}
+                                className="text-red-600"
+                              >
+                                <Pin className="w-4 h-4 mr-2" />
+                                Delete Pin
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
                     </div>
                     
                     {pin.title && (
@@ -393,10 +419,11 @@ const MapPins = ({
         />
       )}
 
-      {/* Town Details Modal */}
+      {/* Town Profile Modal */}
       {selectedTown && (
-        <TownDetails 
+        <TownProfileModal 
           town={selectedTown} 
+          isOpen={!!selectedTown} 
           onClose={() => setSelectedTown(null)} 
         />
       )}

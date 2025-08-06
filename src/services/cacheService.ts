@@ -187,7 +187,7 @@ export class PlayerStatsCacheService {
         )
         .subscribe();
 
-      console.log('Realtime subscription initialized for player stats');
+      // Realtime subscription initialized for player stats
     } catch (error) {
       console.warn('Failed to initialize realtime subscription:', error);
     }
@@ -262,7 +262,6 @@ export class PlayerStatsCacheService {
     }
 
     // Cache miss - fetch from database
-    console.log(`Cache miss for player stats: ${playerUuid}`);
     const stats = await this.fetchPlayerStatsFromDb(playerUuid);
     
     if (stats) {
@@ -287,7 +286,6 @@ export class PlayerStatsCacheService {
     }
 
     // Cache miss - fetch from database
-    console.log(`Cache miss for player profile: ${playerUuid}`);
     const profile = await this.fetchPlayerProfileFromDb(playerUuid);
     
     if (profile) {
@@ -312,7 +310,6 @@ export class PlayerStatsCacheService {
     }
 
     // Cache miss - fetch from database
-    console.log(`Cache miss for leaderboard: ${type}`);
     const leaderboard = await this.fetchLeaderboardFromDb(type, limit);
     
     if (leaderboard) {

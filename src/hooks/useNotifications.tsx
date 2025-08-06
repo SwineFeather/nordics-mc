@@ -397,7 +397,7 @@ export const useNotifications = () => {
             }
           )
           .subscribe((status) => {
-            console.log('Notification subscription status:', status);
+            // Notification subscription status
             if (status === 'SUBSCRIBED') {
               channelRef.current = channel;
             }

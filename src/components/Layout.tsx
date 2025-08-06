@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import Footer from './layout/Footer';  
 import FloatingChat from './chat/FloatingChat';
 import FloatingAIChat from './chat/FloatingAIChat';
-import NyrvalosLoadingScreen from './nyrvalos/NyrvalosLoadingScreen';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,10 +12,14 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const [isChatVisible, setIsChatVisible] = useState(false);
+  const location = useLocation();
 
   const toggleChat = () => {
     setIsChatVisible(!isChatVisible);
   };
+
+  // Check if we're on the map page
+  const isMapPage = location.pathname.startsWith('/map');
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -23,7 +27,7 @@ const Layout = ({ children }: LayoutProps) => {
       <main className="flex-1">
         {children}
       </main>
-      <Footer />
+      {!isMapPage && <Footer />}
       <FloatingChat 
         isVisible={isChatVisible}
         onToggle={toggleChat}

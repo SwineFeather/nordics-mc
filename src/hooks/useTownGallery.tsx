@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
-import { TownGalleryService, TownPhoto, UploadPhotoData, TownGalleryPermissions } from '@/services/townGalleryService';
+import { TownGalleryService, TownPhoto, UploadPhotoData, GalleryPermissions } from '@/services/townGalleryService';
 
 export const useTownGallery = (townName: string) => {
   const { user, profile } = useAuth();
@@ -8,10 +8,10 @@ export const useTownGallery = (townName: string) => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [permissions, setPermissions] = useState<TownGalleryPermissions>({
+  const [permissions, setPermissions] = useState<GalleryPermissions>({
     canUpload: false,
     canDelete: false,
-    canManage: false
+    canApprove: false
   });
 
   // Load photos
@@ -37,7 +37,7 @@ export const useTownGallery = (townName: string) => {
       setPermissions({
         canUpload: false,
         canDelete: false,
-        canManage: false,
+        canApprove: false,
         reason: 'Not authenticated'
       });
       return;
@@ -51,7 +51,7 @@ export const useTownGallery = (townName: string) => {
       setPermissions({
         canUpload: false,
         canDelete: false,
-        canManage: false,
+        canApprove: false,
         reason: 'Error checking permissions'
       });
     }

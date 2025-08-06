@@ -34,25 +34,23 @@ export const getUnlockedAchievements = async (
   playerStats: any,
   playerUuid: string
 ): Promise<UnlockedAchievement[]> => {
-  console.log('Getting unlocked achievements for player:', playerUuid);
-  console.log('Player stats received:', playerStats);
+      // Getting unlocked achievements for player
+      // Player stats received
 
   const unlockedAchievements: UnlockedAchievement[] = [];
 
   for (const achievement of achievements) {
-    console.log(`Processing achievement: ${achievement.id} (stat: ${achievement.stat})`);
+    // Processing achievement
     
     // Get the actual database stat name
     const dbStatName = STAT_MAPPING[achievement.stat] || achievement.stat;
     const rawStatValue = playerStats[dbStatName] || 0;
     const actualStatValue = convertStatValue(achievement.stat, rawStatValue);
     
-    console.log(`  - DB stat name: ${dbStatName}`);
-    console.log(`  - Raw value: ${rawStatValue}`);
-    console.log(`  - Converted value: ${actualStatValue}`);
+    // DB stat name, raw value, converted value
 
     if (actualStatValue <= 0) {
-      console.log(`  - Skipping achievement ${achievement.id} - no progress`);
+      // Skipping achievement - no progress
       continue;
     }
 
@@ -61,7 +59,7 @@ export const getUnlockedAchievements = async (
     for (const tier of achievement.tiers.sort((a, b) => a.tier - b.tier)) {
       if (actualStatValue >= tier.threshold) {
         highestUnlockedTier = tier;
-        console.log(`  - Qualifies for tier ${tier.tier}: ${tier.name} (threshold: ${tier.threshold})`);
+        // Qualifies for tier
       } else {
         break; // Tiers are sorted, so we can stop here
       }
@@ -79,11 +77,11 @@ export const getUnlockedAchievements = async (
       };
       
       unlockedAchievements.push(unlockedAchievement);
-      console.log(`  - Added achievement: ${achievement.name} - ${unlockedAchievement.name}`);
+      // Added achievement
     }
   }
 
-  console.log(`Total unlocked achievements: ${unlockedAchievements.length}`);
+  // Total unlocked achievements
   return unlockedAchievements;
 };
 

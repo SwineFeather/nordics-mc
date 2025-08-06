@@ -6,13 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Eye, 
-  Activity, 
   MapPin, 
   Building, 
   BarChart3, 
-  Clock, 
-  Medal, 
-  Pickaxe,
   Crown,
   User,
   Star,
@@ -34,7 +30,8 @@ import {
   Leaf,
   Rocket,
   Sword,
-  Wand2
+  Wand2,
+  Clock
 } from 'lucide-react';
 import { usePlayerStatsConditional } from '@/hooks/usePlayerStatsConditional';
 import { usePlayerSearch } from '@/hooks/usePlayerSearch';
@@ -408,13 +405,7 @@ const PlayerCard = ({
               </div>
             )}
             
-            {/* Top player indicator */}
-            {TOP_PLAYERS_BY_PLAYTIME.includes(profile.id) && (
-              <div className="text-xs text-amber-600 font-medium mb-2 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                Top Player
-              </div>
-            )}
+
 
             {/* Nation and Town info */}
             {(residentData?.nation_name || residentData?.town_name) && (
@@ -435,82 +426,22 @@ const PlayerCard = ({
             )}
 
             <div className="space-y-1">
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <BarChart3 className="w-3 h-3" />
-                  <span>Lvl {profile.levelInfo?.level || 1}</span>
-                </div>
-                {profile.levelInfo?.totalXp && (
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{formatTotalXp(profile.levelInfo.totalXp)}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                {/* Medal Points */}
-                {profile.stats?.medalPoints > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Medal className="w-3 h-3" />
-                    <span>{getNumericStat(profile.stats.medalPoints).toLocaleString()}</span>
-                  </div>
-                )}
-                
-                {/* Blocks Placed */}
-                {profile.stats?.blocksPlaced > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Pickaxe className="w-3 h-3" />
-                    <span>{getNumericStat(profile.stats.blocksPlaced).toLocaleString()}</span>
-                  </div>
-                )}
-                
-                {/* Blocks Broken */}
-                {profile.stats?.blocksBroken > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Activity className="w-3 h-3" />
-                    <span>{getNumericStat(profile.stats.blocksBroken).toLocaleString()}</span>
-                  </div>
-                )}
-                
-                {/* Mob Kills */}
-                {profile.stats?.mobKills > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Sword className="w-3 h-3" />
-                    <span>{getNumericStat(profile.stats.mobKills).toLocaleString()}</span>
-                  </div>
-                )}
-                
-                {/* Playtime Hours */}
-                {profile.stats?.playtimeHours > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{Math.floor(profile.stats.playtimeHours).toLocaleString()}h</span>
-                  </div>
-                )}
-                
-                {/* Show balance from resident data if available */}
-                {residentData?.balance !== undefined && residentData.balance > 0 && (
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium">${residentData.balance.toLocaleString()}</span>
-                  </div>
-                )}
-              </div>
+              {/* Removed detailed stats to make cards more compact */}
+            </div>
 
-              <div className="flex items-center justify-between mt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs h-6 dark:border-muted-foreground dark:text-muted-foreground"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClick();
-                  }}
-                >
-                  <Eye className="w-3 h-3 mr-1" />
-                  View Profile
-                </Button>
-              </div>
+            <div className="flex items-center justify-between mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-6 dark:border-muted-foreground dark:text-muted-foreground"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClick();
+                }}
+              >
+                <Eye className="w-3 h-3 mr-1" />
+                View Profile
+              </Button>
             </div>
           </div>
         </div>
@@ -653,14 +584,6 @@ const PlayerDirectory = () => {
             </Badge>
           )}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleToggleDetailedStats}
-          className="text-xs"
-        >
-          {showDetailedStats ? 'Fast Mode' : 'Detailed Mode'}
-        </Button>
       </div>
 
       {/* Search Results */}
@@ -675,18 +598,20 @@ const PlayerDirectory = () => {
         </div>
       )}
 
-      {/* Default Player Grid */}
-      <VirtualizedPlayerGrid
-        profiles={profiles}
-        onPlayerClick={handlePlayerClick}
-        allResidents={allResidents || []}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        showDetailedStats={showDetailedStats}
-      />
+      {/* Default Player Grid - only show when not searching */}
+      {searchTerm.trim().length < 2 && (
+        <VirtualizedPlayerGrid
+          profiles={profiles}
+          onPlayerClick={handlePlayerClick}
+          allResidents={allResidents || []}
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          showDetailedStats={showDetailedStats}
+        />
+      )}
 
-      {/* Load more button */}
-      {hasMore && (
+      {/* Load more button - only show when not searching */}
+      {hasMore && searchTerm.trim().length < 2 && (
         <div className="flex justify-center">
           <Button
             onClick={handleLoadMore}

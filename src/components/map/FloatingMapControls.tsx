@@ -16,7 +16,8 @@ import {
   EyeOff,
   Settings,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  MapPin
 } from 'lucide-react';
 
 interface FloatingMapControlsProps {
@@ -31,8 +32,8 @@ interface FloatingMapControlsProps {
   onCategoryFilterChange: (filter: string) => void;
   showGrid: boolean;
   onToggleGrid: () => void;
-  showHiddenPins: boolean;
-  onToggleHiddenPins: () => void;
+  showPins: boolean;
+  onTogglePins: () => void;
 }
 
 const FloatingMapControls = ({
@@ -47,8 +48,8 @@ const FloatingMapControls = ({
   onCategoryFilterChange,
   showGrid,
   onToggleGrid,
-  showHiddenPins,
-  onToggleHiddenPins
+  showPins,
+  onTogglePins
 }: FloatingMapControlsProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -118,26 +119,28 @@ const FloatingMapControls = ({
               </div>
 
               {/* Toggle Buttons */}
-              <div className="flex gap-1">
+              <div className="flex gap-1 mb-2">
                 <Button
                   variant={showGrid ? "default" : "outline"}
                   size="sm"
                   onClick={onToggleGrid}
-                  className="flex-1"
+                  className="w-full"
                 >
                   <Grid3X3 className="w-3 h-3 mr-1" />
                   Grid
                 </Button>
-                <Button
-                  variant={showHiddenPins ? "default" : "outline"}
-                  size="sm"
-                  onClick={onToggleHiddenPins}
-                  className="flex-1"
-                >
-                  {showHiddenPins ? <Eye className="w-3 h-3 mr-1" /> : <EyeOff className="w-3 h-3 mr-1" />}
-                  Hidden
-                </Button>
               </div>
+              
+              {/* Show/Hide Pins Toggle */}
+              <Button
+                variant={showPins ? "default" : "outline"}
+                size="sm"
+                onClick={onTogglePins}
+                className="w-full"
+              >
+                <MapPin className="w-3 h-3 mr-1" />
+                {showPins ? 'Hide Pins' : 'Show Pins'}
+              </Button>
 
               {/* Export */}
               <Button variant="outline" size="sm" onClick={onExport} className="w-full">

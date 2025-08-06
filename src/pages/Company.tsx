@@ -50,6 +50,8 @@ import { Textarea } from '@/components/ui/textarea';
 import ShopMapEmbed from '@/components/towns/ShopMapEmbed';
 import EnhancedWikiEditor from '@/components/wiki/EnhancedWikiEditor';
 import { PlayerTownService } from '@/services/playerTownService';
+import ShopCard from '@/components/towns/ShopCard';
+import { formatPrice, formatLastUpdated } from '@/utils/marketplaceUtils';
 
 interface Company {
   id: string;
@@ -98,17 +100,27 @@ interface Company {
 
 interface Shop {
   id: string;
-  item_type: string;
-  item_display_name: string | null;
-  price: number;
-  type: 'buy' | 'sell';
-  stock: number;
-  unlimited: boolean;
+  owner_uuid: string;
   world: string;
   x: number;
   y: number;
   z: number;
+  item_type: string;
+  item_amount: number;
+  item_durability: number;
+  item_display_name: string | null;
+  item_lore: string[] | null;
+  item_enchants: any | null;
+  item_custom_model_data: number | null;
+  item_unbreakable: boolean | null;
+  price: number;
+  type: 'buy' | 'sell';
+  stock: number;
+  unlimited: boolean;
   last_updated: number;
+  description: string | null;
+  company_id?: string | null;
+  is_featured?: boolean;
 }
 
 interface CompanyStaff {
@@ -318,8 +330,15 @@ const Company: React.FC = () => {
           inventory,
           shops:shops(
             id,
+            owner_uuid,
             item_type,
+            item_amount,
+            item_durability,
             item_display_name,
+            item_lore,
+            item_enchants,
+            item_custom_model_data,
+            item_unbreakable,
             price,
             type,
             stock,
@@ -328,7 +347,10 @@ const Company: React.FC = () => {
             x,
             y,
             z,
-            last_updated
+            last_updated,
+            description,
+            company_id,
+            is_featured
           ),
           staff:company_staff(
             id,
@@ -427,6 +449,15 @@ const Company: React.FC = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  // Dummy functions for ShopCard compatibility
+  const handleToggleFavorite = (shopId: string) => {
+    // Not implemented for company page
+  };
+
+  const isFavorite = (shopId: string) => {
+    return false; // Not implemented for company page
   };
 
   const handleImageUpload = async (file: File) => {
@@ -1010,32 +1041,31 @@ const Company: React.FC = () => {
               {company.shops && company.shops.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {company.shops.map((shop) => (
-                    <Card key={shop.id} className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold">{shop.item_display_name || shop.item_type}</h4>
-                          <Badge variant={shop.type === 'buy' ? 'default' : 'secondary'}>
-                            {shop.type.toUpperCase()}
-                          </Badge>
-                        </div>
-                        <p className="text-lg font-bold text-primary mb-2">
-                          {formatCurrency(shop.price)}
-                        </p>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <p>Stock: {shop.unlimited ? '∞' : shop.stock}</p>
-                          <p>World: {shop.world}</p>
-                          <p>Location: {shop.x}, {shop.y}, {shop.z}</p>
-                        </div>
-                        {hasFullCompanyPermission && (
-                          <Button size="sm" variant="destructive" onClick={async () => {
-                            await (supabase as any).from('shops').update({ company_id: null }).eq('id', shop.id);
-                            fetchCompany();
-                          }}>
-                            Remove
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
+                    <div key={shop.id} className="relative">
+                      <ShopCard
+                        shop={shop}
+                        formatPrice={formatPrice}
+                        formatLastUpdated={formatLastUpdated}
+                        onToggleFavorite={handleToggleFavorite}
+                        isFavorite={isFavorite}
+                      />
+                      {hasFullCompanyPermission && (
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          className="absolute top-2 right-2 z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            (async () => {
+                              await (supabase as any).from('shops').update({ company_id: null }).eq('id', shop.id);
+                              fetchCompany();
+                            })();
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
                   ))}
                 </div>
               ) : (

@@ -1,9 +1,12 @@
 export const IMAGE_STORAGE_CONFIG = {
-  // Replace with your actual domain
-  baseUrl: import.meta.env.VITE_SITE_URL || 'https://erdconvorgecupvavlwv.supabase.co',
+  // Custom domain for storage (if configured)
+  baseUrl: import.meta.env.VITE_STORAGE_DOMAIN || 'https://erdconvorgecupvavlwv.supabase.co',
   
   // Path where images are served from
-  uploadPath: '/images',
+  uploadPath: '/storage/v1/object/public',
+  
+  // Clean CDN domain (without Supabase path)
+  cdnDomain: import.meta.env.VITE_CDN_DOMAIN || null,
   
   // Allowed domains for external image uploads
   allowedDomains: [
@@ -27,6 +30,6 @@ export const IMAGE_STORAGE_CONFIG = {
 
 // BlueMap URL templates
 export const BLUEMAP_URLS = {
-  nations: `${IMAGE_STORAGE_CONFIG.baseUrl}${IMAGE_STORAGE_CONFIG.uploadPath}/nations/%nation%.png`,
-  towns: `${IMAGE_STORAGE_CONFIG.baseUrl}${IMAGE_STORAGE_CONFIG.uploadPath}/towns/%town%.png`
+  nations: `${IMAGE_STORAGE_CONFIG.baseUrl}${IMAGE_STORAGE_CONFIG.uploadPath}/${IMAGE_STORAGE_CONFIG.storageBucket}/nations/%nation%.png`,
+  towns: `${IMAGE_STORAGE_CONFIG.baseUrl}${IMAGE_STORAGE_CONFIG.uploadPath}/${IMAGE_STORAGE_CONFIG.storageBucket}/towns/%town%.png`
 }; 

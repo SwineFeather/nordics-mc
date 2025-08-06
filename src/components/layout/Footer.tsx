@@ -69,7 +69,7 @@ const Footer = () => {
         
         <div className="border-t border-border dark:border-border mt-8 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 Nordics Community. All rights reserved.
+            © 2025 nordics.world. All rights reserved.
           </p>
         </div>
       </div>

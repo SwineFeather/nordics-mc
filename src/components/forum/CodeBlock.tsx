@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Copy, Check, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeHtml } from '@/utils/htmlSanitizer';
 
 interface CodeBlockProps {
   code: string;
@@ -153,7 +154,7 @@ const CodeBlock = ({ code, language = 'text', filename }: CodeBlockProps) => {
         <code 
           className="text-sm font-mono"
           dangerouslySetInnerHTML={{ 
-            __html: formatCode(code, language) 
+            __html: sanitizeHtml(formatCode(code, language)) 
           }}
         />
       </pre>

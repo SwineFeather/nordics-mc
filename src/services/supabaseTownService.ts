@@ -96,6 +96,8 @@ export interface SupabaseTownData {
   created_at: string;
   updated_at: string;
   image_url?: string | null;
+  location_x?: number | null;
+  location_z?: number | null;
   // Additional fields for compatibility
   capital?: boolean;
   public?: boolean;
@@ -396,7 +398,7 @@ export class SupabaseTownService {
 
   static async getAllTowns(): Promise<SupabaseTownData[]> {
     try {
-      console.log('🔍 Fetching all towns from Supabase...');
+      // Fetching all towns from Supabase
       
       // Fetch towns using the actual schema
       const { data: towns, error } = await supabase
@@ -404,7 +406,7 @@ export class SupabaseTownService {
         .select('*')
         .order('name');
 
-      console.log('📊 Raw towns response:', { data: towns, error });
+      // Raw towns response
 
       if (error) {
         console.error('❌ Error fetching towns:', error);
@@ -416,12 +418,7 @@ export class SupabaseTownService {
         throw new Error('No towns found in database.');
       }
 
-      console.log(`✅ Found ${towns.length} towns in database:`, towns.map(t => ({ 
-        name: t.name, 
-        mayor: (t as unknown as DatabaseTown).mayor_name, 
-        population: (t as unknown as DatabaseTown).residents_count, 
-        nation_id: (t as unknown as DatabaseTown).nation_id 
-      })));
+      // Found towns in database
 
       // Use nation_name directly from the towns table
       const townsWithNations = await Promise.all(
@@ -451,9 +448,9 @@ export class SupabaseTownService {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             };
-            console.log(`✅ Found nation for ${dbTown.name}: ${dbTown.nation_name}`);
+            // Found nation for town
           } else {
-            console.log(`🏘️ Town ${dbTown.name} is independent (no nation_name)`);
+            // Town is independent
           }
 
           // Parse residents from JSONB
@@ -474,6 +471,8 @@ export class SupabaseTownService {
             level: dbTown.level || 1,
             total_xp: Number(dbTown.total_xp) || 0,
             image_url: dbTown.image_url || null,
+            location_x: dbTown.location_x,
+            location_z: dbTown.location_z,
             created_at: dbTown.created_at || new Date().toISOString(),
             updated_at: dbTown.last_updated || new Date().toISOString(),
             nation: nationData,
@@ -492,19 +491,14 @@ export class SupabaseTownService {
             residents: residents
           };
 
-          console.log(`🏘️ Processed town ${dbTown.name}:`, {
-            population: townData.population,
-            mayor: townData.mayor,
-            founded: townData.founded,
-            nation: townData.nation?.name,
-            residents: townData.residents?.length || 0
-          });
+          // Processed town ${dbTown.name}
+          // Removed debug logging to reduce console noise
 
           return townData;
         })
       );
 
-      console.log(`🎉 Successfully processed ${townsWithNations.length} towns with nation data`);
+      // Successfully processed towns with nation data
       return townsWithNations;
     } catch (error) {
       console.error('💥 Error in getAllTowns:', error);
@@ -514,14 +508,14 @@ export class SupabaseTownService {
 
   static async getAllNations(): Promise<SupabaseNationData[]> {
     try {
-      console.log('🔍 Fetching all nations from Supabase...');
+      // Fetching all nations from Supabase
       
       const { data: nations, error } = await supabase
         .from('nations')
         .select('*')
         .order('name');
 
-      console.log('📊 Raw nations response:', { data: nations, error });
+      // Raw nations response
 
       if (error) {
         console.error('❌ Error fetching nations:', error);
@@ -533,12 +527,7 @@ export class SupabaseTownService {
         throw new Error('No nations found in database.');
       }
 
-      console.log(`✅ Found ${nations.length} nations in database:`, nations.map(n => ({ 
-        name: n.name, 
-        leader: (n as unknown as DatabaseNation).leader_name, 
-        population: (n as unknown as DatabaseNation).residents_count, 
-        capital: (n as unknown as DatabaseNation).capital_town_name 
-      })));
+      // Found nations in database
 
       // Map the actual database fields to the expected interface
       const mappedNations: SupabaseNationData[] = nations.map(nation => {
@@ -647,7 +636,7 @@ export class SupabaseTownService {
         throw new Error('No nations found in database.');
       }
 
-      console.log(`✅ Found ${nations.length} nations in database`);
+      // Found nations in database
 
       // Fetch all towns at once
       const { data: allTowns, error: townsError } = await supabase
@@ -660,7 +649,7 @@ export class SupabaseTownService {
         throw new Error(`Failed to fetch towns: ${townsError.message}`);
       }
 
-      console.log(`✅ Found ${allTowns?.length || 0} total towns in database`);
+      // Found total towns in database
 
       // Group towns by nation_name
       const townsByNation = new Map<string, DatabaseTown[]>();
@@ -674,14 +663,14 @@ export class SupabaseTownService {
         }
       });
 
-      console.log('📊 Towns grouped by nation:', Object.fromEntries(townsByNation));
+      // Towns grouped by nation
 
       // Map nations with their towns
       const nationsWithTowns = await Promise.all((nations || []).map(async (nation) => {
         const dbNation = nation as unknown as DatabaseNation;
         const nationTowns = townsByNation.get(dbNation.name) || [];
         
-        console.log(`🔗 Nation ${dbNation.name} has ${nationTowns.length} towns:`, nationTowns.map(t => t.name));
+        // Nation has towns
 
         // Map towns to expected interface
         const mappedTowns: SupabaseTownData[] = nationTowns.map(town => {
@@ -741,7 +730,7 @@ export class SupabaseTownService {
         };
       }));
 
-      console.log(`🎉 Successfully fetched ${nationsWithTowns.length} nations with their towns`);
+      // Successfully fetched nations with their towns
       return nationsWithTowns;
     } catch (error) {
       console.error('💥 Error in getNationsWithTowns:', error);

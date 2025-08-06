@@ -347,9 +347,9 @@ ${(await this.getTowns()).map(town =>
       toast.info('🔄 Syncing nations and towns to wiki (hybrid system)...');
 
       // Fetch all nations
-      console.log('🔍 Fetching nations from database...');
+      // Fetching nations from database...
       const nations = await this.getNations();
-      console.log(`✅ Found ${nations.length} nations in database`);
+      // Found nations in database
 
       // Fetch all towns
       console.log('🔍 Fetching towns from database...');

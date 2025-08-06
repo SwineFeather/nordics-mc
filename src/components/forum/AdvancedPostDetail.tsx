@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { sanitizeHtml } from '@/utils/htmlSanitizer';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
@@ -554,7 +555,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
             <CardContent className="space-y-6">
               {/* Post Content */}
               <div className="prose max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} />
               </div>
               
               {post.tags && post.tags.length > 0 && (
@@ -645,7 +646,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
                           </span>
                         </div>
                         <div className="prose max-w-none">
-                          <div dangerouslySetInnerHTML={{ __html: reply.content }} />
+                          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(reply.content) }} />
                         </div>
                       </div>
                     ))}

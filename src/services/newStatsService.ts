@@ -166,10 +166,10 @@ export const flattenNestedStats = (nestedStats: any): Record<string, number> => 
 // Fetch players with their stats from the new structure
 export const fetchPlayersFromNewStructure = async ({ limit, offset }: { limit: number; offset: number }) => {
   try {
-    console.log('Fetching players from new database structure...');
+    // Fetching players from new database structure
     
     // TEMPORARILY DISABLED - Database structure mismatch
-    console.log('Service temporarily disabled due to database structure mismatch');
+    // Service temporarily disabled due to database structure mismatch
     return { players: [], count: 0 };
   } catch (error) {
     console.error('Error in fetchPlayersFromNewStructure:', error);

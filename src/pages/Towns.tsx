@@ -11,7 +11,7 @@ import ShopsTab from '@/components/towns/ShopsTab';
 import { useCompaniesData } from '@/hooks/useCompaniesData';
 import { useShopData } from '@/hooks/useShopData';
 import { useServerStatus } from '@/hooks/useServerStatus';
-import { Crown, DollarSign, UserPlus, Building2, MapPin, HelpCircle, Building, Store } from 'lucide-react';
+import { Crown, DollarSign, UserPlus, Building2, MapPin, HelpCircle, Building, Store, Flag } from 'lucide-react';
 import {
   Dialog,
   DialogTrigger,
@@ -21,6 +21,8 @@ import {
   DialogDescription,
   DialogClose
 } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface TownsProps {
   defaultTab?: 'nations' | 'markets';
@@ -30,7 +32,6 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
   const { companies } = useCompaniesData();
   const { shops } = useShopData();
   const { status: serverStatus } = useServerStatus();
-  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -58,13 +59,55 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
 
   return (
     <div className="min-h-[100vh] bg-background py-8">
-      {/* Getting Started Guide Section (just buttons with popups) */}
+      {/* Nordic Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 mb-10">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-red-950/20 border border-orange-200 dark:border-orange-800">
+          {/* Nordic flag pattern background */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23f97316%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%223%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50"></div>
+          
+          <Card className="border-0 bg-transparent shadow-none">
+            <CardContent className="p-8 relative">
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-2 mb-4">
+                  <Flag className="h-6 w-6 text-red-500" />
+                  <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 hover:bg-orange-200 dark:hover:bg-orange-800">
+                    Nordic Nations
+                  </Badge>
+                </div>
+                
+                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                  Discover{' '}
+                  <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                    Nations & Towns
+                  </span>
+                </h1>
+                
+                <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+                  Explore the diverse communities across our Nordic-inspired world. 
+                  From bustling towns to mighty nations, find your perfect home in the Nordics.
+                </p>
+                
+                {/* Nordic flag colors accent */}
+                <div className="flex justify-center space-x-2 mb-6">
+                  <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+                  <div className="w-3 h-3 bg-white border border-gray-300 rounded-full"></div>
+                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Getting Started Guide Section */}
       <div className="max-w-5xl mx-auto mb-10">
         <div className="rounded-2xl bg-card shadow-lg p-6 md:p-8 border border-border flex flex-col md:flex-row gap-8 items-center justify-center">
           <div className="flex gap-4">
             <Dialog>
               <DialogTrigger asChild>
-                <button className="w-16 h-16 bg-primary text-primary-foreground font-semibold rounded-full shadow-lg hover:bg-primary/90 transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-xl">
+                <button className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-full shadow-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-xl">
                   <HelpCircle className="w-8 h-8" />
                 </button>
               </DialogTrigger>
@@ -88,7 +131,7 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
             
             <Dialog>
               <DialogTrigger asChild>
-                <button className="w-16 h-16 bg-green-500 text-white font-semibold rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-xl">
+                <button className="w-16 h-16 bg-gradient-to-r from-blue-500 to-yellow-400 text-white font-semibold rounded-full shadow-lg hover:from-blue-600 hover:to-yellow-500 transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-xl">
                   <HelpCircle className="w-8 h-8" />
                 </button>
               </DialogTrigger>
@@ -115,7 +158,7 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
           <div className="text-center md:text-left">
             <h3 className="text-lg font-semibold mb-2">Need Help Getting Started?</h3>
             <p className="text-muted-foreground text-sm">
-              Click the buttons above to learn how to join or create a town
+              Use the help buttons above to learn how to join or create a town
             </p>
           </div>
         </div>
@@ -123,20 +166,19 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
 
       {/* Main Content Card */}
       <div className="max-w-7xl mx-auto px-4">
-        <TownsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         <div className="flex justify-center mb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-1 w-full max-w-4xl mx-auto border-2 border-primary/20 shadow-lg">
+            <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-xl p-1 w-full max-w-4xl mx-auto border-2 border-orange-200 dark:border-orange-800 shadow-lg">
               <TabsTrigger 
                 value="nations" 
-                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-primary/10 hover:scale-105"
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
               >
                 <Crown className="w-5 h-5" />
                 Nations & Towns
               </TabsTrigger>
               <TabsTrigger 
                 value="markets" 
-                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-primary/10 hover:scale-105"
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
               >
                 <Building className="w-5 h-5" />
                 Markets
@@ -190,17 +232,17 @@ const NationsAndTownsTab: React.FC = () => {
       {/* Sub-navigation for Nations & Towns */}
       <div className="flex justify-center">
         <Tabs value={activeSubTab} onValueChange={(value: 'nations' | 'towns') => handleSubTabChange(value)} className="w-full">
-          <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-xl p-1 w-full max-w-md mx-auto border border-blue-200 dark:border-blue-800 shadow-lg">
+          <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-xl p-1 w-full max-w-md mx-auto border border-orange-200 dark:border-orange-800 shadow-lg">
             <TabsTrigger 
               value="nations" 
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900 hover:scale-105"
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
             >
               <Crown className="w-4 h-4" />
               Nations
             </TabsTrigger>
             <TabsTrigger 
               value="towns" 
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900 hover:scale-105"
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
             >
               <MapPin className="w-4 h-4" />
               Towns
@@ -255,24 +297,24 @@ const MarketsTab: React.FC = () => {
       {/* Sub-navigation for Markets */}
       <div className="flex justify-center">
         <Tabs value={activeSubTab} onValueChange={(value: 'groups' | 'businesses' | 'shops') => handleSubTabChange(value)} className="w-full">
-          <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-green-50 to-yellow-50 dark:from-green-950 dark:to-yellow-950 rounded-xl p-1 w-full max-w-2xl mx-auto border border-green-200 dark:border-green-800 shadow-lg">
+          <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-xl p-1 w-full max-w-2xl mx-auto border border-orange-200 dark:border-orange-800 shadow-lg">
             <TabsTrigger 
               value="groups" 
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-green-100 dark:hover:bg-green-900 hover:scale-105"
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
             >
               <Building className="w-4 h-4" />
               Enterprises
             </TabsTrigger>
             <TabsTrigger 
               value="businesses" 
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-green-100 dark:hover:bg-green-900 hover:scale-105"
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
             >
               <Building2 className="w-4 h-4" />
               Business Listings
             </TabsTrigger>
             <TabsTrigger 
               value="shops" 
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-green-100 dark:hover:bg-green-900 hover:scale-105"
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
             >
               <Store className="w-4 h-4" />
               Shops
