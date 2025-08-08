@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useOptimizedWikiData } from '../hooks/useOptimizedWikiData';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -20,6 +21,8 @@ const OptimizedWiki: React.FC = () => {
   const { user, profile } = useAuth();
   const userRole = (profile?.role as UserRole) || 'member';
   const permissions = getRolePermissions(userRole);
+  const { slug } = useParams<{ slug?: string }>();
+  const navigate = useNavigate();
   
   const { 
     categories, 
@@ -58,6 +61,11 @@ const OptimizedWiki: React.FC = () => {
   const handlePageSelect = useCallback(async (page: WikiPage) => {
     setSelectedPage(page);
     setPageContent(''); // Clear previous content
+    // Reflect selection in the URL for deep-linking
+    if (page?.slug) {
+      // Use the standard /wiki path so existing links keep working
+      navigate(`/wiki/${page.slug}`, { replace: false });
+    }
     
     if (page.content) {
       // If page already has content, use it
@@ -80,6 +88,29 @@ const OptimizedWiki: React.FC = () => {
       }
     }
   }, [loadPageContent]);
+
+  // Auto-select a page if there's a slug in the URL
+  useEffect(() => {
+    if (!slug || categories.length === 0) return;
+
+    // Try to find exact slug match
+    const page = allPages.find(p => p.slug === slug);
+
+    if (page) {
+      handlePageSelect(page);
+      return;
+    }
+
+    // Fallbacks: try ID-derived slug or title-based matching
+    const fallback = allPages.find(p =>
+      p.id.replace(/\//g, '-').replace(/\.md$/, '') === slug ||
+      p.title.toLowerCase().replace(/\s+/g, '-') === slug.toLowerCase()
+    );
+
+    if (fallback) {
+      handlePageSelect(fallback);
+    }
+  }, [slug, categories, allPages, handlePageSelect]);
 
   const handleRefresh = async () => {
     try {

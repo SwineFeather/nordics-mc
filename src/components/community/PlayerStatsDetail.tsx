@@ -54,6 +54,7 @@ import { calculateLevelInfoSync } from '@/lib/leveling';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
+import { usePlayerResidentData } from '@/hooks/usePlayerResidentData';
 
 interface PlayerStatsDetailProps {
   profile: any;
@@ -109,6 +110,7 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
 
   // Refetch player profile from backend
   const { profile: freshProfile, refetch } = usePlayerProfile(profile.id);
+  const { data: residentData } = usePlayerResidentData(profile.username);
 
   // When freshProfile changes, update local profile state
   useEffect(() => {
@@ -198,6 +200,7 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
   // Parse dates correctly
   const joinDate = parseDate(profile.joinDate);
   const lastSeenDate = parseDate(profile.lastSeen);
+  const location = residentData?.town_name || profile.town || 'Wanderer';
   
   // Get top stats by category
   const topMined = getTopStats(stats, 'mined');
@@ -336,7 +339,7 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-muted-foreground" />
               <span className="text-muted-foreground">Location:</span>
-              <span className="font-medium">{profile.town || 'Wanderer'}</span>
+              <span className="font-medium">{location}</span>
             </div>
           </div>
 

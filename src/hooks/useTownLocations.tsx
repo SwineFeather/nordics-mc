@@ -20,13 +20,12 @@ export const useTownLocations = () => {
       try {
         setLoading(true);
         
-        // Only fetch towns that have location data and are active
+        // Fetch towns that have location data (show all regardless of public flag for home map)
         const { data, error } = await supabase
           .from('towns')
           .select('id, name, location_x, location_z, is_capital, nation_name')
           .not('location_x', 'is', null)
           .not('location_z', 'is', null)
-          .eq('is_public', true)
           .order('name');
 
         if (error) {

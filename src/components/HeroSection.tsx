@@ -7,36 +7,50 @@ import { useTownLocations } from '@/hooks/useTownLocations';
 import OnlinePlayersHover from './OnlinePlayersHover';
 import NordicsLogo from './NordicsLogo';
 import ServerIPModal from './ServerIPModal';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const HeroSection = () => {
   const { status, loading: serverStatusLoading } = useServerStatus();
   const { towns, loading: townsLoading } = useTownLocations();
   const [showServerModal, setShowServerModal] = useState(false);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const VIEWBOX_WIDTH = 15360;
+  const VIEWBOX_HEIGHT = 8832;
+  const initialScale = typeof window !== 'undefined' && window.innerWidth
+    ? Math.max(0.05, window.innerWidth / VIEWBOX_WIDTH)
+    : 0.1;
+  const [svgScale, setSvgScale] = useState(initialScale); // screenPixelsPerSvgUnit = widthPx / VIEWBOX_WIDTH
+
 
   // Use server status data only
   const playersOnline = status?.players?.online ?? 0;
   const playersList = status?.players?.list || [];
 
-  // Coordinate conversion function
+  // Coordinate conversion function aligned with world extents
   const convertToMapCoordinates = (x: number, z: number) => {
-    // World coordinates: x: -7680 to 7679, z: 4224 to 13055
-    // Map coordinates: 0 to 1000 (SVG viewBox)
-    
-    // Calculate world dimensions correctly
-    const worldWidth = 7679 - (-7680); // 15359
-    const worldHeight = 13055 - 4224; // 8831
-    
-    // Normalize coordinates to 0-1 range
-    const normalizedX = (x - (-7680)) / worldWidth;
-    const normalizedZ = (z - 4224) / worldHeight;
-    
-    // Full resolution image should match world coordinates exactly
-    const mapX = normalizedX * 1000;
-    const mapZ = normalizedZ * 800;
-    
-    return { x: mapX, y: mapZ };
+    // World extents used elsewhere in the app: x ∈ [-7680, 7679], z ∈ [4224, 13055]
+    // SVG viewBox will be set to [0, 15360] × [0, 8832]
+    const WORLD_MIN_X = -7680;
+    const WORLD_MIN_Z = 4224;
+    const svgX = x - WORLD_MIN_X; // shift to [0, 15360]
+    const svgY = z - WORLD_MIN_Z; // shift to [0, 8832]
+    return { x: svgX, y: svgY };
   };
+
+  // Track current pixel-per-unit scale so markers can be sized in CSS pixels
+  useEffect(() => {
+    const updateScale = () => {
+      const el = svgRef.current;
+      if (!el) return;
+      const widthPx = el.clientWidth || el.getBoundingClientRect().width;
+      if (widthPx > 0) {
+        setSvgScale(widthPx / VIEWBOX_WIDTH);
+      }
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
   return (
     <section className="relative overflow-hidden py-20 lg:py-32">
@@ -67,76 +81,83 @@ const HeroSection = () => {
         }}></div>
       </div>
 
-      {/* Europe outline with town dots */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none">
+      {/* Europe outline (dimmed) */}
+      <div className="absolute inset-0 pointer-events-none z-0">
         <img 
           src="/heightmapVector-full.png" 
           alt="Europe outline"
           className="w-full h-full object-contain"
           style={{ 
-            opacity: 0.25,
-            filter: 'brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(190deg) brightness(118%) contrast(119%)'
+            opacity: 0.28,
+            // Warm orange tint, reduce blue/white feel
+            filter: 'sepia(85%) saturate(250%) hue-rotate(-10deg) brightness(0.95) contrast(1.05)',
+            mixBlendMode: 'multiply'
           }}
         />
-        
-        {/* Town dots overlay */}
-        <svg 
-          viewBox="0 0 1000 800" 
-          className="absolute inset-0 w-full h-full"
-          style={{ opacity: 0.6 }}
-        >
-          {!townsLoading && towns.map((town) => {
-            if (!town.location_x || !town.location_z) return null;
-            
-            const coords = convertToMapCoordinates(town.location_x, town.location_z);
-            const isCapital = town.is_capital;
-            
-            return (
-              <g key={town.id}>
-                {/* Flickering outline effect */}
-                <circle
-                  cx={coords.x}
-                  cy={coords.y}
-                  r={isCapital ? "8" : "6"}
-                  fill="none"
-                  stroke="#dc2626"
-                  strokeWidth="2"
-                  strokeOpacity="0.7"
-                  className="town-dot"
-                  style={{
-                    animationDelay: `${Math.random() * 2}s`
-                  }}
-                />
-                {/* Main dot */}
-                <circle
-                  cx={coords.x}
-                  cy={coords.y}
-                  r={isCapital ? "4" : "3"}
-                  fill="#dc2626"
-                  className="town-dot"
-                  style={{
-                    animationDelay: `${Math.random() * 1}s`
-                  }}
-                />
-                {/* Glow effect */}
-                <circle
-                  cx={coords.x}
-                  cy={coords.y}
-                  r={isCapital ? "12" : "10"}
-                  fill="none"
-                  stroke="#dc2626"
-                  strokeWidth="1"
-                  strokeOpacity="0.4"
-                  className="town-glow"
-                  style={{
-                    animationDelay: `${Math.random() * 3}s`
-                  }}
-                />
-              </g>
-            );
-          })}
-        </svg>
       </div>
+      
+      {/* Town dots overlay (full opacity, constant pixel size) */}
+      <svg 
+        ref={svgRef}
+        viewBox="0 0 15360 8832" 
+        className="absolute inset-0 w-full h-full pointer-events-none z-30"
+        preserveAspectRatio="xMidYMid meet"
+        style={{ opacity: 1 }}
+      >
+        {!townsLoading && towns.map((town) => {
+          if (town.location_x === null || town.location_z === null) return null;
+
+          const coords = convertToMapCoordinates(town.location_x, town.location_z);
+          const isCapital = town.is_capital;
+
+          const dotPx = isCapital ? 8 : 6;
+          const outlinePx = isCapital ? 14 : 12;
+          const haloPx = isCapital ? 18 : 16;
+          const strokePx = 2.5;
+          const haloStrokePx = 2.5;
+
+          const rDot = dotPx / svgScale;
+          const rOutline = outlinePx / svgScale;
+          const rHalo = haloPx / svgScale;
+          const strokeW = strokePx / svgScale;
+          const haloStrokeW = haloStrokePx / svgScale;
+
+          const color = '#f97316'; // orange-500
+
+          return (
+            <g key={town.id}>
+              {/* White halo for contrast on any background */}
+              <circle
+                cx={coords.x}
+                cy={coords.y}
+                r={rHalo}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={haloStrokeW}
+                strokeOpacity="0.9"
+              />
+              {/* Outline */}
+              <circle
+                cx={coords.x}
+                cy={coords.y}
+                r={rOutline}
+                fill="none"
+                stroke={color}
+                strokeWidth={strokeW}
+                strokeOpacity="1"
+              />
+              {/* Main dot */}
+              <circle
+                cx={coords.x}
+                cy={coords.y}
+                r={rDot}
+                fill={color}
+                opacity="1"
+              />
+            </g>
+          );
+        })}
+      </svg>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">

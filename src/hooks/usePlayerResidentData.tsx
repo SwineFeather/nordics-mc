@@ -40,11 +40,78 @@ export const usePlayerResidentData = (playerName?: string) => {
           .eq('name', playerName)
           .single();
 
-        if (residentError) {
-          setError(residentError.message);
-          setData(null);
-        } else {
+        if (!residentError && residentData) {
           setData(residentData || null);
+          // If we already have a town_name, we're done
+          if (residentData?.town_name) {
+            return;
+          }
+        }
+
+        // Fallback: resolve town via towns.residents JSONB when no residents row or missing town_name
+        try {
+          // Use JSONB containment to leverage the index on residents->name
+          const { data: townRow, error: townsError } = await supabase
+            .from('towns')
+            .select('name, residents')
+            .contains('residents', [{ name: playerName }])
+            .maybeSingle();
+
+          if (townsError) {
+            // If we also had a residentError and townsError, prefer exposing the residentError
+            if (residentError) {
+              setError(residentError.message);
+              setData(null);
+              return;
+            }
+            // Otherwise, surface townsError
+            setError(townsError.message);
+            setData(residentData || null);
+            return;
+          }
+
+          if (townRow && (townRow as any).name) {
+            const resolvedTownName = (townRow as any).name as string;
+            const residents = Array.isArray((townRow as any).residents) ? (townRow as any).residents : [];
+            const matchedResident = residents.find((r: any) => r?.name === playerName) || null;
+            // Merge with existing residentData when available, otherwise construct minimal object
+            const merged: PlayerResidentData = {
+              uuid: (residentData?.uuid as string) || (matchedResident?.uuid as string) || '',
+              name: residentData?.name || matchedResident?.name || playerName,
+              registered: (residentData?.registered as string) || new Date(0).toISOString(),
+              activity_score: (residentData?.activity_score as number) || 0,
+              last_login: (residentData?.last_login as string) || new Date(0).toISOString(),
+              is_king: Boolean(residentData?.is_king) || false,
+              is_mayor: Boolean(residentData?.is_mayor) || Boolean(matchedResident?.is_mayor) || false,
+              nation_name: (residentData?.nation_name as string | null) || null,
+              town_name: resolvedTownName,
+              balance: residentData?.balance,
+              // Spread any remaining resident fields we might have fetched
+              ...(residentData || {}),
+            } as PlayerResidentData;
+
+            setData(merged);
+            return;
+          }
+
+          // If no town was resolved and there was an error from residents table, expose it
+          if (residentError) {
+            setError(residentError.message);
+            setData(null);
+            return;
+          }
+
+          // Otherwise keep whatever we had (may be null)
+          setData(residentData || null);
+        } catch (fallbackErr) {
+          console.error('Error resolving town from towns.residents JSONB:', fallbackErr);
+          if (residentError) {
+            setError(residentError.message);
+            setData(null);
+          } else {
+            setError(fallbackErr instanceof Error ? fallbackErr.message : 'Failed to resolve town from towns table');
+            setData(residentData || null);
+          }
         }
       } catch (err) {
         console.error('Error fetching player resident data:', err);
