@@ -30,11 +30,9 @@ const SUGGESTED_QUESTIONS = [
   'How do I link my account?'
 ];
 
-import { XAI_CONFIG, getXaiApiKey } from '@/config/apiKeys';
+import { aiChatService, AIChatMessage } from '@/services/aiChatService';
 
-const API_KEY = getXaiApiKey();
-const API_URL = XAI_CONFIG.API_URL;
-const MAX_REQUESTS = XAI_CONFIG.MAX_REQUESTS;
+const MAX_REQUESTS = 5;
 const THOR_SYSTEM_PROMPT = `You are Thor the Bot, the Norse god of thunder, now serving as a friendly and mighty assistant for the Nordics Minecraft community website. The server and community are called 'Nordics'—mention this often and make it clear you are the Nordics AI. Speak with the confidence and warmth of a Viking god, using Norse-flavored language and humor, but always be helpful, clear, and approachable. You are an expert on all things related to the Nordics Minecraft server, its features, rules, and community. Greet users with a hearty Norse welcome in your very first message only. After that, do not greet again. Answer questions as Thor would, but keep responses concise, relevant to Nordics, and with balanced detail (not too short, not too long). 
 
 CRITICAL INSTRUCTIONS FOR DATA READING:
@@ -125,31 +123,20 @@ export default function FloatingAIChat() {
         console.log('Sending to AI - User message:', content);
         console.log('Sending to AI - Conversation history:', messages);
         
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${API_KEY}`,
-          },
-          body: JSON.stringify({
-            messages: [
-              { role: 'system', content: systemPrompt },
-              ...messages.map(m => ({ role: m.role, content: m.content })),
-              { role: 'user', content }
-            ],
-            model: 'grok-3-mini',
-            stream: false,
-            temperature: 0.7
-          })
-        });
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json();
-      let aiContent = data.choices?.[0]?.message?.content || 'By Odin, I could not answer that.';
-      // Remove greeting if it's the first user message and the AI repeats it
-      if (isFirstUserMessage) {
-        aiContent = aiContent.replace(/^(hail,? (traveler|adventurer|friend)[.!]?|hello|hi|greetings)[\s,\-]*/i, '');
-      }
-      setMessages((prev) => [...prev, { role: 'assistant', content: aiContent.trim() }]);
+        // Use the secure backend service
+        const response = await aiChatService.sendMessageWithContext(
+          content,
+          messages as AIChatMessage[],
+          systemPrompt,
+          aiContext
+        );
+        
+        let aiContent = response.content || 'By Odin, I could not answer that.';
+        // Remove greeting if it's the first user message and the AI repeats it
+        if (isFirstUserMessage) {
+          aiContent = aiContent.replace(/^(hail,? (traveler|adventurer|friend)[.!]?|hello|hi|greetings)[\s,\-]*/i, '');
+        }
+        setMessages((prev) => [...prev, { role: 'assistant', content: aiContent.trim() }]);
     } catch (e) {
       setError('Failed to get a response from Thor.');
     } finally {

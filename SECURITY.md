@@ -2,9 +2,21 @@
 
 ## Critical Security Fixes Applied
 
-### 1. API Key Security
-**Issue**: Hardcoded X.AI API keys were exposed in multiple files
-**Fix**: All API keys are now managed through environment variables
+### 1. API Key Security (CRITICAL FIX)
+**Issue**: X.AI API key was exposed in frontend code and accessible to anyone viewing the source code
+**Fix**: Moved API key to secure backend with Supabase Edge Functions
+
+**Security Impact**: 
+- ❌ **BEFORE**: API key visible in browser dev tools and source code
+- ✅ **AFTER**: API key completely hidden from frontend, only accessible on secure backend
+
+**Files Fixed**:
+- `src/components/chat/FloatingAIChat.tsx` - Now uses secure backend service
+- `src/services/thorMinecraftService.ts` - Now uses secure backend service  
+- `src/hooks/useMinecraftWebSocket.tsx` - Removed API key usage
+- `src/config/apiKeys.ts` - Deprecated frontend API key functions
+- `supabase/functions/ai-chat/index.ts` - New secure backend proxy
+- `supabase/functions/thor-minecraft/index.ts` - New secure backend proxy
 
 **Files Fixed**:
 - `src/components/chat/FloatingAIChat.tsx`
@@ -25,13 +37,17 @@
 
 ### Required Environment Variables
 
-Create a `.env` file in the root directory with the following variables:
+**IMPORTANT**: API keys are now handled securely on the backend. No frontend environment variables are needed.
+
+Set the following environment variable in your Supabase project:
 
 ```bash
-# X.AI API Configuration
+# X.AI API Configuration (Backend Only)
 # Get your API key from https://x.ai/
-VITE_XAI_API_KEY=your_xai_api_key_here
+XAI_API_KEY=your_xai_api_key_here
 ```
+
+**Location**: Supabase Dashboard > Settings > Edge Functions > Environment Variables
 
 ### Security Features Implemented
 
@@ -53,7 +69,10 @@ The sanitization utility (`src/utils/htmlSanitizer.ts`) provides:
 
 ### API Key Security
 
-- API keys are loaded from environment variables only
+- API keys are stored securely on the backend only
+- No API keys are exposed in frontend code
+- All AI requests go through authenticated Supabase Edge Functions
+- User authentication required for all AI features
 - Validation ensures keys are present before use
 - Development warnings when keys are missing
 - No hardcoded keys in source code

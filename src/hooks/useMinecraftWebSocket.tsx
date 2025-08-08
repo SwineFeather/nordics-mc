@@ -207,18 +207,8 @@ export const useMinecraftWebSocket = () => {
             // Process Thor trigger using the existing service
             const thorService = ThorMinecraftService.getInstance();
             
-            // Set API key if not already set
-            if (!thorService.isApiKeyConfigured()) {
-              try {
-                const { getXaiApiKey } = await import('@/config/apiKeys');
-                const apiKey = getXaiApiKey();
-                if (apiKey) {
-                  thorService.setApiKey(apiKey);
-                }
-              } catch (error) {
-                console.error('Failed to configure Thor API key:', error);
-              }
-            }
+            // API key is now handled securely on the backend
+            // No need to set API key anymore
             
             thorService.processMinecraftMessage(
               data.message,
@@ -558,18 +548,8 @@ export const useMinecraftWebSocket = () => {
       // Process the test message through Thor service
       const thorService = ThorMinecraftService.getInstance();
       
-      // Set API key if not already set
-      if (!thorService.isApiKeyConfigured()) {
-        try {
-          const { getXaiApiKey } = await import('@/config/apiKeys');
-          const apiKey = getXaiApiKey();
-          if (apiKey) {
-            thorService.setApiKey(apiKey);
-          }
-        } catch (error) {
-          console.error('Failed to configure Thor API key:', error);
-        }
-      }
+      // API key is now handled securely on the backend
+      // No need to set API key anymore
       
       const thorResponse = await thorService.processMinecraftMessage(
         testMessage,

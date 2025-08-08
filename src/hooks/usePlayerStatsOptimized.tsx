@@ -474,16 +474,50 @@ export const fetchPlayerProfilesOptimized = async ({
           updated_at: player.updated_at
         }));
 
-      // Fetch all required data in parallel
-      const uuids = playerProfiles.map(p => p.uuid);
-      const [detailedStatsMap, badgesMap, residentsMap] = await Promise.all([
-        skipDetailedStats ? Promise.resolve(new Map()) : getDetailedPlayerStatsBatch(uuids),
-        getPlayerBadgesBatch(uuids),
+      // If we have fewer top players than the limit, fetch additional players
+      let additionalPlayers: PlayerProfileFromDb[] = [];
+      if (playerProfiles.length < limit) {
+        const remainingLimit = limit - playerProfiles.length;
+        const topPlayerUuids = playerProfiles.map(p => p.uuid);
+        
+        const { data: additionalData, error: additionalError } = await supabase
+          .from('players')
+          .select('*')
+          .not('uuid', 'in', `(${topPlayerUuids.join(',')})`)
+          .order('last_seen', { ascending: false, nullsFirst: false })
+          .limit(remainingLimit);
+
+        if (additionalError) {
+          console.error('Error fetching additional players:', additionalError);
+        } else if (additionalData) {
+          additionalPlayers = additionalData.map((player: any) => ({
+            uuid: player.uuid,
+            name: player.name,
+            created_at: player.created_at,
+            last_seen: player.last_seen,
+            updated_at: player.updated_at
+          }));
+        }
+      }
+
+      // Combine top players with additional players
+      const allPlayerProfiles = [...playerProfiles, ...additionalPlayers];
+
+      // Fetch all required data in parallel for all players
+      const allUuids = allPlayerProfiles.map(p => p.uuid);
+      const [additionalDetailedStatsMap, additionalBadgesMap, additionalResidentsMap] = await Promise.all([
+        skipDetailedStats ? Promise.resolve(new Map()) : getDetailedPlayerStatsBatch(allUuids),
+        getPlayerBadgesBatch(allUuids),
         getAllResidentsData()
       ]);
 
-      // Process players with their data
-      const playersWithPriority = playerProfiles.map((player) => {
+      // Merge the data maps
+      const detailedStatsMap = new Map([...additionalDetailedStatsMap]);
+      const badgesMap = new Map([...additionalBadgesMap]);
+      const residentsMap = new Map([...additionalResidentsMap]);
+
+      // Process all players with their data
+      const allPlayersWithPriority = allPlayerProfiles.map((player) => {
         const detailedStats = detailedStatsMap.get(player.uuid) || {};
         const badges = badgesMap.get(player.uuid) || [];
         const residentData = residentsMap.get(player.name);
@@ -496,37 +530,45 @@ export const fetchPlayerProfilesOptimized = async ({
         return { profile, priority };
       });
 
-      // No need to sort, already in the provided order
-      const profiles = playersWithPriority.map(({ profile }) => profile);
+      // Sort by priority
+      allPlayersWithPriority.sort((a, b) => {
+        if (b.priority !== a.priority) {
+          return b.priority - a.priority;
+        }
+        // Then by name for players with same priority
+        return (a.profile.username || a.profile.displayName || '').localeCompare(b.profile.username || b.profile.displayName || '');
+      });
+
+      const profiles = allPlayersWithPriority.map(({ profile }) => profile);
+
+      // Get total count of all players for proper pagination
+      const { count: totalCount } = await supabase
+        .from('players')
+        .select('*', { count: 'exact', head: true });
 
       return {
         players: profiles,
-        count: profiles.length
+        count: totalCount || profiles.length
       };
     }
 
-    // For subsequent pages, fetch only non-top players
-    const { count: totalCount } = await supabase
-      .from('players')
-      .select('*', { count: 'exact', head: true });
-
-    const { data: restPlayersData, error: restPlayersError } = await supabase
+    // For subsequent pages, fetch all players and sort by priority
+    const { data: allPlayersData, error: allPlayersError } = await supabase
       .from('players')
       .select('*')
-      .not('uuid', 'in', `(${TOP_PLAYERS_BY_PLAYTIME.join(',')})`)
       .order('last_seen', { ascending: false, nullsFirst: false })
-      .range(offset - TOP_PLAYERS_BY_PLAYTIME.length, offset - TOP_PLAYERS_BY_PLAYTIME.length + limit - 1);
+      .range(offset, offset + limit - 1);
 
-    if (restPlayersError) {
-      console.error('Error fetching rest players:', restPlayersError);
-      throw restPlayersError;
+    if (allPlayersError) {
+      console.error('Error fetching players:', allPlayersError);
+      throw allPlayersError;
     }
 
-    if (!restPlayersData || restPlayersData.length === 0) {
-      return { players: [], count: totalCount || 0 };
+    if (!allPlayersData || allPlayersData.length === 0) {
+      return { players: [], count: 0 };
     }
 
-    const playerProfiles: PlayerProfileFromDb[] = restPlayersData.map((player: any) => ({
+    const playerProfiles: PlayerProfileFromDb[] = allPlayersData.map((player: any) => ({
       uuid: player.uuid,
       name: player.name,
       created_at: player.created_at,
@@ -566,6 +608,11 @@ export const fetchPlayerProfilesOptimized = async ({
     });
 
     const profiles = playersWithPriority.map(({ profile }) => profile);
+
+    // Get total count for proper pagination
+    const { count: totalCount } = await supabase
+      .from('players')
+      .select('*', { count: 'exact', head: true });
 
     return {
       players: profiles,

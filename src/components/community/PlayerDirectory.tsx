@@ -31,7 +31,11 @@ import {
   Rocket,
   Sword,
   Wand2,
-  Clock
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { usePlayerStatsConditional } from '@/hooks/usePlayerStatsConditional';
 import { usePlayerSearch } from '@/hooks/usePlayerSearch';
@@ -149,8 +153,8 @@ const TOP_PLAYERS_BY_PLAYTIME = [
   '18e63085-1196-4be7-b91f-3984dc6bad81'  // xNikoPy
 ];
 
-// Virtual scrolling component for better performance
-const VirtualizedPlayerGrid = ({ 
+// Player grid component for displaying players
+const PlayerGrid = ({ 
   profiles, 
   onPlayerClick, 
   allResidents,
@@ -165,8 +169,6 @@ const VirtualizedPlayerGrid = ({
   statusFilter: string;
   showDetailedStats: boolean;
 }) => {
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 });
-  const itemsPerPage = 50;
 
   // Calculate player priority score based on influence, badges, and server roles
   const calculatePlayerPriority = (profile: any, residentData: any): number => {
@@ -249,28 +251,9 @@ const VirtualizedPlayerGrid = ({
       });
   }, [profiles, searchTerm, statusFilter, allResidents]);
 
-  // Get visible profiles
-  const visibleProfiles = filteredAndSortedProfiles.slice(visibleRange.start, visibleRange.end);
-
-  // Load more profiles when scrolling
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    const scrollPercentage = scrollTop / (scrollHeight - clientHeight);
-    
-    if (scrollPercentage > 0.8 && visibleRange.end < filteredAndSortedProfiles.length) {
-      setVisibleRange(prev => ({
-        start: prev.start,
-        end: Math.min(prev.end + itemsPerPage, filteredAndSortedProfiles.length)
-      }));
-    }
-  }, [visibleRange.end, filteredAndSortedProfiles.length]);
-
   return (
-    <div 
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto"
-      onScroll={handleScroll}
-    >
-      {visibleProfiles.map((profile) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {filteredAndSortedProfiles.map((profile) => (
         <PlayerCard
           key={profile.id}
           profile={profile}
@@ -279,12 +262,6 @@ const VirtualizedPlayerGrid = ({
           showDetailedStats={showDetailedStats}
         />
       ))}
-      
-      {visibleRange.end < filteredAndSortedProfiles.length && (
-        <div className="col-span-full flex justify-center p-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-        </div>
-      )}
     </div>
   );
 };
@@ -459,11 +436,15 @@ const PlayerDirectory = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(0);
   const [showDetailedStats, setShowDetailedStats] = useState(true); // Keep detailed stats on by default to show badges
+  const [pageSize, setPageSize] = useState(50); // Page size selector
 
-  const pageSize = 50; // Reduced page size for better performance
+  // Reset to first page when page size changes
+  useEffect(() => {
+    setPage(0);
+  }, [pageSize]);
 
   // Use the conditional hook that only refetches when page is visible
-  const { profiles, loading, error, hasMore, loadingMore } = usePlayerStatsConditional({ 
+  const { profiles, loading, error, hasMore, loadingMore, total } = usePlayerStatsConditional({ 
     limit: pageSize, 
     offset: page * pageSize,
     skipDetailedStats: !showDetailedStats 
@@ -473,6 +454,10 @@ const PlayerDirectory = () => {
   const { players: searchResults, loading: searchLoading, count: searchCount } = usePlayerSearch(searchTerm);
   
   const { data: allResidents, loading: residentsLoading } = useAllResidents();
+
+  // Calculate pagination info
+  const totalPages = Math.ceil((total || 0) / pageSize);
+  const currentPage = page + 1; // Convert to 1-based for display
 
   // Update search term when URL changes
   useEffect(() => {
@@ -517,11 +502,18 @@ const PlayerDirectory = () => {
     setSearchParams(newSearchParams);
   };
 
-  const handleLoadMore = () => {
-    if (hasMore && !loadingMore) {
-      setPage(prev => prev + 1);
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setPage(newPage);
+      // Scroll to top when changing pages
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  const handleFirstPage = () => handlePageChange(0);
+  const handleLastPage = () => handlePageChange(totalPages - 1);
+  const handlePreviousPage = () => handlePageChange(page - 1);
+  const handleNextPage = () => handlePageChange(page + 1);
 
   const handleToggleDetailedStats = () => {
     setShowDetailedStats(prev => !prev);
@@ -563,13 +555,13 @@ const PlayerDirectory = () => {
         totalResults={searchTerm.trim().length >= 2 ? searchCount : profiles.length}
       />
 
-      {/* Performance toggle */}
+      {/* Performance toggle and page size selector */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Badge variant="outline" className="text-lg px-4 py-2 dark:border-muted-foreground">
             {searchTerm.trim().length >= 2 
               ? `Found ${searchCount} players for "${searchTerm}"` 
-              : `Showing ${profiles.length} top players`
+              : `Showing ${profiles.length} players (Page ${currentPage} of ${totalPages})`
             }
           </Badge>
           {(loading || searchLoading) && (
@@ -580,10 +572,30 @@ const PlayerDirectory = () => {
           )}
           {!loading && !searchLoading && profiles.length > 0 && searchTerm.trim().length < 2 && (
             <Badge variant="secondary" className="text-xs">
-              Page {page + 1} • {profiles.length} per page
+              {profiles.length} per page • {total} total players
             </Badge>
           )}
         </div>
+        
+        {/* Page size selector - only show when not searching */}
+        {searchTerm.trim().length < 2 && (
+          <div className="flex items-center gap-2">
+            <label htmlFor="pageSize" className="text-sm text-muted-foreground">
+              Players per page:
+            </label>
+            <select
+              id="pageSize"
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="px-2 py-1 text-sm border rounded-md bg-background dark:bg-background dark:border-border"
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Search Results */}
@@ -600,7 +612,7 @@ const PlayerDirectory = () => {
 
       {/* Default Player Grid - only show when not searching */}
       {searchTerm.trim().length < 2 && (
-        <VirtualizedPlayerGrid
+        <PlayerGrid
           profiles={profiles}
           onPlayerClick={handlePlayerClick}
           allResidents={allResidents || []}
@@ -610,16 +622,92 @@ const PlayerDirectory = () => {
         />
       )}
 
-      {/* Load more button - only show when not searching */}
-      {hasMore && searchTerm.trim().length < 2 && (
-        <div className="flex justify-center">
+      {/* Pagination Controls - only show when not searching */}
+      {searchTerm.trim().length < 2 && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
           <Button
-            onClick={handleLoadMore}
-            disabled={loadingMore}
             variant="outline"
+            size="sm"
+            onClick={handleFirstPage}
+            disabled={page === 0 || loading}
           >
-            {loadingMore ? 'Loading...' : 'Load More Players'}
+            <ChevronsLeft className="w-4 h-4" />
           </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousPage}
+            disabled={page === 0 || loading}
+          >
+            {loading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent mr-1"></div>
+            ) : (
+              <>
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </>
+            )}
+          </Button>
+
+          <div className="flex items-center gap-2 px-4">
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+            {loading && (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+            )}
+            {totalPages > 10 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Jump to:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={totalPages}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const newPage = parseInt(e.target.value) - 1;
+                    if (newPage >= 0 && newPage < totalPages) {
+                      handlePageChange(newPage);
+                    }
+                  }}
+                  className="w-16 px-2 py-1 text-xs border rounded-md bg-background dark:bg-background dark:border-border"
+                />
+              </div>
+            )}
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={page >= totalPages - 1 || loading || !hasMore}
+          >
+            {loading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent mr-1"></div>
+            ) : (
+              <>
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </>
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLastPage}
+            disabled={page >= totalPages - 1 || loading}
+          >
+            <ChevronsRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Page info for single page */}
+      {searchTerm.trim().length < 2 && totalPages <= 1 && total > 0 && (
+        <div className="text-center text-sm text-muted-foreground mt-4">
+          Showing all {total} players
         </div>
       )}
 
