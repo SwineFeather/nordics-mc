@@ -154,8 +154,10 @@ const Wiki: React.FC = () => {
       
       const page = findPageByPath(categories);
       if (page) {
-        setSelectedPage(page);
-        setActiveTab('content');
+        // Only select if not already selected to avoid flicker
+        if (selectedPage?.id !== page.id) {
+          handlePageSelect(page);
+        }
       } else {
         console.warn(`Page not found for URL slug: ${slug}`);
         
@@ -167,24 +169,37 @@ const Wiki: React.FC = () => {
         );
         
         if (similarPage) {
-          setSelectedPage(similarPage);
-          setActiveTab('content');
-          // Update URL to the correct slug
-          const correctSlug = similarPage.id.replace(/\//g, '-').replace(/\.md$/, '');
-          navigate(`/wiki/${correctSlug}`, { replace: true });
+          if (selectedPage?.id !== similarPage.id) {
+            handlePageSelect(similarPage);
+          }
         } else {
           // If no page found, show the first available page or a 404 message
           if (allPages.length > 0) {
-            setSelectedPage(allPages[0]);
-            setActiveTab('content');
-            // Update URL to the first page
-            const firstPageSlug = allPages[0].id.replace(/\//g, '-').replace(/\.md$/, '');
-            navigate(`/wiki/${firstPageSlug}`, { replace: true });
+            if (selectedPage?.id !== allPages[0].id) {
+              handlePageSelect(allPages[0]);
+            }
           }
         }
       }
     }
-  }, [slug, categories, allPages, navigate]);
+  }, [slug, categories, allPages, navigate, selectedPage]);
+
+  // Auto-select default page when no slug provided
+  useEffect(() => {
+    if (slug || categories.length === 0 || selectedPage) return;
+
+    const lower = (s: string) => (s || '').trim().toLowerCase();
+    const targets = ['nordics-home', 'nordics_home', 'home'];
+
+    const bySlug = allPages.find(p => targets.includes(lower(p.slug as string)));
+    const byTitle = allPages.find(p => targets.includes(lower(p.title as string).replace(/\s+/g, '-')) || lower(p.title as string) === 'nordics home');
+    const byId = allPages.find(p => lower(p.id) === 'nordics/readme.md');
+
+    const defaultPage = bySlug || byTitle || byId || (allPages.length > 0 ? allPages[0] : null);
+    if (defaultPage) {
+      handlePageSelect(defaultPage);
+    }
+  }, [slug, categories, allPages, selectedPage]);
 
   // Get all available categories recursively for the form
   const getAllCategories = (cats: any[]): any[] => {
@@ -352,36 +367,42 @@ ${formData.description ? `> ${formData.description}` : ''}
   };
 
   const handlePageSelect = async (page: WikiPage) => {
+    // Avoid redundant work if selecting the same page
+    if (selectedPage?.id === page.id) return;
+
     setSelectedPage(page);
     setActiveTab('content');
-    
-    // Update URL to reflect the selected page
-    const urlSlug = page.id.replace(/\//g, '-').replace(/\.md$/, '');
-    navigate(`/wiki/${urlSlug}`, { replace: true });
 
-    // Try to load live content for town/nation pages
+    // Update URL only if it changed to avoid route-effect loops
+    const urlSlug = page.id.replace(/\//g, '-').replace(/\.md$/, '');
+    if (slug !== urlSlug) {
+      navigate(`/wiki/${urlSlug}`, { replace: true });
+    }
+
+    // Show loading state in the content area (prevents blank flicker)
+    setIsRefreshingLiveData(true);
+
+    // Try to load live/static content
     try {
       const filePath = page.githubPath || page.id;
       if (filePath) {
         const { content, isLiveData, lastUpdated } = await getFileContentWithMetadata(filePath);
-        
-        // Update the page with live content if available
-        if (content !== page.content) {
-          setSelectedPage({
-            ...page,
-            content: content
-          });
-        }
-        
+
+        // Update the page with loaded content (single state update)
+        setSelectedPage(prev => ({
+          ...(prev || page),
+          content: content || (prev?.content ?? ''),
+        } as WikiPage));
+
         // Update live data state
         setIsLiveData(isLiveData);
         setLastUpdated(lastUpdated);
-        
+
         // If it's live data, also fetch the entity data for compact cards
         if (isLiveData) {
           const { LiveWikiDataService } = await import('../services/liveWikiDataService');
           const { entityType: detectedType, entityName } = LiveWikiDataService.extractEntityInfo(filePath);
-          
+
           if (detectedType && entityName) {
             try {
               const liveData = await LiveWikiDataService.getLiveWikiData(detectedType, entityName);
@@ -404,6 +425,8 @@ ${formData.description ? `> ${formData.description}` : ''}
       setLastUpdated(undefined);
       setEntityData(null);
       setEntityType(null);
+    } finally {
+      setIsRefreshingLiveData(false);
     }
   };
 
@@ -677,14 +700,11 @@ ${formData.description ? `> ${formData.description}` : ''}
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex items-center justify-center min-h-[420px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading wiki...</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Loading from Supabase storage...
-            </p>
+            <div className="mx-auto mb-4 h-10 w-10 rounded-full border-2 border-muted border-t-primary animate-spin" />
+            <h2 className="text-sm font-medium text-foreground">Loading wiki…</h2>
           </div>
         </div>
       </div>
@@ -795,30 +815,6 @@ ${formData.description ? `> ${formData.description}` : ''}
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAdvancedSearch(true)}
-              >
-                <Search className="h-4 w-4 mr-2" />
-                Advanced Search
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
-                {isRefreshing ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-              </Button>
-
-
-
               {user && permissions.canCreate && (
                 <Button
                   size="sm"
@@ -858,21 +854,21 @@ ${formData.description ? `> ${formData.description}` : ''}
                   </Button>
                 </div>
                 {/* Page Header */}
-                <div className="border-b p-4 bg-background/40 backdrop-blur-sm">
+                <div className="border-b p-3 bg-background/40 backdrop-blur-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="secondary">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="h-5 px-2 text-[11px]">
                           {selectedPage.category}
                         </Badge>
                         {selectedPage.status !== 'published' && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="h-5 px-2 text-[11px]">
                             {selectedPage.status}
                           </Badge>
                         )}
                       </div>
-                      <h1 className="text-2xl font-bold">{selectedPage.title}</h1>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                      <h1 className="text-xl font-semibold leading-tight">{selectedPage.title}</h1>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         <span>By {selectedPage.authorName || 'Unknown'}</span>
                         <span>•</span>
                         <span>{formatDistanceToNow(new Date(selectedPage.createdAt), { addSuffix: true })}</span>
@@ -885,7 +881,7 @@ ${formData.description ? `> ${formData.description}` : ''}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
 
                       
                       {/* Show edit button for all authenticated users during development */}
@@ -904,22 +900,24 @@ ${formData.description ? `> ${formData.description}` : ''}
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setShowMediaUploader(true)}
-                            className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 shadow-sm"
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Media
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
                             onClick={handleToggleEdit}
                             className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 shadow-sm"
                           >
                             <Edit3 className="h-4 w-4 mr-2" />
                             {isEditing ? 'Cancel Edit' : 'Edit'}
                           </Button>
+
+                          {isEditing && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowMediaUploader(true)}
+                              className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 shadow-sm"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Media
+                            </Button>
+                          )}
                         </>
                       )}
                       
@@ -954,27 +952,17 @@ ${formData.description ? `> ${formData.description}` : ''}
 
                 {/* Page Content Tabs */}
                 <div className="flex-1 overflow-hidden">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-                    <TabsList className="w-full justify-start border-b rounded-none">
-                      <TabsTrigger value="content">Content</TabsTrigger>
-                      <TabsTrigger value="comments">
-                        Comments
-                        {collaboration?.commentCount && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            {collaboration.commentCount}
-                          </Badge>
-                        )}
-                      </TabsTrigger>
-                      <TabsTrigger value="suggested-edits">
-                        Suggested Edits
-                        {collaboration?.suggestedEditCount && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            {collaboration.suggestedEditCount}
-                          </Badge>
-                        )}
-                      </TabsTrigger>
-                      <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
-                    </TabsList>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+                      <TabsList className="w-full justify-start border-b rounded-none h-9 gap-1">
+                        <TabsTrigger className="h-7 px-2 text-xs" value="content">Content</TabsTrigger>
+                        <TabsTrigger className="h-7 px-2 text-xs" value="comments">
+                          Comments{collaboration?.commentCount ? <span className="ml-1">{collaboration.commentCount}</span> : null}
+                        </TabsTrigger>
+                        <TabsTrigger className="h-7 px-2 text-xs" value="suggested-edits">
+                          Suggested Edits{collaboration?.suggestedEditCount ? <span className="ml-1">{collaboration.suggestedEditCount}</span> : null}
+                        </TabsTrigger>
+                        <TabsTrigger className="h-7 px-2 text-xs" value="collaboration">Collab</TabsTrigger>
+                      </TabsList>
 
                     <TabsContent value="content" className="flex-1 overflow-auto p-6">
                       {isEditing ? (

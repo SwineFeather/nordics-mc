@@ -722,26 +722,21 @@ export class SupabaseWikiService {
               }
             } else if (child.type === 'file' && child.name.endsWith('.md')) {
               // Handle files directly under Nordics - create individual categories for each
-              try {
-                const content = await this.getFileContent(child.path);
-                const page = await this.convertFileToPage(child, content, 'nordics-root');
-                if (page) {
-                  // Create a category for each Nordics root file
-                  const nordicsRootCategory: WikiCategory = {
-                    id: `nordics-root-${page.slug}`,
-                    title: page.title,
-                    slug: page.slug,
-                    description: `Nordics documentation: ${page.title}`,
-                    parent_id: null,
-                    order: 0,
-                    children: [],
-                    pages: [page]
-                  };
-                  categories.push(nordicsRootCategory);
-                  console.log(`✅ Created category for Nordics root file: ${page.title}`);
-                }
-              } catch (error) {
-                console.error(`Failed to convert Nordics root file ${child.path}:`, error);
+              const page = await this.convertFileToPageMinimal(child, 'nordics-root');
+              if (page) {
+                // Create a category for each Nordics root file
+                const nordicsRootCategory: WikiCategory = {
+                  id: `nordics-root-${page.slug}`,
+                  title: page.title,
+                  slug: page.slug,
+                  description: `Nordics documentation: ${page.title}`,
+                  parent_id: null,
+                  order: 0,
+                  children: [],
+                  pages: [page]
+                };
+                categories.push(nordicsRootCategory);
+                console.log(`✅ Created category for Nordics root file (meta only): ${page.title}`);
               }
             }
           }
@@ -755,26 +750,21 @@ export class SupabaseWikiService {
         }
       } else if (item.type === 'file' && item.name.endsWith('.md')) {
         // Handle standalone files at root level
-        try {
-          const content = await this.getFileContent(item.path);
-          const page = await this.convertFileToPage(item, content, 'root');
-          if (page) {
-            // Create a category for standalone files
-            const standaloneCategory: WikiCategory = {
-              id: 'standalone-files',
-              title: 'Standalone Files',
-              slug: 'standalone-files',
-              description: 'Files at root level',
-              parent_id: null,
-              order: 0,
-              children: [],
-              pages: [page]
-            };
-            categories.push(standaloneCategory);
-            console.log(`✅ Converted standalone file to page: ${page.title}`);
-          }
-        } catch (error) {
-          console.error(`Failed to convert standalone file ${item.path}:`, error);
+        const page = await this.convertFileToPageMinimal(item, 'root');
+        if (page) {
+          // Create a category for standalone files
+          const standaloneCategory: WikiCategory = {
+            id: 'standalone-files',
+            title: 'Standalone Files',
+            slug: 'standalone-files',
+            description: 'Files at root level',
+            parent_id: null,
+            order: 0,
+            children: [],
+            pages: [page]
+          };
+          categories.push(standaloneCategory);
+          console.log(`✅ Converted standalone file to page (meta only): ${page.title}`);
         }
       }
     }
@@ -808,16 +798,11 @@ export class SupabaseWikiService {
         console.log(`📄 Processing child: ${child.type} - ${child.name}`);
         
         if (child.type === 'file' && child.name.endsWith('.md')) {
-          // This is a page
-          try {
-            const content = await this.getFileContent(child.path);
-            const page = await this.convertFileToPage(child, content, category.id);
-            if (page) {
-              category.pages?.push(page);
-              console.log(`✅ Added page: ${page.title} to category ${category.title}`);
-            }
-          } catch (error) {
-            console.error(`Failed to load page ${child.path}:`, error);
+          // This is a page (metadata only; content loaded on demand)
+          const page = await this.convertFileToPageMinimal(child, category.id);
+          if (page) {
+            category.pages?.push(page);
+            console.log(`✅ Added page (meta only): ${page.title} to category ${category.title}`);
           }
         } else if (child.type === 'folder') {
           // This is a subcategory
@@ -861,6 +846,32 @@ export class SupabaseWikiService {
       return page;
     } catch (error) {
       console.error(`Failed to convert file to page ${file.path}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Create a minimal page object without loading content (for fast initial render)
+   */
+  private static async convertFileToPageMinimal(file: WikiFileStructure, categoryId: string): Promise<WikiPage | null> {
+    try {
+      const title = this.formatTitle(file.name.replace('.md', ''));
+      const page: WikiPage = {
+        id: file.path,
+        title,
+        slug: file.name.replace('.md', ''),
+        content: '',
+        status: 'published',
+        authorId: 'system',
+        authorName: 'System',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        category: categoryId,
+        order: 0,
+      };
+      return page;
+    } catch (error) {
+      console.error(`Failed to convert file to minimal page ${file.path}:`, error);
       return null;
     }
   }

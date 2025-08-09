@@ -259,14 +259,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center space-x-4">
-                      <span>{category.post_count || 0} posts</span>
-                      {category.last_activity && (
-                        <span>Last activity: {new Date(category.last_activity).toLocaleDateString()}</span>
-                      )}
-                    </div>
-                  </div>
+                  {/* Removed per request: category post count and last activity */}
                 </CardContent>
               </Card>
             );
@@ -354,14 +347,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center space-x-4">
-                        <span>{category.post_count || 0} posts</span>
-                        {category.last_activity && (
-                          <span>Last activity: {new Date(category.last_activity).toLocaleDateString()}</span>
-                        )}
-                      </div>
-                    </div>
+                    {/* Removed per request: category post count and last activity */}
                   </CardContent>
                 </Card>
               );
@@ -435,14 +421,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <div className="flex items-center justify-between text-sm text-gray-500">
-                        <div className="flex items-center space-x-4">
-                          <span>{category.post_count || 0} posts</span>
-                          {category.last_activity && (
-                            <span>Last activity: {new Date(category.last_activity).toLocaleDateString()}</span>
-                          )}
-                        </div>
-                      </div>
+                      {/* Removed per request: category post count and last activity */}
                     </CardContent>
                   </Card>
                 );

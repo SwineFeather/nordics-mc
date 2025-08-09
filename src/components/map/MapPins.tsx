@@ -42,6 +42,7 @@ import { toast } from 'sonner';
 import EditPinModal from './EditPinModal';
 import { useSupabaseNations } from '@/hooks/useSupabaseNations';
 import TownProfileModal from '@/components/towns/TownProfileModal';
+import { useNavigate } from 'react-router-dom';
 
 interface MapPin {
   id: string;
@@ -117,6 +118,7 @@ const MapPins = ({
   const [loading, setLoading] = useState(true);
   const { user, profile } = useAuth();
   const { towns } = useSupabaseNations();
+  const navigate = useNavigate();
 
   const isStaff = profile?.role === 'admin' || profile?.role === 'moderator';
 
@@ -202,28 +204,8 @@ const MapPins = ({
       // Find the town by ID from our Supabase data
       const town = towns.find(t => t.id === pin.town_id);
       if (town) {
-        // Ensure the town object has all required fields for TownProfileModal
-        const townDetail = {
-          id: town.id,
-          name: town.name,
-          mayor: town.mayor,
-          mayor_name: town.mayor_name,
-          population: town.population,
-          type: town.type,
-          status: town.status,
-          founded: town.founded,
-          nation_id: town.nation_id,
-          is_independent: town.is_independent,
-          created_at: town.created_at,
-          updated_at: town.updated_at,
-          total_xp: town.total_xp,
-          level: town.level,
-          balance: town.balance,
-          location_x: town.location_x,
-          location_z: town.location_z,
-          nation: town.nation
-        };
-        setSelectedTown(townDetail);
+        // Navigate directly to the town page
+        navigate(`/town/${encodeURIComponent(town.name)}`);
       } else {
         toast.error('Town details not found');
       }

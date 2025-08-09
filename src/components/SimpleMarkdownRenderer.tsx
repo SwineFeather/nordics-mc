@@ -16,13 +16,23 @@ const SimpleMarkdownRenderer: React.FC<SimpleMarkdownRendererProps> = ({
 
   return (
     <div 
-      className={cn("prose prose-invert max-w-none", className)}
+      className={cn(
+        // Base typography
+        "prose prose-invert max-w-none",
+        // Make headings stand out
+        "prose-headings:font-semibold",
+        "prose-h1:text-primary prose-h1:leading-tight prose-h1:mt-4 prose-h1:mb-3",
+        "prose-h2:text-primary prose-h2:mt-6 prose-h2:mb-2 prose-h2:border-b prose-h2:border-border",
+        "prose-h3:text-foreground prose-h3:mt-4 prose-h3:mb-2",
+        className
+      )}
       dangerouslySetInnerHTML={{ 
-        __html: `<p class="mb-4 leading-relaxed text-foreground">${sanitizedContent}</p>` 
+        // Insert sanitized HTML directly (no extra <p> wrapper) so headings render properly
+        __html: sanitizedContent 
       }}
       style={{
         '--tw-prose-body': 'hsl(var(--foreground))',
-        '--tw-prose-headings': 'hsl(var(--foreground))',
+        '--tw-prose-headings': 'hsl(var(--primary))',
         '--tw-prose-links': 'hsl(var(--primary))',
         '--tw-prose-bold': 'hsl(var(--foreground))',
         '--tw-prose-counters': 'hsl(var(--muted-foreground))',

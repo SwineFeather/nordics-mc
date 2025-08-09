@@ -44,9 +44,10 @@ import {
   MessageSquare,
   ChevronDown
 } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import AllStatisticsModal from './AllStatisticsModal';
-import AllAchievementsModal from '../player-profile/AllAchievementsModal';
+// Achievements modal removed per requirements
 import { usePlayerLeaderboard } from '../../hooks/usePlayerLeaderboard';
 import { useAuth } from '@/hooks/useAuth';
 import AdminBadgeManager from '../AdminBadgeManager';
@@ -329,7 +330,7 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <span className="text-muted-foreground">Joined:</span>
-              <span className="font-medium">{joinDate.toLocaleDateString()}</span>
+              <span className="font-medium"></span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
@@ -345,10 +346,9 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
 
           {/* Tabs */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="stats">Statistics</TabsTrigger>
-              <TabsTrigger value="achievements">Achievements</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6 mt-6">
@@ -371,217 +371,37 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
                 </CardContent>
               </Card>
 
-              {/* Timeline */}
+              {/* Achievements placeholder (no data yet) */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    Timeline
+                    <Star className="w-5 h-5" />
+                    Achievements
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div>
-                        <div className="font-medium">Registered</div>
-                        <div className="text-sm text-muted-foreground">
-                          {joinDate.toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {Math.floor((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24 * 365))} years ago
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div>
-                        <div className="font-medium">Last Login</div>
-                        <div className="text-sm text-muted-foreground">
-                          {lastSeenDate.toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {(() => {
-                        const daysDiff = Math.floor((Date.now() - lastSeenDate.getTime()) / (1000 * 60 * 60 * 24));
-                        if (daysDiff === 0) return 'Today';
-                        if (daysDiff === 1) return 'Yesterday';
-                        if (daysDiff < 7) return `${daysDiff} days ago`;
-                        if (daysDiff < 30) return `${Math.floor(daysDiff / 7)} weeks ago`;
-                        if (daysDiff < 365) return `${Math.floor(daysDiff / 30)} months ago`;
-                        return `${Math.floor(daysDiff / 365)} years ago`;
-                      })()}
-                    </div>
-                  </div>
+                <CardContent>
+                  <p className="text-muted-foreground">No achievements available yet.</p>
                 </CardContent>
               </Card>
             </TabsContent>
 
             <TabsContent value="stats" className="space-y-4 mt-6">
-              <Collapsible open={isStatsOpen} onOpenChange={setIsStatsOpen}>
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
-                    <CardTitle>Core Stats</CardTitle>
-                    <ChevronDown className={`w-5 h-5 transition-transform ${isStatsOpen ? 'rotate-180' : ''}`} />
-                  </CardHeader>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Clock className="w-5 h-5 text-blue-500" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Total XP</p>
-                            <p className="text-2xl font-bold">{safeLevelInfo.totalXp.toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Pickaxe className="w-5 h-5 text-green-500" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Blocks Placed</p>
-                            <p className="text-2xl font-bold">{blocksPlaced.toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Pickaxe className="w-5 h-5 text-orange-500" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Blocks Broken</p>
-                            <p className="text-2xl font-bold">{blocksBroken.toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Sword className="w-5 h-5 text-purple-500" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Mob Kills</p>
-                            <p className="text-2xl font-bold">{mobKills.toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {balance > 0 && (
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="flex items-center space-x-2">
-                            <Coins className="w-5 h-5 text-yellow-500" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Balance</p>
-                              <p className="text-2xl font-bold">${balance.toLocaleString()}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Card>
+              <Card className="rounded-2xl">
                 <CardHeader>
-                  <CardTitle>Performance Metrics</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                    Statistics (Work in progress)
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Building Activity</span>
-                      <span>{blocksPlaced + blocksBroken > 0 ? Math.round((blocksPlaced / (blocksPlaced + blocksBroken)) * 100) : 0}%</span>
-                    </div>
-                    <Progress value={blocksPlaced + blocksBroken > 0 ? (blocksPlaced / (blocksPlaced + blocksBroken)) * 100 : 0} />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Combat Activity</span>
-                      <span>{mobKills > 0 ? Math.round(mobKills) : 0}</span>
-                    </div>
-                    <Progress value={Math.min(100, mobKills / 10)} />
-                  </div>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    We’re rebuilding the statistics experience. Current data is unreliable and this section is temporarily disabled.
+                  </p>
                 </CardContent>
               </Card>
-
-              <div className="flex justify-center">
-                <Button onClick={() => setShowAllStats(true)} variant="outline">
-                  View All Statistics
-                </Button>
-              </div>
             </TabsContent>
 
-            <TabsContent value="achievements" className="space-y-4 mt-6">
-              <div className="flex flex-wrap gap-3">
-                {profile.achievements && profile.achievements.length > 0 ? (
-                  profile.achievements.map((achievement: any) => (
-                    <Dialog key={`${achievement.achievementId}-${achievement.tier}`}>
-                      <DialogTrigger asChild>
-                        <div className="flex flex-col items-center text-center w-20 cursor-pointer p-2 rounded-lg hover:bg-muted transition-colors">
-                          <div className="w-8 h-8 mb-1 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                            <Star className="w-4 h-4 text-white" />
-                          </div>
-                          <span className="text-xs font-semibold leading-tight">{achievement.achievementName}</span>
-                          <span className="text-xs text-muted-foreground">Tier {achievement.tier}</span>
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center">
-                            <Star className="w-6 h-6 mr-3 text-primary" />
-                            {achievement.achievementName} - Tier {achievement.tier}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-2 mt-4">
-                          <div className="flex justify-between text-sm font-medium">
-                            <span>Progress</span>
-                            <span>
-                              {achievement.currentValue?.toLocaleString() || 0} / {achievement.threshold?.toLocaleString() || 0}
-                            </span>
-                          </div>
-                          <Progress value={achievement.threshold ? Math.min(100, ((achievement.currentValue || 0) / achievement.threshold) * 100) : 0} />
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground col-span-full text-center py-8">No achievements yet.</p>
-                )}
-              </div>
-              
-              {/* View All Achievements Button */}
-              <div className="flex justify-center">
-                <AllAchievementsModal
-                  playerUuid={profile.id}
-                  playerUsername={profile.username}
-                  playerStats={stats}
-                  unlockedAchievements={profile.achievements || []}
-                  onAchievementClaimed={refreshProfile}
-                />
-              </div>
-            </TabsContent>
+            {/* Achievements tab removed */}
           </Tabs>
 
           {/* Admin Badge Manager Modal */}

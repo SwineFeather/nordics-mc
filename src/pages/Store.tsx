@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Star, Crown, Sparkles, ExternalLink, Flag } from 'lucide-react';
+import { ShoppingCart, Star, Crown, Sparkles, ExternalLink } from 'lucide-react';
 
 const Store = () => {
   const patronTiers = [
@@ -20,7 +20,10 @@ const Store = () => {
         '15% discount on Treasure Chests',
         'Pets: Piggy, Cow',
         'Particle Effects: Snow footprints',
-        'Mounts: Horse'
+        'Mounts: Horse',
+        'Own Discord role',
+        'Access to Supporter channel on Discord',
+        'Priority support'
       ]
     },
     {
@@ -35,7 +38,10 @@ const Store = () => {
         '20% discount on Treasure Chests',
         'Pets: Frog',
         'Particle Effects: Spring footprints, Rain Cloud, Notes',
-        'Mounts: Donkey, Pig'
+        'Mounts: Donkey, Pig',
+        'Own Discord role',
+        'Access to Supporter channel on Discord',
+        'Priority support'
       ]
     },
     {
@@ -48,7 +54,10 @@ const Store = () => {
         '25% discount on Treasure Chests',
         'Pets: Allay',
         'Particle Effects: Divine Halo, Ender Aura',
-        'Mounts: Ecologist Horse'
+        'Mounts: Ecologist Horse',
+        'Own Discord role',
+        'Access to Supporter channel on Discord',
+        'Priority support'
       ]
     }
   ];
@@ -57,8 +66,7 @@ const Store = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <div className="flex items-center justify-center space-x-2 mb-4">
-          <Flag className="h-6 w-6 text-orange-500" />
+        <div className="flex items-center justify-center mb-4">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent flex items-center justify-center">
             <ShoppingCart className="w-10 h-10 mr-3" />
             Server Store

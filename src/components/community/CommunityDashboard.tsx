@@ -1,13 +1,14 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
-import WelcomeHero from './WelcomeHero';
 import PlayerDirectory from './PlayerDirectory';
 import LeaderboardView from './LeaderboardView';
 import StatisticsLeaderboard from './StatisticsLeaderboard';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useState, useEffect } from 'react';
 import { BarChart3 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle } from 'lucide-react';
 import type { PlayerProfile } from '@/types/player';
 
 interface CommunityDashboardProps {
@@ -59,8 +60,6 @@ const CommunityDashboard = ({ selectedPlayer: initialSelectedPlayer }: Community
 
   return (
     <div className="container mx-auto px-4 py-8 bg-background dark:bg-background">
-      <WelcomeHero />
-      
       <Tabs defaultValue="directory" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-muted dark:bg-muted">
           <TabsTrigger value="directory" className="dark:text-muted-foreground dark:data-[state=active]:text-foreground">Players</TabsTrigger>
@@ -75,11 +74,19 @@ const CommunityDashboard = ({ selectedPlayer: initialSelectedPlayer }: Community
         </TabsContent>
 
         <TabsContent value="statistics">
-          <StatisticsLeaderboard 
-            profiles={profiles}
-            loading={loading}
-            onPlayerClick={handleSelectProfile}
-          />
+          <Card className="rounded-2xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+                Statistics (Work in progress)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                We’re rebuilding the statistics experience. Current data is unreliable and this section is temporarily disabled.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

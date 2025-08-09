@@ -23,6 +23,7 @@ import {
   Building,
   Coins,
   X,
+  AlertTriangle,
   Footprints,
   Swords,
   ChevronDown,
@@ -205,99 +206,17 @@ const ProfileModal = ({ open, onClose, profile }: ProfileModalProps) => {
             </TabsContent>
 
             <TabsContent value="stats" className="space-y-4">
-              <Collapsible open={isStatsOpen} onOpenChange={setIsStatsOpen}>
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
-                    <CardTitle>Core Stats</CardTitle>
-                    <ChevronDown className={`w-5 h-5 transition-transform ${isStatsOpen ? 'rotate-180' : ''}`} />
-                  </CardHeader>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Clock className="w-5 h-5 text-blue-500" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Total XP</p>
-                            <p className="text-2xl font-bold">{(profile.levelInfo?.totalXp || 0).toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Pickaxe className="w-5 h-5 text-green-500" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Blocks Placed</p>
-                            <p className="text-2xl font-bold">{getNumericStat(profile.stats.blocksPlaced).toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Pickaxe className="w-5 h-5 text-orange-500" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Blocks Broken</p>
-                            <p className="text-2xl font-bold">{getNumericStat(profile.stats.blocksBroken).toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Sword className="w-5 h-5 text-purple-500" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Mob Kills</p>
-                            <p className="text-2xl font-bold">{getNumericStat(profile.stats.mobKills).toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {profile.stats.balance !== undefined && (
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="flex items-center space-x-2">
-                            <Coins className="w-5 h-5 text-yellow-500" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Balance</p>
-                              <p className="text-2xl font-bold">${getNumericStat(profile.stats.balance).toLocaleString()}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Card>
+              <Card className="rounded-2xl">
                 <CardHeader>
-                  <CardTitle>Performance Metrics</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                    Statistics (Work in progress)
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Building Activity</span>
-                      <span>{getNumericStat(profile.stats.blocksPlaced) + getNumericStat(profile.stats.blocksBroken) > 0 ? Math.round((getNumericStat(profile.stats.blocksPlaced) / (getNumericStat(profile.stats.blocksPlaced) + getNumericStat(profile.stats.blocksBroken))) * 100) : 0}%</span>
-                    </div>
-                    <Progress value={getNumericStat(profile.stats.blocksPlaced) + getNumericStat(profile.stats.blocksBroken) > 0 ? (getNumericStat(profile.stats.blocksPlaced) / (getNumericStat(profile.stats.blocksPlaced) + getNumericStat(profile.stats.blocksBroken))) * 100 : 0} />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Combat Activity</span>
-                      <span>{getNumericStat(profile.stats.mobKills) > 0 ? Math.round(getNumericStat(profile.stats.mobKills)) : 0}</span>
-                    </div>
-                    <Progress value={Math.min(100, getNumericStat(profile.stats.mobKills) / 10)} />
-                  </div>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    We’re rebuilding the statistics experience. Current data is unreliable and this section is temporarily disabled.
+                  </p>
                 </CardContent>
               </Card>
             </TabsContent>

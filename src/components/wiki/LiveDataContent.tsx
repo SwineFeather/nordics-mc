@@ -1,7 +1,6 @@
 import React from 'react';
 import SimpleMarkdownRenderer from '../SimpleMarkdownRenderer';
 import CompactStatsCards from './CompactStatsCards';
-import LiveDataIndicator from './LiveDataIndicator';
 
 interface LiveDataContentProps {
   content: string;
@@ -22,17 +21,10 @@ const LiveDataContent: React.FC<LiveDataContentProps> = ({
   entityType,
   entityData
 }) => {
-  // If it's live data and we have entity data, show compact cards
+  // If it's live data and we have entity data, show compact cards (without the live indicator text)
   if (isLiveData && entityType && entityData) {
     return (
       <div className="max-w-6xl mx-auto">
-        <LiveDataIndicator 
-          isLiveData={isLiveData} 
-          lastUpdated={lastUpdated || ''} 
-          onRefresh={onRefresh}
-          isRefreshing={isRefreshing}
-        />
-        
         {/* Extract title from content */}
         {(() => {
           const titleMatch = content.match(/^# (.+)$/m);
@@ -98,12 +90,6 @@ const LiveDataContent: React.FC<LiveDataContentProps> = ({
   // Fallback to regular markdown rendering
   return (
     <div className="max-w-4xl mx-auto">
-      <LiveDataIndicator 
-        isLiveData={isLiveData} 
-        lastUpdated={lastUpdated || ''} 
-        onRefresh={onRefresh}
-        isRefreshing={isRefreshing}
-      />
       <div className="prose prose-sm max-w-none" style={{
         '--tw-prose-body': 'hsl(var(--foreground))',
         '--tw-prose-headings': 'hsl(var(--foreground))',

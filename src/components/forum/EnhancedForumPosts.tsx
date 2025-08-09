@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Pin, Lock, MessageSquare, Eye, Star, Flame, TrendingUp, Search, ChevronLeft, ChevronRight, SortAsc, SortDesc } from 'lucide-react';
+import { ArrowLeft, Pin, Lock, Star, Search, ChevronLeft, ChevronRight, SortAsc, SortDesc } from 'lucide-react';
 import { useForumPosts } from '@/hooks/useForumPosts';
 import { useForumCategories } from '@/hooks/useForumCategories';
 import { formatDistanceToNow } from 'date-fns';
@@ -108,20 +108,7 @@ const EnhancedForumPosts = ({ categoryId, onBack, onPostSelect }: EnhancedForumP
     setSortBy(value as SortOption);
   };
 
-  const getActivityIndicator = (post: any) => {
-    const hoursAgo = (Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60);
-    const replyCount = post.reply_count || 0;
-    const viewCount = post.view_count || 0;
-
-    if (hoursAgo < 1) {
-      return { icon: Star, color: 'text-yellow-500', label: 'New' };
-    } else if (replyCount > 10 && hoursAgo < 24) {
-      return { icon: Flame, color: 'text-red-500', label: 'Hot' };
-    } else if (viewCount > 50 && replyCount > 5) {
-      return { icon: TrendingUp, color: 'text-blue-500', label: 'Trending' };
-    }
-    return null;
-  };
+  const getActivityIndicator = (_post: any) => null; // Removed activity badges per request
 
   if (loading) {
     return (
@@ -281,18 +268,7 @@ const EnhancedForumPosts = ({ categoryId, onBack, onPostSelect }: EnhancedForumP
                           </div>
                         </div>
                         
-                        <div className="flex flex-col items-end space-y-3 ml-4">
-                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                            <div className="flex items-center space-x-1 hover:text-primary transition-colors">
-                              <MessageSquare className="w-4 h-4" />
-                              <span className="font-medium">{post.reply_count || 0}</span>
-                            </div>
-                            <div className="flex items-center space-x-1 hover:text-primary transition-colors">
-                              <Eye className="w-4 h-4" />
-                              <span className="font-medium">{post.view_count}</span>
-                            </div>
-                          </div>
-                        </div>
+                        {/* Removed per request: reply/view counts */}
                       </div>
                       
                       <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">

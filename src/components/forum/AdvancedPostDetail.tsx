@@ -6,13 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { sanitizeHtml } from '@/utils/htmlSanitizer';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
+// Removed: Progress (no stats shown)
 import {
-  ArrowLeft, Pin, Lock, MessageSquare, 
+  ArrowLeft, Pin, Lock,
   Edit, Trash2, MoreHorizontal, History, Users, BarChart3,
-  Eye, TrendingUp, ThumbsUp, ThumbsDown,
-  Clock, User, GitBranch, Target, Zap, Lightbulb,
-  Crown, Shield, Star, Award, Activity, Calendar
+  ThumbsUp, ThumbsDown,
+  Crown, Shield, Star
 } from 'lucide-react';
 import { useForumPosts, incrementPostViewCount, savePost, unsavePost, getSavedPosts } from '@/hooks/useForumPosts';
 import { useForumReplies } from '@/hooks/useForumReplies';
@@ -568,7 +567,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
                 </div>
               )}
               
-              {/* Engagement Actions */}
+              {/* Engagement Actions (counts removed per request) */}
               <div className="flex items-center justify-between pt-4 border-t">
                 <div className="flex items-center space-x-2">
                   <Button
@@ -577,7 +576,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
                     onClick={() => handleEngagement('like')}
                   >
                     <ThumbsUp className="w-4 h-4 mr-1" />
-                    {engagement.likes}
+                    Like
                   </Button>
                   <Button
                     variant={userEngagement.disliked ? "default" : "outline"}
@@ -585,23 +584,8 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
                     onClick={() => handleEngagement('dislike')}
                   >
                     <ThumbsDown className="w-4 h-4 mr-1" />
-                    {engagement.dislikes}
+                    Dislike
                   </Button>
-                </div>
-                
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Eye className="w-4 h-4" />
-                    <span>{analytics?.view_count || 0} views</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <MessageSquare className="w-4 h-4" />
-                    <span>{replies.length} replies</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>{analytics?.engagement_score?.toFixed(1) || 0.0} score</span>
-                  </div>
                 </div>
               </div>
               
@@ -654,99 +638,14 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
                 )}
               </div>
               
-              {/* Activity Stats */}
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold mb-4">Post Activity</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Engagement</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span>Likes</span>
-                          <span>{engagement.likes}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Dislikes</span>
-                          <span>{engagement.dislikes}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Shares</span>
-                          <span>{engagement.shares}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Bookmarks</span>
-                          <span>{engagement.bookmarks}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Views & Time</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span>Views</span>
-                          <span>{analytics?.view_count || 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Time Spent</span>
-                          <span>{Math.floor((analytics?.time_spent_reading || 0) / 60)}m {(analytics?.time_spent_reading || 0) % 60}s</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Scroll Depth</span>
-                          <span>{analytics?.scroll_depth || 0}%</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              {/* Removed per request: Post Activity section and stats */}
             </CardContent>
           </Card>
         </div>
         
         <div className="lg:col-span-1">
           <div className="space-y-6">
-            {/* Post Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <BarChart3 className="w-5 h-5" />
-                  <span>Post Stats</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Views</span>
-                    <span className="font-medium">{analytics?.view_count || 0}</span>
-                  </div>
-                  <Progress value={Math.min((analytics?.view_count || 0) / 100, 100)} className="h-2" />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Engagement</span>
-                    <span className="font-medium">{analytics?.engagement_score?.toFixed(1) || 0.0}</span>
-                  </div>
-                  <Progress value={Math.min((analytics?.engagement_score || 0) * 20, 100)} className="h-2" />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Replies</span>
-                    <span className="font-medium">{replies.length}</span>
-                  </div>
-                  <Progress value={Math.min(replies.length * 10, 100)} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
+            {/* Removed per request: Post Stats card */}
             
             {/* Collaborators */}
             {collaborations.length > 0 && (

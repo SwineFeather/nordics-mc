@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, X, MessageSquare, Eye, Calendar } from 'lucide-react';
+import { Search, X, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { usePlayerBadges } from '@/hooks/usePlayerBadges';
 import { searchPosts } from '@/hooks/useForumPosts';
@@ -189,16 +189,7 @@ const ForumSearch = ({ categoryId, onPostSelect }: ForumSearchProps) => {
                               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                             </span>
                           </div>
-                          <div className="flex items-center space-x-3">
-                            <span className="flex items-center">
-                              <MessageSquare className="w-3 h-3 mr-1" />
-                              {post.reply_count || 0}
-                            </span>
-                            <span className="flex items-center">
-                              <Eye className="w-3 h-3 mr-1" />
-                              {post.view_count}
-                            </span>
-                          </div>
+                          {/* Removed per request: reply/view counts in search results */}
                         </div>
                       </div>
                     </div>

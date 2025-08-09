@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Pin, Lock, MessageSquare, Eye } from 'lucide-react';
+import { ArrowLeft, Pin, Lock } from 'lucide-react';
 import { useForumPosts } from '@/hooks/useForumPosts';
 import { useForumCategories } from '@/hooks/useForumCategories';
 import { formatDistanceToNow } from 'date-fns';
@@ -103,16 +103,7 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
                       {post.content.substring(0, 200)}...
                     </p>
                   </div>
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <div className="flex items-center space-x-1">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{post.reply_count || 0}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Eye className="w-4 h-4" />
-                      <span>{post.view_count}</span>
-                    </div>
-                  </div>
+                  {/* Removed per request: reply/view counts */}
                 </div>
                 <div className="flex items-center justify-between mt-4">
                   <div className="flex items-center space-x-2">

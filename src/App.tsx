@@ -78,8 +78,9 @@ function App() {
                 <Route path="/economy" element={<Layout><Economy /></Layout>} />
                 <Route path="/map" element={<Layout><Map /></Layout>} />
                 <Route path="/map/:mapDate" element={<Layout><Map /></Layout>} />
-                <Route path="/wiki" element={<Layout><OptimizedWiki /></Layout>} />
-                <Route path="/wiki/:slug" element={<Layout><OptimizedWiki /></Layout>} />
+                <Route path="/wiki" element={<Layout><Wiki /></Layout>} />
+                <Route path="/wiki/:slug" element={<Layout><Wiki /></Layout>} />
+                <Route path="/wiki-optimized" element={<Layout><OptimizedWiki /></Layout>} />
                 <Route path="/optimized-wiki" element={<Layout><OptimizedWiki /></Layout>} />
                 <Route path="/wiki-debug" element={<Layout><WikiDebug /></Layout>} />
                 <Route path="/wiki-test" element={<Layout><SupabaseWikiTest /></Layout>} />

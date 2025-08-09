@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import TownsHeader from '@/components/towns/TownsHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NationsTab from '@/components/towns/NationsTab';
 import TownsTab from '@/components/towns/TownsTab';
@@ -11,7 +10,7 @@ import ShopsTab from '@/components/towns/ShopsTab';
 import { useCompaniesData } from '@/hooks/useCompaniesData';
 import { useShopData } from '@/hooks/useShopData';
 import { useServerStatus } from '@/hooks/useServerStatus';
-import { Crown, DollarSign, UserPlus, Building2, MapPin, HelpCircle, Building, Store, Flag } from 'lucide-react';
+import { Crown, Building2, MapPin, HelpCircle, Building, Store } from 'lucide-react';
 import {
   Dialog,
   DialogTrigger,
@@ -21,8 +20,6 @@ import {
   DialogDescription,
   DialogClose
 } from '@/components/ui/dialog';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 interface TownsProps {
   defaultTab?: 'nations' | 'markets';
@@ -59,47 +56,7 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
 
   return (
     <div className="min-h-[100vh] bg-background py-8">
-      {/* Nordic Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 mb-10">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-red-950/20 border border-orange-200 dark:border-orange-800">
-          {/* Nordic flag pattern background */}
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23f97316%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%223%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50"></div>
-          
-          <Card className="border-0 bg-transparent shadow-none">
-            <CardContent className="p-8 relative">
-              <div className="text-center">
-                <div className="flex items-center justify-center space-x-2 mb-4">
-                  <Flag className="h-6 w-6 text-red-500" />
-                  <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 hover:bg-orange-200 dark:hover:bg-orange-800">
-                    Nordic Nations
-                  </Badge>
-                </div>
-                
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-                  Discover{' '}
-                  <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                    Nations & Towns
-                  </span>
-                </h1>
-                
-                <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-                  Explore the diverse communities across our Nordic-inspired world. 
-                  From bustling towns to mighty nations, find your perfect home in the Nordics.
-                </p>
-                
-                {/* Nordic flag colors accent */}
-                <div className="flex justify-center space-x-2 mb-6">
-                  <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-                  <div className="w-3 h-3 bg-white border border-gray-300 rounded-full"></div>
-                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Top hero/title removed per request */}
 
       {/* Getting Started Guide Section */}
       <div className="max-w-5xl mx-auto mb-10">

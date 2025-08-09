@@ -8,12 +8,23 @@ import OnlinePlayersHover from './OnlinePlayersHover';
 import NordicsLogo from './NordicsLogo';
 import ServerIPModal from './ServerIPModal';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HeroSection = () => {
   const { status, loading: serverStatusLoading } = useServerStatus();
   const { towns, loading: townsLoading } = useTownLocations();
   const [showServerModal, setShowServerModal] = useState(false);
+  const navigate = useNavigate();
+  const [selectedTown, setSelectedTown] = useState<null | (typeof towns)[number]>(null);
+  const [selectedPosition, setSelectedPosition] = useState<null | { x: number; y: number }>(null);
+  const [selectedCursor, setSelectedCursor] = useState<null | { x: number; y: number }>(null);
+  const [hoveredTown, setHoveredTown] = useState<null | (typeof towns)[number]>(null);
+  const [hoveredCursor, setHoveredCursor] = useState<null | { x: number; y: number }>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
   const VIEWBOX_WIDTH = 15360;
   const VIEWBOX_HEIGHT = 8832;
   const initialScale = typeof window !== 'undefined' && window.innerWidth
@@ -46,6 +57,9 @@ const HeroSection = () => {
       if (widthPx > 0) {
         setSvgScale(widthPx / VIEWBOX_WIDTH);
       }
+      if (typeof window !== 'undefined') {
+        setIsMobile(window.innerWidth < 640);
+      }
     };
     updateScale();
     window.addEventListener('resize', updateScale);
@@ -53,7 +67,7 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden py-20 lg:py-32">
+    <section ref={sectionRef} className="relative overflow-hidden py-20 lg:py-32">
       <style jsx>{`
         @keyframes townPulse {
           0%, 100% { opacity: 0.3; }
@@ -81,17 +95,15 @@ const HeroSection = () => {
         }}></div>
       </div>
 
-      {/* Europe outline (dimmed) */}
+      {/* Europe outline (tinted). Stronger in light mode, subtler in dark mode */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <img 
           src="/heightmapVector-full.png" 
           alt="Europe outline"
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain opacity-20 dark:opacity-10"
           style={{ 
-            opacity: 0.28,
-            // Warm orange tint, reduce blue/white feel
-            filter: 'sepia(85%) saturate(250%) hue-rotate(-10deg) brightness(0.95) contrast(1.05)',
-            mixBlendMode: 'multiply'
+            // Solid dark-orange tint with slight blur
+            filter: 'sepia(100%) saturate(600%) hue-rotate(-18deg) brightness(0.68) contrast(1.15) blur(1px)'
           }}
         />
       </div>
@@ -100,21 +112,34 @@ const HeroSection = () => {
       <svg 
         ref={svgRef}
         viewBox="0 0 15360 8832" 
-        className="absolute inset-0 w-full h-full pointer-events-none z-30"
+        className="absolute inset-0 w-full h-full z-10"
         preserveAspectRatio="xMidYMid meet"
         style={{ opacity: 1 }}
       >
+        <defs>
+          <filter id="dot-blur" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" />
+          </filter>
+        </defs>
         {!townsLoading && towns.map((town) => {
           if (town.location_x === null || town.location_z === null) return null;
 
           const coords = convertToMapCoordinates(town.location_x, town.location_z);
           const isCapital = town.is_capital;
 
-          const dotPx = isCapital ? 8 : 6;
-          const outlinePx = isCapital ? 14 : 12;
-          const haloPx = isCapital ? 18 : 16;
-          const strokePx = 2.5;
-          const haloStrokePx = 2.5;
+          // Base sizes in CSS pixels (desktop), scaled down on mobile
+          const baseDotPx = isCapital ? 6 : 5;
+          const baseOutlinePx = isCapital ? 12 : 10;
+          const baseHaloPx = isCapital ? 16 : 14;
+          const baseStrokePx = 2.0;
+          const baseHaloStrokePx = 2.0;
+          const sizeFactor = isMobile ? 0.7 : 1; // reduce on small screens
+
+          const dotPx = Math.max(2.5, baseDotPx * sizeFactor);
+          const outlinePx = Math.max(6, baseOutlinePx * sizeFactor);
+          const haloPx = Math.max(8, baseHaloPx * sizeFactor);
+          const strokePx = Math.max(1, baseStrokePx * sizeFactor);
+          const haloStrokePx = Math.max(1, baseHaloStrokePx * sizeFactor);
 
           const rDot = dotPx / svgScale;
           const rOutline = outlinePx / svgScale;
@@ -124,8 +149,39 @@ const HeroSection = () => {
 
           const color = '#f97316'; // orange-500
 
+          // Opacities (slightly reduced on mobile)
+          const outlineOpacity = isMobile ? 0.3 : 0.35;
+          const haloOpacity = isMobile ? 0.12 : 0.18;
+          const dotOpacity = isMobile ? 0.22 : 0.27;
+
           return (
-            <g key={town.id}>
+            <g key={town.id} style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+               onClick={(e) => {
+                 setSelectedTown({ ...town });
+                 setSelectedPosition({ x: coords.x, y: coords.y });
+                 if (sectionRef.current) {
+                   const rect = sectionRef.current.getBoundingClientRect();
+                   setSelectedCursor({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                 }
+               }}
+               onMouseEnter={(e) => {
+                 setHoveredTown({ ...town });
+                 if (sectionRef.current) {
+                   const rect = sectionRef.current.getBoundingClientRect();
+                   setHoveredCursor({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                 }
+               }}
+               onMouseMove={(e) => {
+                 if (sectionRef.current) {
+                   const rect = sectionRef.current.getBoundingClientRect();
+                   setHoveredCursor({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                 }
+               }}
+               onMouseLeave={() => {
+                 setHoveredTown(null);
+                 setHoveredCursor(null);
+               }}
+            >
               {/* White halo for contrast on any background */}
               <circle
                 cx={coords.x}
@@ -134,7 +190,7 @@ const HeroSection = () => {
                 fill="none"
                 stroke="#ffffff"
                 strokeWidth={haloStrokeW}
-                strokeOpacity="0.9"
+                strokeOpacity={haloOpacity}
               />
               {/* Outline */}
               <circle
@@ -144,7 +200,7 @@ const HeroSection = () => {
                 fill="none"
                 stroke={color}
                 strokeWidth={strokeW}
-                strokeOpacity="1"
+                strokeOpacity={outlineOpacity}
               />
               {/* Main dot */}
               <circle
@@ -152,14 +208,79 @@ const HeroSection = () => {
                 cy={coords.y}
                 r={rDot}
                 fill={color}
-                opacity="1"
+                opacity={dotOpacity}
+                filter="url(#dot-blur)"
               />
             </g>
           );
         })}
       </svg>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Popup for selected town */}
+      {selectedTown && selectedCursor && (
+        <div
+          className="absolute z-40"
+          style={{
+            left: Math.max(8, Math.min(window.innerWidth - 280, selectedCursor.x + 10)),
+            top: Math.max(8, selectedCursor.y - 10)
+          }}
+        >
+          <div className="rounded-xl border border-white/20 dark:border-white/10 shadow-md bg-white/70 dark:bg-neutral-900/60 backdrop-blur-md px-3 py-2 min-w-[220px] max-w-[280px]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{selectedTown.name}</div>
+                <div className="mt-0.5 flex items-center gap-2">
+                  {selectedTown.is_capital && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-700 dark:text-orange-300 border border-orange-500/30">Capital</span>
+                  )}
+                  {selectedTown.nation_name && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-200/50 dark:bg-neutral-800/50 border border-white/20 dark:border-white/10 text-neutral-700 dark:text-neutral-200">{selectedTown.nation_name}</span>
+                  )}
+                </div>
+                <div className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
+                  ({selectedTown.location_x}, {selectedTown.location_z})
+                </div>
+              </div>
+              <button
+                className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                onClick={() => setSelectedTown(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="mt-2 flex gap-2">
+              <button
+                className="text-xs px-2 py-1 rounded-md bg-orange-500/80 text-white backdrop-blur-sm hover:bg-orange-500/90"
+                onClick={() => navigate(`/town/${encodeURIComponent(selectedTown.name)}`)}
+              >
+                Open
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fancy quick tooltip on hover */}
+      {hoveredTown && hoveredCursor && (
+        <div
+          className="absolute z-40 pointer-events-none"
+          style={{
+            left: Math.max(8, Math.min(window.innerWidth - 220, hoveredCursor.x + 10)),
+            top: Math.max(8, hoveredCursor.y - 28)
+          }}
+        >
+          <div className="px-2 py-1 rounded-lg bg-white/70 dark:bg-neutral-900/60 border border-white/20 dark:border-white/10 backdrop-blur-md shadow-sm">
+            <div className="text-[11px] font-medium text-neutral-900 dark:text-neutral-50">
+              {hoveredTown.name}
+            </div>
+            {hoveredTown.nation_name && (
+              <div className="text-[10px] text-neutral-600 dark:text-neutral-300">{hoveredTown.nation_name}</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-none">
         <div className="text-center">
           {/* Logo */}
           <div className="flex justify-center mb-6">
@@ -167,7 +288,7 @@ const HeroSection = () => {
           </div>
 
           {/* Server Status Badge */}
-          <div className="flex justify-center items-center mb-6">
+          <div className="flex justify-center items-center mb-6 pointer-events-auto">
             {status?.online && (
               <OnlinePlayersHover 
                 players={playersList} 
@@ -187,52 +308,30 @@ const HeroSection = () => {
             <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">Nordics Minecraft</span>
           </h1>
 
-          {/* Subtitle */}
-          <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto animate-fade-in" style={{
+          {/* Subtitle - simplified */}
+          <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-in" style={{
             animationDelay: '0.2s'
           }}>
-            Dive into epic adventures, build legendary kingdoms, and forge unforgettable friendships in our vibrant Nordic realm.
+            Build with friends. Explore the world. Make your town thrive.
           </p>
 
-          {/* Nordic flag colors accent */}
-          <div className="flex justify-center space-x-2 mb-8 animate-fade-in" style={{
-            animationDelay: '0.3s'
-          }}>
-            {/* Sweden - Blue */}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#006AA7' }}></div>
-            {/* Sweden - Yellow */}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#FECC00' }}></div>
-            {/* Norway - Red */}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#EF2B2D' }}></div>
-            {/* Norway - Blue */}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#002868' }}></div>
-            {/* Denmark - Red */}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#C8102E' }}></div>
-            {/* Finland - Blue */}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#003580' }}></div>
-            {/* Iceland - Blue */}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#02529C' }}></div>
-            {/* Iceland - Red */}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#DC1E35' }}></div>
-            {/* White (common in Nordic flags) */}
-            <div className="w-3 h-3 rounded-full bg-white border border-gray-300"></div>
-          </div>
+          
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in" style={{
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in pointer-events-auto" style={{
             animationDelay: '0.4s'
           }}>
-            <Button size="lg" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-2xl text-lg font-medium hover-lift glow-primary group" onClick={() => setShowServerModal(true)}>
+            <Button size="lg" className="backdrop-blur-sm bg-gradient-to-r from-orange-500/85 to-red-500/85 hover:from-orange-500/95 hover:to-red-500/95 text-white px-8 py-4 rounded-2xl text-lg font-medium hover-lift glow-primary group" onClick={() => setShowServerModal(true)}>
               Join nordics.world
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="outline" size="lg" className="border-2 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 px-8 py-4 rounded-2xl text-lg font-medium hover-lift" onClick={() => window.open('https://map.nordics.world', '_blank')}>
+            <Button variant="outline" size="lg" className="backdrop-blur-sm bg-white/30 dark:bg-neutral-900/30 border-2 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-white/40 dark:hover:bg-neutral-900/40 px-8 py-4 rounded-2xl text-lg font-medium hover-lift" onClick={() => window.open('https://map.nordics.world', '_blank')}>
               View Live Map
             </Button>
           </div>
 
           {/* Server stats */}
-          <div className="flex justify-center max-w-4xl mx-auto animate-fade-in" style={{
+          <div className="flex justify-center max-w-4xl mx-auto animate-fade-in pointer-events-auto" style={{
             animationDelay: '0.6s'
           }}>
             <div className="glass-card p-6 rounded-3xl hover-lift group border border-orange-200 dark:border-orange-800">

@@ -22,7 +22,7 @@ const Rules = () => {
       id: 'cheating',
       title: 'Cheating & Technical Issues',
       icon: Shield,
-      color: 'text-red-500',
+      color: 'text-primary',
       rules: [
         { id: '1.1', text: 'Use of Cheats', severity: 'severe', description: 'Those who use any form of cheats, mods, or programs that provide unfair advantages will face severe penalties.' },
         { id: '1.1.1', text: 'Unauthorized Automation', severity: 'minor', description: 'Advanced functions for automated behavior that provide advantages.' },
@@ -35,7 +35,7 @@ const Rules = () => {
       id: 'behavior',
       title: 'Behaviors',
       icon: Users,
-      color: 'text-blue-500',
+      color: 'text-primary',
       rules: [
         { id: '2.1', text: 'Deception', severity: 'chat', description: 'Intentionally deceiving other players or mimicking identities.' },
         { id: '2.2', text: 'Disobedience to Authority', severity: 'moderate', description: 'Not following moderator instructions.' },
@@ -46,7 +46,7 @@ const Rules = () => {
       id: 'communication',
       title: 'Communication',
       icon: MessageSquare,
-      color: 'text-green-500',
+      color: 'text-primary',
       rules: [
         { id: '3.1', text: 'Inappropriate Language', severity: 'chat', description: 'Careless, inappropriate, unsuitable, or foreign words.' },
         { id: '3.2', text: 'Provocation', severity: 'severe', description: 'Expressions of xenophobia, hatred, threats, or sexual innuendos.' },
@@ -60,7 +60,7 @@ const Rules = () => {
       id: 'building',
       title: 'Buildings & Griefing',
       icon: Hammer,
-      color: 'text-orange-500',
+      color: 'text-primary',
       rules: [
         { id: '4.1', text: 'Vandalism', severity: 'moderate', description: 'Placement of annoying blocks, large-scale griefing, destructive use of fluids.' },
         { id: '4.2', text: 'Unauthorized Construction', severity: 'minor', description: 'Building traps or harmful structures in public towns.' },
@@ -72,11 +72,11 @@ const Rules = () => {
   ];
 
   const staffRoles = [
-    { role: 'Verified', color: 'text-blue-500', prefix: '[V]', description: 'Trusted community members who can kick rule-breakers when no staff are online.' },
-    { role: 'Helper', color: 'text-blue-500', prefix: '[H]', description: 'Support new players and maintain order in chat channels.' },
-    { role: 'Moderator', color: 'text-blue-500', prefix: '[M]', description: 'Universal tool handling most server tasks and rule enforcement.' },
-    { role: 'Administrator', color: 'text-blue-500', prefix: '[A]', description: 'Moderators with greater responsibility for events and world management.' },
-    { role: 'Management', color: 'text-red-500', prefix: '[A]', description: 'Responsible for the entire server operation and all staff.' }
+    { role: 'Verified', color: 'text-primary', prefix: '[V]', description: 'Trusted community members who can kick rule-breakers when no staff are online.' },
+    { role: 'Helper', color: 'text-primary', prefix: '[H]', description: 'Support new players and maintain order in chat channels.' },
+    { role: 'Moderator', color: 'text-primary', prefix: '[M]', description: 'Universal tool handling most server tasks and rule enforcement.' },
+    { role: 'Administrator', color: 'text-primary', prefix: '[A]', description: 'Moderators with greater responsibility for events and world management.' },
+    { role: 'Management', color: 'text-primary', prefix: '[A]', description: 'Responsible for the entire server operation and all staff.' }
   ];
 
   const getSeverityBadge = (severity: string) => {
@@ -99,8 +99,8 @@ const Rules = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Header */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-medium mb-4">
-          <span className="gradient-text">Server Rules</span>
+        <h1 className="text-4xl md:text-5xl font-medium mb-4 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+          Server Rules
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
           Guidelines and regulations for maintaining a fair and enjoyable community on Nordics Minecraft.
@@ -136,7 +136,7 @@ const Rules = () => {
                 <Card key={category.id} className="glass-card rounded-3xl">
                   <CardHeader>
                     <CardTitle className={`flex items-center text-xl ${category.color}`}>
-                      <Icon className="w-6 h-6 mr-3" />
+                      <Icon className="w-6 h-6 mr-3 text-primary" />
                       {category.title}
                     </CardTitle>
                   </CardHeader>
@@ -173,7 +173,7 @@ const Rules = () => {
             ].map((punishment) => (
               <Card key={punishment.type} className="glass-card rounded-3xl">
                 <CardHeader>
-                  <CardTitle className={`text-${punishment.color}-500 flex items-center`}>
+                  <CardTitle className="text-primary flex items-center">
                     <AlertTriangle className="w-5 h-5 mr-2" />
                     {punishment.type}
                   </CardTitle>
@@ -193,7 +193,7 @@ const Rules = () => {
               <Card key={staff.role} className="glass-card rounded-3xl">
                 <CardHeader>
                   <CardTitle className={`flex items-center ${staff.color}`}>
-                    <Badge className={`mr-3 ${staff.color} bg-current/20`}>
+                    <Badge className={`mr-3 text-primary bg-primary/10`}>
                       {staff.prefix}
                     </Badge>
                     {staff.role}
@@ -211,7 +211,7 @@ const Rules = () => {
         <TabsContent value="bans">
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-red-500">
+              <CardTitle className="flex items-center text-primary">
                 <Gavel className="w-6 h-6 mr-3" />
                 Permanent Bans
               </CardTitle>

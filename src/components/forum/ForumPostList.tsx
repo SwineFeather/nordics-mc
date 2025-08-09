@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Eye, Bookmark, BookmarkCheck } from 'lucide-react';
+import { Bookmark, BookmarkCheck } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { usePlayerBadges } from '@/hooks/usePlayerBadges';
 import React from 'react';
@@ -68,16 +68,7 @@ const ForumPostList: React.FC<ForumPostListProps> = ({ posts, loading, user, onS
                   </div>
                 </div>
                 <div className="flex flex-col items-end space-y-2">
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <div className="flex items-center space-x-1">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{post.reply_count || 0}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Eye className="w-4 h-4" />
-                      <span>{post.view_count}</span>
-                    </div>
-                  </div>
+                  {/* Removed per request: reply/view counts */}
                   {user && (
                     <Button
                       variant={isSaved ? 'secondary' : 'outline'}
