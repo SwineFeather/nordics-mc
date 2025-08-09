@@ -114,12 +114,12 @@ const SuggestedEditItem: React.FC<SuggestedEditItemProps> = ({
 
   const handleApplyEdit = async () => {
     try {
-      await onApplyEdit(edit.title, edit.content);
-      await onReview(edit.id, 'merged');
-      toast.success('Edit applied and merged');
+      // Do not directly push changes. Mark as approved; reviewer must merge explicitly.
+      await onReview(edit.id, 'approved');
+      toast.success('Edit approved. Use Merge to apply changes.');
     } catch (error) {
-      console.error('Failed to apply edit:', error);
-      toast.error('Failed to apply edit');
+      console.error('Failed to approve edit:', error);
+      toast.error('Failed to approve edit');
     }
   };
 

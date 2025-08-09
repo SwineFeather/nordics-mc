@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -122,19 +122,39 @@ const OnlinePlayersHover: React.FC<OnlinePlayersHoverProps> = ({
   }
   // Non-portal hover wrapper: keeps content open while moving between trigger and panel
   const [open, setOpen] = useState(false)
-  const show = () => setOpen(true)
-  const hide = () => setOpen(false)
+  const closeTimerRef = useRef<number | null>(null)
+
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+  }
+  const scheduleClose = (delay = 700) => {
+    clearCloseTimer()
+    closeTimerRef.current = window.setTimeout(() => setOpen(false), delay)
+  }
+  const show = () => {
+    clearCloseTimer()
+    setOpen(true)
+  }
+  const hide = () => {
+    scheduleClose(700)
+  }
 
   const positionClass = side === 'top' ? 'bottom-full' : side === 'bottom' ? 'top-full' : side === 'left' ? 'right-full' : 'left-full'
-  const spacingClass = side === 'top' ? 'mb-1' : side === 'bottom' ? 'mt-1' : side === 'left' ? 'mr-1' : 'ml-1'
+  const spacingClass = side === 'top' ? 'mb-0' : side === 'bottom' ? 'mt-0' : side === 'left' ? 'mr-0' : 'ml-0'
+  const overlapClass = side === 'top' ? '-mt-2' : side === 'bottom' ? '-mb-2' : side === 'left' ? '-mr-2' : '-ml-2'
 
   return (
-    <div className="relative inline-block pointer-events-auto" onMouseEnter={show} onMouseLeave={hide}>
-      <div>{children}</div>
+    <div className="relative inline-block pointer-events-auto">
+      <div onMouseEnter={show} onMouseLeave={hide}>{children}</div>
       {open && (
         <div className={`absolute ${positionClass} ${spacingClass} left-1/2 -translate-x-1/2 z-50`}
+          onMouseEnter={show}
+          onMouseLeave={hide}
         >
-          <div className="w-auto max-w-md p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl select-text">
+          <div className={`w-auto max-w-md p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl select-text ${overlapClass}`}>
             <div className="space-y-3">
               <div className="text-center">
                 <h4 className="text-sm font-semibold">Players Online</h4>

@@ -1262,6 +1262,67 @@ ${content}`;
   }
 
   /**
+   * Fallback: ensure a wiki_pages row exists and record a page_revisions entry.
+   */
+  static async ensureWikiPageAndRecordRevision(
+    slug: string,
+    title: string,
+    content: string,
+    status: string = 'published'
+  ): Promise<void> {
+    // 1) Find or create wiki_pages row by slug
+    const { data: existingPage, error: fetchErr } = await supabase
+      .from('wiki_pages')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle();
+    let pageId = existingPage?.id as string | undefined;
+
+    if (!pageId) {
+      const { data: created, error: createErr } = await supabase
+        .from('wiki_pages')
+        .insert({ title, slug, content, status })
+        .select('id')
+        .single();
+      if (createErr) throw createErr;
+      pageId = created?.id as string;
+    }
+
+    if (!pageId) throw new Error('Failed to ensure wiki page id');
+
+    // 2) Set all existing revisions to not current
+    await supabase
+      .from('page_revisions')
+      .update({ is_current: false })
+      .eq('page_id', pageId);
+
+    // 3) Compute next revision_number
+    const { data: maxRev } = await supabase
+      .from('page_revisions')
+      .select('revision_number')
+      .eq('page_id', pageId)
+      .order('revision_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextRev = (maxRev?.revision_number as number | undefined) ? (Number(maxRev.revision_number) + 1) : 1;
+
+    // 4) Insert new revision
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error: revErr } = await supabase
+      .from('page_revisions')
+      .insert({
+        page_id: pageId,
+        title,
+        content,
+        status,
+        author_id: user?.id || null,
+        revision_number: nextRev,
+        is_current: true
+      });
+    if (revErr) throw revErr;
+  }
+
+  /**
    * Create a new wiki page
    */
   static async createPage(path: string, title: string, content: string, category?: string): Promise<void> {

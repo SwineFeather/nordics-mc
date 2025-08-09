@@ -455,14 +455,11 @@ ${formData.description ? `> ${formData.description}` : ''}
 
       // Also save to database to create a revision entry and support history
       try {
-        await SupabaseWikiService.savePageToDatabase(
+        await SupabaseWikiService.ensureWikiPageAndRecordRevision(
           selectedPage.slug,
           updates.title || selectedPage.title,
           updates.content || selectedPage.content,
-          selectedPage.status,
-          undefined,
-          selectedPage.description,
-          selectedPage.tags
+          selectedPage.status
         );
       } catch (dbErr) {
         console.warn('Failed to save page to database (revision not recorded):', dbErr);
