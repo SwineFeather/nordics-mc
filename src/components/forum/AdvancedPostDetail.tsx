@@ -28,6 +28,7 @@ import { forumPostService, PostVersion, PostCollaboration, PostCollaborationWith
 import { forumNotificationService } from '@/services/forumNotificationService';
 import { supabase } from '@/integrations/supabase/client';
 import { ForumPost } from '@/hooks/useForumPosts';
+import { useNationForumAccess } from '@/hooks/useNationForumAccess';
 
 interface AdvancedPostDetailProps {
   postId: string;
@@ -39,6 +40,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
   const { replies, createReply } = useForumReplies(postId);
   const [replyContent, setReplyContent] = useState('');
   const { user, profile } = useAuth();
+  const { hasAccessToForum, isAdmin, isModerator, loading: accessLoading } = useNationForumAccess();
   const [isSaved, setIsSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
@@ -87,7 +89,8 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
           .from('forum_posts')
           .select(`
             *,
-            author:profiles(id, full_name, email, avatar_url, minecraft_username)
+            author:profiles(id, full_name, email, avatar_url, minecraft_username),
+            category:forum_categories(id, name, slug, nation_name, town_name)
           `)
           .eq('id', postId)
           .single();
@@ -437,12 +440,32 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
     }
   };
 
-  if (loading) {
+  if (loading || accessLoading) {
     return <div className="text-center py-8">Loading post...</div>;
   }
 
   if (!post) {
     return <div className="text-center py-8">Post not found</div>;
+  }
+
+  const categoryAny: any = (post as any).category;
+  if (categoryAny && (categoryAny.nation_name || categoryAny.town_name)) {
+    const allowed = (isAdmin || isModerator) || hasAccessToForum(categoryAny.nation_name || null, categoryAny.town_name || null);
+    if (!allowed) {
+      return (
+        <div className="space-y-4">
+          <Button variant="ghost" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">This post belongs to a private forum. You don't have permission to view it.</p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
   }
 
   if (isEditing) {

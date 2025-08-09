@@ -12,15 +12,16 @@ import { ForumCategory } from '@/hooks/useForumCategories';
 
 const NewsSection: React.FC = () => {
   const navigate = useNavigate();
-  const [featuredPosts, setFeaturedPosts] = useState<ForumPost[]>([]);
-  const [recentPosts, setRecentPosts] = useState<ForumPost[]>([]);
+  type PostWithCategory = ForumPost & { category?: { id: string; name: string; slug: string } };
+  const [featuredPosts, setFeaturedPosts] = useState<PostWithCategory[]>([]);
+  const [recentPosts, setRecentPosts] = useState<PostWithCategory[]>([]);
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch categories first
+        // Fetch categories first (for featured sections)
         const { data: categoriesData } = await supabase
           .from('forum_categories')
           .select('*')
@@ -36,19 +37,32 @@ const NewsSection: React.FC = () => {
             .from('forum_posts')
             .select(`
               *,
-              author:profiles(id, full_name, email, avatar_url, minecraft_username)
+              author:profiles(id, full_name, email, avatar_url, minecraft_username),
+              category:forum_categories(id, name, slug)
             `)
             .in('category_id', categoryIds)
             .order('created_at', { ascending: false })
             .limit(4);
 
-          // Fetch recent posts from all forum categories for "Recent Updates"
+          // Fetch public categories (exclude nation/town/moderator-only)
+          const { data: publicCategories } = await supabase
+            .from('forum_categories')
+            .select('id')
+            .is('nation_name', null)
+            .is('town_name', null)
+            .eq('is_moderator_only', false);
+
+          const publicCategoryIds = (publicCategories || []).map((c: any) => c.id);
+
+          // Fetch recent posts from public categories only for "Recent Updates"
           const { data: recentData } = await supabase
             .from('forum_posts')
             .select(`
               *,
-              author:profiles(id, full_name, email, avatar_url, minecraft_username)
+              author:profiles(id, full_name, email, avatar_url, minecraft_username),
+              category:forum_categories(id, name, slug)
             `)
+            .in('category_id', publicCategoryIds.length ? publicCategoryIds : ['00000000-0000-0000-0000-000000000000'])
             .order('created_at', { ascending: false })
             .limit(8);
 
@@ -78,9 +92,8 @@ const NewsSection: React.FC = () => {
     }
   };
 
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId);
-    return category?.name || 'Unknown';
+  const getCategoryNameFromPost = (post: PostWithCategory) => {
+    return post.category?.name || 'Unknown';
   };
 
   const getAuthorName = (author: any) => {
@@ -138,8 +151,8 @@ const NewsSection: React.FC = () => {
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between mb-2">
-                      <Badge className={getCategoryColor(getCategoryName(post.category_id))}>
-                        {getCategoryName(post.category_id)}
+                      <Badge className={getCategoryColor(getCategoryNameFromPost(post))}>
+                        {getCategoryNameFromPost(post)}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
                         {new Date(post.created_at).toLocaleDateString()}
@@ -202,8 +215,8 @@ const NewsSection: React.FC = () => {
                     onClick={() => handlePostClick(post)}
                   >
                     <CardContent className="p-4">
-                      <Badge className={`${getCategoryColor(getCategoryName(post.category_id))} mb-2`}>
-                        {getCategoryName(post.category_id)}
+                      <Badge className={`${getCategoryColor(getCategoryNameFromPost(post))} mb-2`}>
+                        {getCategoryNameFromPost(post)}
                       </Badge>
                       <h4 className="font-medium mb-2 line-clamp-2 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
                         {post.title}

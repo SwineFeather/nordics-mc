@@ -22,12 +22,13 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 interface CommentsProps {
-  pageId: string;
+  pageId: string; // May be UUID or storage path
   userRole: string;
   allowComments?: boolean;
+  pageSlug?: string; // Optional explicit slug to resolve DB page id
 }
 
-const Comments: React.FC<CommentsProps> = ({ pageId, userRole, allowComments = true }) => {
+const Comments: React.FC<CommentsProps> = ({ pageId, userRole, allowComments = true, pageSlug }) => {
   const { user } = useAuth();
   const [comments, setComments] = useState<WikiComment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,12 +40,12 @@ const Comments: React.FC<CommentsProps> = ({ pageId, userRole, allowComments = t
   // Load comments
   useEffect(() => {
     loadComments();
-  }, [pageId]);
+  }, [pageId, pageSlug]);
 
   const loadComments = async () => {
     try {
       setLoading(true);
-      const data = await WikiCommentService.getComments(pageId);
+      const data = await WikiCommentService.getComments(pageId, pageSlug);
       setComments(data);
     } catch (error) {
       console.error('Error loading comments:', error);
@@ -66,7 +67,7 @@ const Comments: React.FC<CommentsProps> = ({ pageId, userRole, allowComments = t
         is_resolved: false,
         is_pinned: false,
         is_moderated: false
-      });
+      }, pageSlug);
 
       setComments(prev => [...prev, comment]);
       setNewComment('');

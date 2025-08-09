@@ -8,6 +8,7 @@ interface TownLocation {
   location_z: number | null;
   is_capital: boolean;
   nation_name: string | null;
+  balance: number | null;
 }
 
 export const useTownLocations = () => {
@@ -23,7 +24,7 @@ export const useTownLocations = () => {
         // Fetch towns that have location data (show all regardless of public flag for home map)
         const { data, error } = await supabase
           .from('towns')
-          .select('id, name, location_x, location_z, is_capital, nation_name')
+          .select('id, name, location_x, location_z, is_capital, nation_name, balance')
           .not('location_x', 'is', null)
           .not('location_z', 'is', null)
           .order('name');

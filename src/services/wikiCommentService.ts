@@ -2,9 +2,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { WikiComment } from '@/types/wiki';
 
 export class WikiCommentService {
+  private static async resolveDbPageId(pageIdOrPath: string, pageSlug?: string): Promise<string> {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(pageIdOrPath)) return pageIdOrPath;
+    const slug = (pageSlug || pageIdOrPath.split('/').pop() || '').replace(/\.md$/, '');
+    if (!slug) return pageIdOrPath; // fallback
+    const { data, error } = await supabase.from('wiki_pages').select('id').eq('slug', slug).maybeSingle();
+    if (!error && data?.id) return data.id as string;
+    return pageIdOrPath;
+  }
   // Get all comments for a page
-  static async getComments(pageId: string): Promise<WikiComment[]> {
+  static async getComments(pageId: string, pageSlug?: string): Promise<WikiComment[]> {
     try {
+      const dbPageId = await this.resolveDbPageId(pageId, pageSlug);
       const { data, error } = await supabase
         .from('wiki_comments')
         .select(`
@@ -17,7 +27,7 @@ export class WikiCommentService {
             avatar_url
           )
         `)
-        .eq('page_id', pageId)
+        .eq('page_id', dbPageId)
         .is('parent_id', null) // Only get top-level comments
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: true });
@@ -77,12 +87,13 @@ export class WikiCommentService {
   }
 
   // Create a new comment
-  static async createComment(comment: Omit<WikiComment, 'id' | 'created_at' | 'updated_at'>): Promise<WikiComment> {
+  static async createComment(comment: Omit<WikiComment, 'id' | 'created_at' | 'updated_at'>, pageSlug?: string): Promise<WikiComment> {
     try {
+      const dbPageId = await this.resolveDbPageId(String(comment.page_id), pageSlug);
       const { data, error } = await supabase
         .from('wiki_comments')
         .insert({
-          page_id: comment.page_id,
+          page_id: dbPageId,
           author_id: comment.author_id,
           parent_id: comment.parent_id,
           content: comment.content,
@@ -173,10 +184,11 @@ export class WikiCommentService {
   // Get comment count for a page
   static async getCommentCount(pageId: string): Promise<number> {
     try {
+      const dbPageId = await this.resolveDbPageId(pageId);
       const { count, error } = await supabase
         .from('wiki_comments')
         .select('*', { count: 'exact', head: true })
-        .eq('page_id', pageId);
+        .eq('page_id', dbPageId);
 
       if (error) throw error;
       return count || 0;

@@ -45,6 +45,9 @@ interface SuggestedEditsProps {
   currentContent: string;
   currentTitle: string;
   onApplyEdit: (title: string, content: string) => Promise<void>;
+  pageOwnerId?: string;
+  openSubmit?: boolean;
+  onOpenSubmitChange?: (open: boolean) => void;
 }
 
 interface SuggestedEditItemProps {
@@ -54,6 +57,7 @@ interface SuggestedEditItemProps {
   currentTitle: string;
   onReview: (editId: string, status: 'approved' | 'rejected' | 'merged', notes?: string) => Promise<void>;
   onApplyEdit: (title: string, content: string) => Promise<void>;
+  canReview: boolean;
 }
 
 const SuggestedEditItem: React.FC<SuggestedEditItemProps> = ({
@@ -62,7 +66,8 @@ const SuggestedEditItem: React.FC<SuggestedEditItemProps> = ({
   currentContent,
   currentTitle,
   onReview,
-  onApplyEdit
+  onApplyEdit,
+  canReview
 }) => {
   const { user } = useAuth();
   const [showReviewDialog, setShowReviewDialog] = useState(false);
@@ -70,7 +75,6 @@ const SuggestedEditItem: React.FC<SuggestedEditItemProps> = ({
   const [reviewNotes, setReviewNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canReview = userRole === 'admin' || userRole === 'moderator';
   const isAuthor = user?.id === edit.authorId;
 
   const getStatusBadge = () => {
@@ -315,12 +319,17 @@ const SuggestedEdits: React.FC<SuggestedEditsProps> = ({
   userRole,
   currentContent,
   currentTitle,
-  onApplyEdit
+  onApplyEdit,
+  pageOwnerId,
+  openSubmit,
+  onOpenSubmitChange
 }) => {
   const { user } = useAuth();
   const [suggestedEdits, setSuggestedEdits] = useState<WikiSuggestedEdit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = typeof openSubmit === 'boolean';
+  const showSubmitDialog = isControlled ? !!openSubmit : uncontrolledOpen;
   const [newEdit, setNewEdit] = useState({
     title: currentTitle,
     content: currentContent,
@@ -359,7 +368,11 @@ const SuggestedEdits: React.FC<SuggestedEditsProps> = ({
         newEdit.content.trim(),
         newEdit.description.trim() || undefined
       );
-      setShowSubmitDialog(false);
+      if (isControlled) {
+        onOpenSubmitChange?.(false);
+      } else {
+        setUncontrolledOpen(false);
+      }
       setNewEdit({ title: currentTitle, content: currentContent, description: '' });
       loadSuggestedEdits();
       toast.success('Suggested edit submitted for review');
@@ -394,9 +407,24 @@ const SuggestedEdits: React.FC<SuggestedEditsProps> = ({
           </CardTitle>
           
           {user && (
-            <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
+            <Dialog 
+              open={showSubmitDialog} 
+              onOpenChange={(open) => {
+                if (isControlled) {
+                  onOpenSubmitChange?.(open);
+                } else {
+                  setUncontrolledOpen(open);
+                }
+              }}
+            >
               <DialogTrigger asChild>
-                <Button size="sm">
+                <Button size="sm" onClick={() => {
+                  if (isControlled) {
+                    onOpenSubmitChange?.(true);
+                  } else {
+                    setUncontrolledOpen(true);
+                  }
+                }}>
                   <Edit3 className="w-4 h-4 mr-2" />
                   Suggest Edit
                 </Button>
@@ -498,6 +526,7 @@ const SuggestedEdits: React.FC<SuggestedEditsProps> = ({
                     currentTitle={currentTitle}
                     onReview={handleReviewEdit}
                     onApplyEdit={onApplyEdit}
+                    canReview={userRole === 'admin' || userRole === 'moderator'}
                   />
                 ))
               )}
@@ -519,6 +548,7 @@ const SuggestedEdits: React.FC<SuggestedEditsProps> = ({
                     currentTitle={currentTitle}
                     onReview={handleReviewEdit}
                     onApplyEdit={onApplyEdit}
+                    canReview={userRole === 'admin' || userRole === 'moderator'}
                   />
                 ))
               )}

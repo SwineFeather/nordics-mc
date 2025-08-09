@@ -28,6 +28,7 @@ import OptimizedWikiSidebar from '../components/wiki/OptimizedWikiSidebar';
 import EnhancedWikiEditor from '../components/wiki/EnhancedWikiEditor';
 import Comments from '../components/wiki/Comments';
 import SuggestedEdits from '../components/wiki/SuggestedEdits';
+import PageHistory from '../components/wiki/PageHistory';
 import BreadcrumbNavigation from '../components/wiki/BreadcrumbNavigation';
 import SimpleMarkdownRenderer from '../components/SimpleMarkdownRenderer';
 import { SupabaseWikiService } from '../services/supabaseWikiService';
@@ -456,6 +457,21 @@ ${formData.description ? `> ${formData.description}` : ''}
         updates.content || selectedPage.content,
         updates.title || selectedPage.title
       );
+
+      // Also save to database to create a revision entry and support history
+      try {
+        await SupabaseWikiService.savePageToDatabase(
+          selectedPage.slug,
+          updates.title || selectedPage.title,
+          updates.content || selectedPage.content,
+          selectedPage.status,
+          undefined,
+          selectedPage.description,
+          selectedPage.tags
+        );
+      } catch (dbErr) {
+        console.warn('Failed to save page to database (revision not recorded):', dbErr);
+      }
       
       // Update the selected page with new content and title
       const updatedPage = {
@@ -881,7 +897,7 @@ ${formData.description ? `> ${formData.description}` : ''}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1">
 
                       
                       {/* Show edit button for all authenticated users during development */}
@@ -922,15 +938,18 @@ ${formData.description ? `> ${formData.description}` : ''}
                       )}
                       
                       {user && !isEditing && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowSuggestEditModal(true)}
-                          className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 shadow-sm"
-                        >
-                          <GitMerge className="h-4 w-4 mr-2" />
-                          Suggest Edit
-                        </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setActiveTab('suggested-edits');
+                              setShowSuggestEditModal(true);
+                            }}
+                            className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 shadow-sm"
+                          >
+                            <GitMerge className="h-4 w-4 mr-2" />
+                            Suggest Edit
+                          </Button>
                       )}
                       
                       {/* Page Settings */}
@@ -991,19 +1010,27 @@ ${formData.description ? `> ${formData.description}` : ''}
                     <TabsContent value="comments" className="flex-1 overflow-auto p-6">
                       <Comments
                         pageId={selectedPage.id}
+                        pageSlug={selectedPage.slug}
                         userRole={userRole}
                         allowComments={selectedPage.allowComments}
                       />
                     </TabsContent>
 
                     <TabsContent value="suggested-edits" className="flex-1 overflow-auto p-6">
-                      {collaboration && (
+                      {selectedPage && (
                         <SuggestedEdits
                           pageId={selectedPage.id}
                           userRole={userRole}
                           currentContent={selectedPage.content}
                           currentTitle={selectedPage.title}
-                          onApplyEdit={(title, content) => handleEnhancedSave({ title, content })}
+                          pageOwnerId={selectedPage.authorId}
+                          onApplyEdit={async (title, content) => {
+                            await handleEnhancedSave({ title, content });
+                            // After applying, refresh live/static content
+                            await handleRefreshLiveData();
+                          }}
+                          openSubmit={showSuggestEditModal}
+                          onOpenSubmitChange={setShowSuggestEditModal}
                         />
                       )}
                     </TabsContent>
@@ -1082,12 +1109,20 @@ ${formData.description ? `> ${formData.description}` : ''}
 
       {showPageHistory && selectedPage && (
         <Dialog open={showPageHistory} onOpenChange={setShowPageHistory}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Page History</DialogTitle>
             </DialogHeader>
-            <div className="p-4">
-              <p className="text-muted-foreground">Page history coming soon</p>
+            <div className="p-2">
+              <PageHistory 
+                pageId={selectedPage.id} 
+                pageTitle={selectedPage.title}
+                pageSlug={selectedPage.slug}
+                onRevisionRestored={async () => {
+                  // Refresh the selected page content after restore
+                  await handleRefreshLiveData();
+                }}
+              />
             </div>
           </DialogContent>
         </Dialog>
@@ -1121,18 +1156,7 @@ ${formData.description ? `> ${formData.description}` : ''}
 
 
 
-      {showSuggestEditModal && selectedPage && (
-        <Dialog open={showSuggestEditModal} onOpenChange={setShowSuggestEditModal}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Suggest Edit</DialogTitle>
-            </DialogHeader>
-            <div className="p-4">
-              <p className="text-muted-foreground">Suggest edit form coming soon</p>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Suggest Edit dialog is controlled within SuggestedEdits tab content */}
 
       {/* Create Page Dialog */}
       {showAddPageModal && (

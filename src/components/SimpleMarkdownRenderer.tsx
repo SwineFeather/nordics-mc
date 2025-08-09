@@ -18,12 +18,12 @@ const SimpleMarkdownRenderer: React.FC<SimpleMarkdownRendererProps> = ({
     <div 
       className={cn(
         // Base typography
-        "prose prose-invert max-w-none",
-        // Make headings stand out
-        "prose-headings:font-semibold",
-        "prose-h1:text-primary prose-h1:leading-tight prose-h1:mt-4 prose-h1:mb-3",
-        "prose-h2:text-primary prose-h2:mt-6 prose-h2:mb-2 prose-h2:border-b prose-h2:border-border",
-        "prose-h3:text-foreground prose-h3:mt-4 prose-h3:mb-2",
+        "prose max-w-none dark:prose-invert",
+        // Make headings stand out and improve contrast in light/dark
+        "prose-headings:font-semibold prose-headings:text-foreground",
+        "prose-h1:leading-tight prose-h1:mt-4 prose-h1:mb-3 prose-h1:border-b prose-h1:border-border/50 prose-h1:pb-1",
+        "prose-h2:mt-6 prose-h2:mb-2 prose-h2:text-foreground prose-h2:border-b prose-h2:border-border/50 prose-h2:pb-1",
+        "prose-h3:mt-4 prose-h3:mb-2 prose-h3:text-foreground",
         className
       )}
       dangerouslySetInnerHTML={{ 
@@ -32,7 +32,7 @@ const SimpleMarkdownRenderer: React.FC<SimpleMarkdownRendererProps> = ({
       }}
       style={{
         '--tw-prose-body': 'hsl(var(--foreground))',
-        '--tw-prose-headings': 'hsl(var(--primary))',
+        '--tw-prose-headings': 'hsl(var(--foreground))',
         '--tw-prose-links': 'hsl(var(--primary))',
         '--tw-prose-bold': 'hsl(var(--foreground))',
         '--tw-prose-counters': 'hsl(var(--muted-foreground))',

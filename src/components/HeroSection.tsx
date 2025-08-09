@@ -77,15 +77,24 @@ const HeroSection = () => {
           0%, 100% { opacity: 0.15; }
           50% { opacity: 0.4; }
         }
+        @keyframes townDotBreathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+        }
         .town-dot {
           animation: townPulse 2s ease-in-out infinite;
         }
         .town-glow {
           animation: townGlow 3s ease-in-out infinite;
         }
+        .town-dot-breathe {
+          transform-origin: center;
+          transform-box: fill-box;
+          animation: townDotBreathe 3s ease-in-out infinite;
+        }
       `}</style>
       {/* Animated background elements with Nordic colors */}
-      <div className="absolute inset-0 opacity-30">
+      <div className="absolute inset-0 opacity-30 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl animate-pulse-glow"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-red-500/20 rounded-full blur-3xl animate-pulse-glow" style={{
           animationDelay: '1s'
@@ -125,27 +134,30 @@ const HeroSection = () => {
           if (town.location_x === null || town.location_z === null) return null;
 
           const coords = convertToMapCoordinates(town.location_x, town.location_z);
-          const isCapital = town.is_capital;
-
-          // Base sizes in CSS pixels (desktop), scaled down on mobile
-          const baseDotPx = isCapital ? 6 : 5;
-          const baseOutlinePx = isCapital ? 12 : 10;
-          const baseHaloPx = isCapital ? 16 : 14;
-          const baseStrokePx = 2.0;
-          const baseHaloStrokePx = 2.0;
+          // Size by balance: 0 => smallest, 5000 => largest
+          const clampedBalance = Math.max(0, Math.min(5000, town.balance ?? 0));
+          const balanceFactor = clampedBalance / 5000;
           const sizeFactor = isMobile ? 0.7 : 1; // reduce on small screens
 
-          const dotPx = Math.max(2.5, baseDotPx * sizeFactor);
-          const outlinePx = Math.max(6, baseOutlinePx * sizeFactor);
-          const haloPx = Math.max(8, baseHaloPx * sizeFactor);
-          const strokePx = Math.max(1, baseStrokePx * sizeFactor);
-          const haloStrokePx = Math.max(1, baseHaloStrokePx * sizeFactor);
+          // Define min/max dot size in CSS pixels (desktop)
+          const minDotPx = 2.5;
+          const maxDotPx = 9;
+
+          const dotPx = (minDotPx + (maxDotPx - minDotPx) * balanceFactor) * sizeFactor;
+          const outlinePx = dotPx * 2.0;
+          const haloPx = dotPx * 2.6;
+          const strokePx = Math.max(1, 2.0 * sizeFactor);
+          const haloStrokePx = Math.max(1, 2.0 * sizeFactor);
 
           const rDot = dotPx / svgScale;
           const rOutline = outlinePx / svgScale;
           const rHalo = haloPx / svgScale;
           const strokeW = strokePx / svgScale;
           const haloStrokeW = haloStrokePx / svgScale;
+
+          // Increase interactive hitbox in CSS pixels, convert to SVG units
+          const hitboxPx = isMobile ? 22 : 16;
+          const rHit = hitboxPx / svgScale;
 
           const color = '#f97316'; // orange-500
 
@@ -182,6 +194,14 @@ const HeroSection = () => {
                  setHoveredCursor(null);
                }}
             >
+              {/* Invisible larger hit area to make small dots easier to click */}
+              <circle
+                cx={coords.x}
+                cy={coords.y}
+                r={rHit}
+                fill="transparent"
+                style={{ pointerEvents: 'all' }}
+              />
               {/* White halo for contrast on any background */}
               <circle
                 cx={coords.x}
@@ -210,6 +230,7 @@ const HeroSection = () => {
                 fill={color}
                 opacity={dotOpacity}
                 filter="url(#dot-blur)"
+                className="town-dot-breathe"
               />
             </g>
           );

@@ -208,12 +208,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">Discussion Categories</h2>
-          {user && (
-            <Button onClick={onCreatePost} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              New Post
-            </Button>
-          )}
+          {/* Creating a post requires a category; button removed from categories view */}
         </div>
         
         <div className="grid gap-4">

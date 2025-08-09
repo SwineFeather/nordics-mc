@@ -218,12 +218,7 @@ const Forum: React.FC = () => {
             )}
             Sort
           </Button>
-          {user && currentView === 'posts' && selectedCategoryId && (
-            <Button onClick={handleCreatePost} className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>New Post</span>
-            </Button>
-          )}
+          {/* New Post button removed here to avoid duplication; creation is handled inside ForumPosts */}
         </div>
       </div>
 

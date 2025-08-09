@@ -11,6 +11,7 @@ import PostEditor from './PostEditor';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayerBadges } from '@/hooks/usePlayerBadges';
 import { isStaffRole } from '@/utils/roleUtils';
+import { useNationForumAccess } from '@/hooks/useNationForumAccess';
 
 interface ForumPostsProps {
   categoryId: string;
@@ -21,6 +22,7 @@ interface ForumPostsProps {
 const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
   const { posts, loading, createPost } = useForumPosts(categoryId);
   const { categories } = useForumCategories();
+  const { hasAccessToForum, loading: accessLoading } = useNationForumAccess();
   const [showEditor, setShowEditor] = useState(false);
   const { user, profile } = useAuth();
 
@@ -30,24 +32,57 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
   const userHasStaffPermissions = profile && isStaffRole(profile.role);
   const canCreatePost = user && (!isModeratorOnlyCategory || userHasStaffPermissions);
 
-  const handleCreatePost = async (title: string, content: string) => {
+  const handleCreatePost = async (
+    title: string,
+    content: string,
+    tags: string[] = [],
+    postType: string = 'discussion'
+  ) => {
     if (!user) return;
     
     try {
-      await createPost({
+      const created = await createPost({
         title,
         content,
         category_id: categoryId,
         author_id: user.id,
+        tags,
+        post_type: postType,
       });
       setShowEditor(false);
+      if (created?.id) {
+        onPostSelect(created.id);
+      }
     } catch (error) {
       console.error('Error creating post:', error);
     }
   };
 
-  if (loading) {
+  if (loading || accessLoading) {
     return <div className="text-center py-8">Loading posts...</div>;
+  }
+
+  // Access control: block private nation/town forums if user lacks access
+  if (currentCategory && (currentCategory.nation_name || currentCategory.town_name)) {
+    const allowed = hasAccessToForum(
+      currentCategory.nation_name || null,
+      currentCategory.town_name || null
+    );
+    if (!allowed) {
+      return (
+        <div className="space-y-4">
+          <Button variant="ghost" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Categories
+          </Button>
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">This forum is private. You don\'t have access to view posts here.</p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
   }
 
   if (showEditor) {

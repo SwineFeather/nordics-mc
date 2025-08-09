@@ -226,8 +226,15 @@ export function sanitizeMarkdown(markdown: string): string {
     return '';
   }
 
+  // Strip YAML frontmatter blocks (e.g., ---\nkey: value\n---) before converting
+  let withoutFrontmatter = markdown.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/g, '');
+
+  // Also strip loose frontmatter-like metadata at the very top (no --- wrappers)
+  // Only remove known keys to avoid eating real content
+  withoutFrontmatter = withoutFrontmatter.replace(/^(?:\s*(title|updated_at|created_at|status|tags|icon|description)\s*:\s*.*\n)+\s*/i, '');
+
   // Convert markdown to HTML first, then sanitize
-  const html = convertMarkdownToHtml(markdown);
+  const html = convertMarkdownToHtml(withoutFrontmatter);
   return sanitizeHtml(html);
 }
 
@@ -237,14 +244,14 @@ export function sanitizeMarkdown(markdown: string): string {
 function convertMarkdownToHtml(markdown: string): string {
   return markdown
     // Headers
-    .replace(/^# (.*$)/gim, '<h1 class="text-4xl font-bold mb-6 gradient-text">$1</h1>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-3xl font-semibold mb-5 text-primary">$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3 class="text-2xl font-medium mb-4 text-secondary">$1</h3>')
-    .replace(/^#### (.*$)/gim, '<h4 class="text-xl font-medium mb-3 text-foreground">$1</h4>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-4xl font-bold mb-4 text-foreground border-b border-border/50 pb-1">$1</h1>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-3xl font-semibold mt-6 mb-3 text-foreground border-b border-border/50 pb-1">$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3 class="text-2xl font-semibold mt-4 mb-2 text-foreground">$1</h3>')
+    .replace(/^#### (.*$)/gim, '<h4 class="text-xl font-medium mt-3 mb-2 text-foreground">$1</h4>')
     
     // Bold and italic
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-primary">$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em class="italic text-accent">$1</em>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
     
     // Code blocks and inline code
     .replace(/```([\s\S]*?)```/g, '<pre class="bg-muted/50 p-4 rounded-xl border border-border/50 overflow-x-auto my-4"><code class="text-sm">$1</code></pre>')

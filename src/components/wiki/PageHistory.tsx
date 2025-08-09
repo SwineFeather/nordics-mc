@@ -33,14 +33,16 @@ interface PageRevision {
 }
 
 interface PageHistoryProps {
-  pageId: string;
+  pageId: string; // May be a UUID or a storage path
   pageTitle: string;
+  pageSlug?: string; // Fallback identifier to resolve DB page ID
   onRevisionRestored?: () => void;
 }
 
 const PageHistory: React.FC<PageHistoryProps> = ({ 
   pageId, 
   pageTitle, 
+  pageSlug,
   onRevisionRestored 
 }) => {
   const [revisions, setRevisions] = useState<PageRevision[]>([]);
@@ -55,7 +57,39 @@ const PageHistory: React.FC<PageHistoryProps> = ({
   const loadRevisions = async () => {
     try {
       setLoading(true);
-      
+
+      // Resolve DB page UUID if needed
+      let dbPageId = pageId;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(dbPageId)) {
+        // Try to resolve via slug first
+        if (pageSlug) {
+          const { data: pageRow, error: pageErr } = await supabase
+            .from('wiki_pages')
+            .select('id')
+            .eq('slug', pageSlug)
+            .single();
+          if (!pageErr && pageRow?.id) {
+            dbPageId = pageRow.id as string;
+          }
+        }
+
+        // If still not a UUID, try deriving slug from path and lookup
+        if (!uuidRegex.test(dbPageId)) {
+          const derivedSlug = pageId.split('/').pop()?.replace(/\.md$/, '') || '';
+          if (derivedSlug) {
+            const { data: pageRow2 } = await supabase
+              .from('wiki_pages')
+              .select('id')
+              .eq('slug', derivedSlug)
+              .maybeSingle();
+            if (pageRow2?.id) {
+              dbPageId = pageRow2.id as string;
+            }
+          }
+        }
+      }
+
       const { data, error } = await supabase
         .from('page_revisions')
         .select(`
@@ -65,7 +99,7 @@ const PageHistory: React.FC<PageHistoryProps> = ({
             email
           )
         `)
-        .eq('page_id', pageId)
+        .eq('page_id', dbPageId)
         .order('revision_number', { ascending: false });
 
       if (error) {
