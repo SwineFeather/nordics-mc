@@ -122,36 +122,27 @@ const GroupsTab: React.FC = () => {
                 Access to exclusive custom items, textures, and in-game content
               </p>
             </div>
-            
-            <div className="text-center p-4 rounded-lg bg-white/50 dark:bg-black/20">
-              <Shield className="w-8 h-8 mx-auto mb-3 text-blue-600" />
-              <h4 className="font-semibold mb-2">Enhanced Website Features</h4>
-              <p className="text-sm text-muted-foreground">
-                Premium profile features, advanced analytics, and priority support
-              </p>
-            </div>
-            
-            <div className="text-center p-4 rounded-lg bg-white/50 dark:bg-black/20">
-              <Zap className="w-8 h-8 mx-auto mb-3 text-yellow-600" />
-              <h4 className="font-semibold mb-2">Priority Processing</h4>
-              <p className="text-sm text-muted-foreground">
-                Faster approval times and priority handling for all requests
-              </p>
-            </div>
+             
+             <div className="text-center p-4 rounded-lg bg-white/50 dark:bg-black/20">
+               <Globe className="w-8 h-8 mx-auto mb-3 text-teal-600" />
+               <h4 className="font-semibold mb-2">Dedicated Subdomain & Website</h4>
+               <p className="text-sm text-muted-foreground">
+                 Your own subdomain under nordics.world with a full enterprise page (e.g. yourbrand.nordics.world)
+               </p>
+             </div>
+              <div className="text-center p-4 rounded-lg bg-white/50 dark:bg-black/20">
+                <Shield className="w-8 h-8 mx-auto mb-3 text-blue-600" />
+                <h4 className="font-semibold mb-2">Enhanced Platform & Priority Support</h4>
+                <p className="text-sm text-muted-foreground">
+                  Premium features, higher member limits, and faster processing for requests
+                </p>
+              </div>
             
             <div className="text-center p-4 rounded-lg bg-white/50 dark:bg-black/20">
               <Gift className="w-8 h-8 mx-auto mb-3 text-green-600" />
               <h4 className="font-semibold mb-2">Exclusive Events</h4>
               <p className="text-sm text-muted-foreground">
                 Access to special events, competitions, and community activities
-              </p>
-            </div>
-            
-            <div className="text-center p-4 rounded-lg bg-white/50 dark:bg-black/20">
-              <Users className="w-8 h-8 mx-auto mb-3 text-indigo-600" />
-              <h4 className="font-semibold mb-2">Expanded Member Limits</h4>
-              <p className="text-sm text-muted-foreground">
-                Higher member capacity and advanced management tools
               </p>
             </div>
             

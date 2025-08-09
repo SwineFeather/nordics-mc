@@ -9,13 +9,15 @@ export const useProfiles = ({ fetchAll }: { fetchAll: boolean } = { fetchAll: fa
   const newStats = useNewPlayerStats({ limit: fetchAll ? -1 : 50 });
   const oldStats = usePlayerStatsOptimized({ limit: fetchAll ? -1 : 50 });
 
-  // Use new system if we have data, otherwise fall back to old system
-  const profiles = newStats.profiles.length > 0 || !newStats.error ? newStats.profiles : oldStats.profiles;
-  const loading = newStats.profiles.length > 0 || !newStats.error ? newStats.loading : oldStats.loading;
-  const total = newStats.profiles.length > 0 || !newStats.error ? newStats.total : oldStats.total;
-  const hasMore = newStats.profiles.length > 0 || !newStats.error ? newStats.hasMore : oldStats.hasMore;
-  const loadingMore = newStats.profiles.length > 0 || !newStats.error ? newStats.loadingMore : oldStats.loadingMore;
-  const error = newStats.profiles.length > 0 || !newStats.error ? newStats.error : oldStats.error;
+  // Prefer new system ONLY when it actually returns data; otherwise fall back to old system
+  const useNew = newStats.profiles.length > 0;
+
+  const profiles = useNew ? newStats.profiles : oldStats.profiles;
+  const loading = useNew ? newStats.loading : oldStats.loading;
+  const total = useNew ? newStats.total : oldStats.total;
+  const hasMore = useNew ? newStats.hasMore : oldStats.hasMore;
+  const loadingMore = useNew ? newStats.loadingMore : oldStats.loadingMore;
+  const error = useNew ? newStats.error : oldStats.error;
 
   // Helper function to get profile by username
   const getProfileByUsername = (username: string) => {

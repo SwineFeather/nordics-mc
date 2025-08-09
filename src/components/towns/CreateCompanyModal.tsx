@@ -78,6 +78,7 @@ Company Creation Level Requirements:
 - Level 20: Create your third company
 - Level 25, 30, ... 100: Each additional company requires 5 more levels (capped at 100)
 - Enterprise: Always requires at least level 15
+\n- Admins are exempt from level requirements and can create unlimited companies
 `;
 
 const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreated, initialData, isEditMode, onClose, onCompanyUpdated }) => {
@@ -178,6 +179,7 @@ const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreate
   useEffect(() => {
     const fetchLevelAndCompanies = async () => {
       if (!user) return;
+      const isAdmin = profile?.role === 'admin';
       let playerLevelFetched: number | null = null;
       let lookupTried = [];
       let debugInfo = [];
@@ -228,12 +230,24 @@ const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreate
       // Count companies owned
       const owned = companies.filter(c => c.owner_uuid === user.id).length;
       setOwnedCount(owned);
+      // Admins are exempt from creation limits
+      if (isAdmin) {
+        setLevelError(null);
+        setCanCreate(true);
+      }
     };
     fetchLevelAndCompanies();
-  }, [user, companies, profile?.minecraft_username, profile?.full_name]);
+  }, [user, companies, profile?.minecraft_username, profile?.full_name, profile?.role]);
 
   // Calculate required level and eligibility reactively
   useEffect(() => {
+    const isAdmin = profile?.role === 'admin';
+    if (isAdmin) {
+      setLevelError(null);
+      setCanCreate(true);
+      return;
+    }
+
     let reqLevel = 5;
     if (ownedCount === 0) reqLevel = 5;
     else if (ownedCount === 1) reqLevel = 10;
@@ -256,7 +270,7 @@ const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreate
     }
     setLevelError(null);
     setCanCreate(true);
-  }, [formData.business_type, playerLevel, ownedCount]);
+  }, [formData.business_type, playerLevel, ownedCount, profile?.role]);
 
   // Helper: check if user is owner (by UUID or Minecraft username)
   const isOwner = initialData && profile && (
@@ -325,6 +339,7 @@ const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreate
 
     try {
       // --- LEVEL REQUIREMENTS LOGIC ---
+      const isAdmin = profile?.role === 'admin';
       // 1. Fetch player level (repeat lookup logic for robustness)
       let playerLevelFetched: number | null = null;
       let lookupTried = [];
@@ -367,7 +382,7 @@ const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreate
           playerLevelFetched = playerData.level;
         }
       }
-      if (playerLevelFetched === null) {
+      if (playerLevelFetched === null && !isAdmin) {
         toast.error('Could not verify your player level.\n' + debugInfo.join('\n'));
         setIsSubmitting(false);
         return;
@@ -388,14 +403,14 @@ const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreate
       if (requiredLevel > 100) requiredLevel = 100;
 
       // 4. Enterprise special case
-      if (formData.business_type === 'Enterprise' && playerLevel < 15) {
+      if (!isAdmin && formData.business_type === 'Enterprise' && playerLevel < 15) {
         toast.error('You must be at least level 15 to create an Enterprise.');
         setIsSubmitting(false);
         return;
       }
 
       // 5. Block if requirements not met
-      if (playerLevel < requiredLevel) {
+      if (!isAdmin && playerLevel < requiredLevel) {
         toast.error(`You need to be at least level ${requiredLevel} to create your next company. (Current level: ${playerLevel})`);
         setIsSubmitting(false);
         return;
@@ -1134,7 +1149,7 @@ const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreate
                   Cancel
                 </Button>
               )}
-              <Button type="submit" disabled={isSubmitting || !canCreate || playerLevel === null}>
+              <Button type="submit" disabled={(() => { const isAdmin = profile?.role === 'admin' || profile?.role === 'moderator'; return isSubmitting || (!isAdmin && (!canCreate || playerLevel === null)); })()}>
                 {isEditMode ? 'Save Changes' : 'Create Company'}
               </Button>
             </div>

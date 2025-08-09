@@ -34,6 +34,9 @@ const Login = lazy(() => import('./pages/Login'));
 const LoginDebug = lazy(() => import('./pages/LoginDebug'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Notifications = lazy(() => import('./pages/Notifications'));
+  const NSI = lazy(() => import('./pages/NSI'));
+  const CompanyStorefront = lazy(() => import('./pages/CompanyStorefront'));
+  const NSISubsidiariesRouter = lazy(() => import('./pages/nsi/SubsidiariesRouter'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,6 +77,8 @@ function App() {
                 <Route path="/towns/shops" element={<Layout><Towns defaultTab="markets" /></Layout>} />
                 <Route path="/town/:townName" element={<Layout><Town /></Layout>} />
                 <Route path="/shop/:shopId" element={<Layout><Shop /></Layout>} />
+                 <Route path="/nsi" element={<Layout><NSI /></Layout>} />
+                 <Route path="/nsi/:slug" element={<Layout><NSISubsidiariesRouter /></Layout>} />
                 <Route path="/company/:slug" element={<Layout><Company /></Layout>} />
                 <Route path="/economy" element={<Layout><Economy /></Layout>} />
                 <Route path="/map" element={<Layout><Map /></Layout>} />

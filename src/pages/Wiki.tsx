@@ -241,34 +241,48 @@ const Wiki: React.FC = () => {
     try {
       const filePath = selectedPage.githubPath || selectedPage.id;
       if (filePath) {
-        const { content, isLiveData, lastUpdated } = await getFileContentWithMetadata(filePath);
-        
-        // Update the page with fresh live content
-        setSelectedPage({
-          ...selectedPage,
-          content: content
-        });
-        
-        // Update live data state
-        setIsLiveData(isLiveData);
-        setLastUpdated(lastUpdated);
-        
-        // If it's live data, also refresh entity data for compact cards
-        if (isLiveData) {
+        // Always load static content from storage
+        const staticContent = await SupabaseWikiService.getStaticFileContent(filePath);
+
+        // Parse frontmatter to determine live sync preference and optional overrides
+        const { frontmatter } = SupabaseWikiService.parseFrontmatterPublic(staticContent || '');
+        const liveSyncEnabled = String(frontmatter?.live_sync_enabled || '').toLowerCase() === 'true';
+        const fmEntityType = (frontmatter?.entity_type || '').toLowerCase();
+        const fmEntityName = frontmatter?.entity_name as string | undefined;
+
+        // Update page content with static version
+        setSelectedPage({ ...(selectedPage as any), content: staticContent });
+
+        if (liveSyncEnabled) {
           const { LiveWikiDataService } = await import('../services/liveWikiDataService');
-          const { entityType: detectedType, entityName } = LiveWikiDataService.extractEntityInfo(filePath);
-          
-          if (detectedType && entityName) {
-            try {
-              const liveData = await LiveWikiDataService.getLiveWikiData(detectedType, entityName);
-              setEntityData(liveData.entityData);
-              setEntityType(detectedType);
-            } catch (error) {
-              console.warn('Failed to fetch entity data for compact cards:', error);
+          const shouldSync = LiveWikiDataService.shouldUseLiveData(filePath) || !!(fmEntityType && fmEntityName);
+          if (shouldSync) {
+            const { entityType: detectedType, entityName } = LiveWikiDataService.extractEntityInfo(filePath);
+            const finalType = (fmEntityType === 'town' || fmEntityType === 'nation') ? (fmEntityType as 'town' | 'nation') : detectedType;
+            const finalName = fmEntityName || entityName;
+            if (finalType && finalName) {
+              try {
+                const liveData = await LiveWikiDataService.getLiveWikiData(finalType, finalName);
+                setIsLiveData(true);
+                setLastUpdated(liveData.lastUpdated);
+                setEntityData(liveData.entityData);
+                setEntityType(finalType);
+                toast.success('Live data refreshed');
+              } catch (error) {
+                console.warn('Failed to fetch entity data for compact cards:', error);
+                setIsLiveData(false);
+                setEntityData(null);
+                setEntityType(null);
+              }
             }
+          } else {
+            setIsLiveData(false);
+            setEntityData(null);
+            setEntityType(null);
           }
-          toast.success('Live data refreshed successfully!');
         } else {
+          // Live sync disabled: ensure UI does not display live cards
+          setIsLiveData(false);
           setEntityData(null);
           setEntityType(null);
         }
@@ -383,42 +397,23 @@ ${formData.description ? `> ${formData.description}` : ''}
     // Show loading state in the content area (prevents blank flicker)
     setIsRefreshingLiveData(true);
 
-    // Try to load live/static content
+    // Try to load static content, then optionally attach live data depending on setting
     try {
       const filePath = page.githubPath || page.id;
       if (filePath) {
-        const { content, isLiveData, lastUpdated } = await getFileContentWithMetadata(filePath);
+        const staticContent = await SupabaseWikiService.getStaticFileContent(filePath);
 
-        // Update the page with loaded content (single state update)
+        // Update static content first
         setSelectedPage(prev => ({
           ...(prev || page),
-          content: content || (prev?.content ?? ''),
+          content: staticContent || (prev?.content ?? ''),
         } as WikiPage));
 
-        // Update live data state
-        setIsLiveData(isLiveData);
-        setLastUpdated(lastUpdated);
-
-        // If it's live data, also fetch the entity data for compact cards
-        if (isLiveData) {
-          const { LiveWikiDataService } = await import('../services/liveWikiDataService');
-          const { entityType: detectedType, entityName } = LiveWikiDataService.extractEntityInfo(filePath);
-
-          if (detectedType && entityName) {
-            try {
-              const liveData = await LiveWikiDataService.getLiveWikiData(detectedType, entityName);
-              setEntityData(liveData.entityData);
-              setEntityType(detectedType);
-            } catch (error) {
-              console.warn('Failed to fetch entity data for compact cards:', error);
-              setEntityData(null);
-              setEntityType(null);
-            }
-          }
-        } else {
-          setEntityData(null);
-          setEntityType(null);
-        }
+        // Live fetching disabled: ensure live UI is off
+        setIsLiveData(false);
+        setLastUpdated(undefined);
+        setEntityData(null);
+        setEntityType(null);
       }
     } catch (error) {
       console.warn('Failed to load live content, using static content:', error);
@@ -705,8 +700,12 @@ ${formData.description ? `> ${formData.description}` : ''}
       
       await SupabaseWikiService.savePage(filePath, newContent, selectedPage.title);
       
-      setSelectedPage({ ...selectedPage, ...settings });
+      // Update local page state, including content so toggles reflect immediately
+      setSelectedPage({ ...selectedPage, ...settings, content: newContent });
       await refreshData();
+      
+      // Re-evaluate live data after settings change
+      await handleRefreshLiveData();
       toast.success('Page settings updated!');
     } catch (error) {
       console.error('Failed to update page settings:', error);

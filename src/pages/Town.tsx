@@ -212,7 +212,34 @@ const TownPage = () => {
               <UserPlus className="w-4 h-4" />
               Request to Join
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={() => {
+                // Attempt to open chat with the mayor's linked website account
+                // Strategy:
+                // 1) Use residents list (has mayor name/uuid) to resolve website user via profiles table by minecraft_username
+                // 2) If not found, navigate to community profile as fallback
+                const mayorName = townData.mayor;
+                if (!mayorName) return;
+                (async () => {
+                  try {
+                    const { data, error } = await (await import('@/integrations/supabase/client')).supabase
+                      .from('profiles')
+                      .select('id')
+                      .eq('minecraft_username', mayorName)
+                      .single();
+                    if (!error && data?.id) {
+                      navigate(`/messages?with=${encodeURIComponent(data.id)}`);
+                    } else {
+                      navigate(`/community?player=${encodeURIComponent(mayorName)}`);
+                    }
+                  } catch {
+                    navigate(`/community?player=${encodeURIComponent(mayorName)}`);
+                  }
+                })();
+              }}
+            >
               <MessageCircle className="w-4 h-4" />
               Message Mayor
             </Button>

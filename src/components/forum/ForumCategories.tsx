@@ -207,7 +207,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
       {/* Main Categories */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Discussion Categories</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Discussion Categories</h2>
           {/* Creating a post requires a category; button removed from categories view */}
         </div>
         
@@ -231,10 +231,10 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                         <IconComponent className="w-5 h-5" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg font-semibold text-gray-900">
+                        <CardTitle className="text-lg font-semibold text-foreground">
                           {category.name}
                         </CardTitle>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {category.description}
                         </p>
                       </div>
@@ -254,7 +254,9 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  {/* Removed per request: category post count and last activity */}
+                  <div className="text-sm text-muted-foreground">
+                    {category.post_count || 0} posts
+                  </div>
                 </CardContent>
               </Card>
             );
@@ -282,7 +284,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
               return (
                 <Card 
                   key={category.id}
-                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
+                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 dark:border-blue-900 dark:from-blue-950 dark:to-indigo-950 dark:hover:from-blue-900 dark:hover:to-indigo-900"
                   onClick={() => onCategorySelect(category.id)}
                 >
                   <CardHeader className="pb-3">
@@ -290,10 +292,10 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                       <div className="flex items-center space-x-3">
                         {renderNationIcon(category.nation_name, getNationColor(category.nation_name))}
                         <div>
-                          <CardTitle className="text-lg font-semibold text-gray-900">
+                          <CardTitle className="text-lg font-semibold text-foreground">
                             {formatNationName(category.nation_name)} Forum
                           </CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             {category.description}
                           </p>
                         </div>
@@ -342,7 +344,9 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    {/* Removed per request: category post count and last activity */}
+                    <div className="text-sm text-muted-foreground">
+                      {category.post_count || 0} posts
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -365,7 +369,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                 return (
                   <Card 
                     key={category.id}
-                    className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100"
+                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 dark:border-green-900 dark:from-green-950 dark:to-emerald-950 dark:hover:from-green-900 dark:hover:to-emerald-900"
                     onClick={() => onCategorySelect(category.id)}
                   >
                     <CardHeader className="pb-3">
@@ -373,7 +377,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                         <div className="flex items-center space-x-3">
                           {renderTownIcon(category.town_name, getNationColor(category.nation_name))}
                           <div>
-                            <CardTitle className="text-lg font-semibold text-gray-900">
+                            <CardTitle className="text-lg font-semibold text-foreground">
                               {category.name}
                             </CardTitle>
                           </div>
@@ -398,7 +402,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                             </Badge>
                           )}
                           {isUserNation && !isAdmin && !isModerator && !isUserMayor && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs dark:bg-blue-900 dark:text-blue-100">
                               Your Nation
                             </Badge>
                           )}
@@ -416,7 +420,9 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      {/* Removed per request: category post count and last activity */}
+                      <div className="text-sm text-muted-foreground">
+                        {category.post_count || 0} posts
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -448,7 +454,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
       {moderatorCategories.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <h2 className="text-2xl font-semibold">Official Updates</h2>
+            <h2 className="text-2xl font-semibold text-foreground">Official Updates</h2>
             <div className="flex items-center space-x-1 text-sm text-muted-foreground">
               <Info className="w-4 h-4" />
               <span>Staff members only</span>
@@ -462,7 +468,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
               return (
                 <Card 
                   key={category.id}
-                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50"
+                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 dark:border-orange-900 dark:from-orange-950 dark:to-amber-950"
                   onClick={() => onCategorySelect(category.id)}
                 >
                   <CardHeader className="pb-3">
@@ -476,7 +482,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                         </div>
                         <div>
                           <div className="flex items-center space-x-2">
-                            <CardTitle className="text-lg font-semibold text-gray-900">
+                            <CardTitle className="text-lg font-semibold text-foreground">
                               {category.name}
                             </CardTitle>
                             <Badge variant="secondary" className="bg-orange-100 text-orange-800">

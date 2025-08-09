@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Pin, Lock } from 'lucide-react';
 import { useForumPosts } from '@/hooks/useForumPosts';
-import { useForumCategories } from '@/hooks/useForumCategories';
+import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import PostEditor from './PostEditor';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,13 +21,32 @@ interface ForumPostsProps {
 
 const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
   const { posts, loading, createPost } = useForumPosts(categoryId);
-  const { categories } = useForumCategories();
   const { hasAccessToForum, loading: accessLoading } = useNationForumAccess();
+  const [category, setCategory] = useState<any | null>(null);
+  const [categoryLoading, setCategoryLoading] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
   const { user, profile } = useAuth();
 
-  // Get current category to check if it's moderator-only
-  const currentCategory = categories.find(cat => cat.id === categoryId);
+  // Load the current category to check access
+  React.useEffect(() => {
+    let isMounted = true;
+    const fetchCategory = async () => {
+      setCategoryLoading(true);
+      const { data } = await supabase
+        .from('forum_categories')
+        .select('id, name, is_moderator_only, nation_name, town_name')
+        .eq('id', categoryId)
+        .single();
+      if (isMounted) {
+        setCategory(data || null);
+        setCategoryLoading(false);
+      }
+    };
+    fetchCategory();
+    return () => { isMounted = false; };
+  }, [categoryId]);
+
+  const currentCategory = category;
   const isModeratorOnlyCategory = currentCategory?.is_moderator_only || false;
   const userHasStaffPermissions = profile && isStaffRole(profile.role);
   const canCreatePost = user && (!isModeratorOnlyCategory || userHasStaffPermissions);
@@ -58,7 +77,7 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
     }
   };
 
-  if (loading || accessLoading) {
+  if (loading || accessLoading || categoryLoading) {
     return <div className="text-center py-8">Loading posts...</div>;
   }
 
@@ -73,9 +92,9 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
         <div className="space-y-4">
           <Button variant="ghost" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Categories
+            <span className="text-foreground">Back to Categories</span>
           </Button>
-          <Card>
+          <Card className="dark:border-muted">
             <CardContent className="py-8 text-center">
               <p className="text-muted-foreground">This forum is private. You don\'t have access to view posts here.</p>
             </CardContent>
@@ -123,7 +142,7 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
           posts.map((post) => (
             <Card 
               key={post.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className="cursor-pointer hover:shadow-md transition-shadow dark:border-muted"
               onClick={() => onPostSelect(post.id)}
             >
               <CardHeader className="pb-3">

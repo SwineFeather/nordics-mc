@@ -14,6 +14,8 @@ interface OnlinePlayersHoverProps {
   children: React.ReactNode;
   onPlayerSelect?: (player: any) => void;
   realTimeData?: RealTimePlayerData[] | null;
+  side?: 'top' | 'bottom' | 'left' | 'right';
+  sideOffset?: number;
 }
 
 interface PlayerAvatarProps {
@@ -111,52 +113,58 @@ const OnlinePlayersHover: React.FC<OnlinePlayersHoverProps> = ({
   loading, 
   children,
   onPlayerSelect,
-  realTimeData
+  realTimeData,
+  side = 'bottom',
+  sideOffset = 0
 }) => {
   if (loading || !players || players.length === 0) {
     return <>{children}</>;
   }
+  // Non-portal hover wrapper: keeps content open while moving between trigger and panel
+  const [open, setOpen] = useState(false)
+  const show = () => setOpen(true)
+  const hide = () => setOpen(false)
+
+  const positionClass = side === 'top' ? 'bottom-full' : side === 'bottom' ? 'top-full' : side === 'left' ? 'right-full' : 'left-full'
+  const spacingClass = side === 'top' ? 'mb-1' : side === 'bottom' ? 'mt-1' : side === 'left' ? 'mr-1' : 'ml-1'
 
   return (
-    <HoverCard openDelay={50} closeDelay={50}>
-      <HoverCardTrigger asChild>
-        {children}
-      </HoverCardTrigger>
-      <HoverCardContent 
-        className="w-auto max-w-md p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl"
-        side="bottom"
-        sideOffset={10}
-      >
-        <div className="space-y-3">
-          <div className="text-center">
-            <h4 className="text-sm font-semibold">Players Online</h4>
-            <p className="text-xs text-muted-foreground">
-              {players.length} player{players.length !== 1 ? 's' : ''} currently online
-            </p>
+    <div className="relative inline-block pointer-events-auto" onMouseEnter={show} onMouseLeave={hide}>
+      <div>{children}</div>
+      {open && (
+        <div className={`absolute ${positionClass} ${spacingClass} left-1/2 -translate-x-1/2 z-50`}
+        >
+          <div className="w-auto max-w-md p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl select-text">
+            <div className="space-y-3">
+              <div className="text-center">
+                <h4 className="text-sm font-semibold">Players Online</h4>
+                <p className="text-xs text-muted-foreground">
+                  {players.length} player{players.length !== 1 ? 's' : ''} currently online
+                </p>
+              </div>
+              <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
+                {players.slice(0, 18).map((player) => {
+                  const realTimePlayerData = realTimeData?.find(rtPlayer => rtPlayer.name === player.name);
+                  return (
+                    <PlayerAvatar 
+                      key={player.uuid || player.name} 
+                      player={player} 
+                      onPlayerSelect={onPlayerSelect}
+                      realTimePlayerData={realTimePlayerData}
+                    />
+                  );
+                })}
+              </div>
+              {players.length > 18 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  +{players.length - 18} more players
+                </p>
+              )}
+            </div>
           </div>
-          
-          <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
-            {players.slice(0, 18).map((player) => {
-              const realTimePlayerData = realTimeData?.find(rtPlayer => rtPlayer.name === player.name);
-              return (
-                <PlayerAvatar 
-                  key={player.uuid || player.name} 
-                  player={player} 
-                  onPlayerSelect={onPlayerSelect}
-                  realTimePlayerData={realTimePlayerData}
-                />
-              );
-            })}
-          </div>
-          
-          {players.length > 18 && (
-            <p className="text-xs text-muted-foreground text-center">
-              +{players.length - 18} more players
-            </p>
-          )}
         </div>
-      </HoverCardContent>
-    </HoverCard>
+      )}
+    </div>
   );
 };
 

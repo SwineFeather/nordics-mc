@@ -607,18 +607,8 @@ export class SupabaseWikiService {
    */
   static async getFileContent(path: string): Promise<string> {
     try {
-      console.log(`📄 Loading file content: ${path}`);
-      
-      // Check if this should use live data
-      const { LiveWikiDataService } = await import('./liveWikiDataService');
-      const liveContent = await LiveWikiDataService.getLiveContent(path);
-      
-      if (liveContent) {
-        console.log(`✅ Live content loaded: ${path} (${liveContent.length} characters)`);
-        return liveContent;
-      }
-      
-      // Fall back to static content
+      console.log(`📄 Loading static file content: ${path}`);
+
       const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .download(path);
@@ -633,11 +623,33 @@ export class SupabaseWikiService {
       }
 
       const content = await data.text();
-      console.log(`✅ Static file content loaded: ${path} (${content.length} characters)`);
+      console.log(`✅ File content loaded: ${path} (${content.length} characters)`);
       
       return content;
     } catch (error) {
-      console.error(`❌ Failed to load file content ${path}:`, error);
+      console.error(`❌ Failed to load static file content ${path}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get static file content from storage (ignoring live data)
+   */
+  static async getStaticFileContent(path: string): Promise<string> {
+    try {
+      const { data, error } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .download(path);
+
+      if (error) {
+        throw error;
+      }
+      if (!data) {
+        throw new Error(`File ${path} not found`);
+      }
+      return await data.text();
+    } catch (error) {
+      console.error(`❌ Failed to load static file content ${path}:`, error);
       throw error;
     }
   }
@@ -647,30 +659,7 @@ export class SupabaseWikiService {
    */
   static async getFileContentWithMetadata(path: string): Promise<{ content: string; isLiveData: boolean; lastUpdated?: string }> {
     try {
-      console.log(`📄 Loading file content with metadata: ${path}`);
-      
-      // Check if this should use live data
-      const { LiveWikiDataService } = await import('./liveWikiDataService');
-      
-      if (LiveWikiDataService.shouldUseLiveData(path)) {
-        const { entityType, entityName } = LiveWikiDataService.extractEntityInfo(path);
-        
-        if (entityType && entityName) {
-          try {
-            const liveData = await LiveWikiDataService.getLiveWikiData(entityType, entityName);
-            console.log(`✅ Live content loaded: ${path} (${liveData.content.length} characters)`);
-            return {
-              content: liveData.content,
-              isLiveData: true,
-              lastUpdated: liveData.lastUpdated
-            };
-          } catch (error) {
-            console.warn(`⚠️ Live data failed, falling back to static: ${path}`, error);
-          }
-        }
-      }
-      
-      // Fall back to static content
+      console.log(`📄 Loading static file content with metadata: ${path}`);
       const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .download(path);
@@ -685,11 +674,12 @@ export class SupabaseWikiService {
       }
 
       const content = await data.text();
-      console.log(`✅ Static file content loaded: ${path} (${content.length} characters)`);
+      console.log(`✅ File content loaded: ${path} (${content.length} characters)`);
       
       return {
         content,
-        isLiveData: false
+        isLiveData: false,
+        lastUpdated: undefined
       };
     } catch (error) {
       console.error(`❌ Failed to load file content ${path}:`, error);
@@ -880,8 +870,8 @@ export class SupabaseWikiService {
    * Parse frontmatter from markdown content
    */
   private static parseFrontmatter(content: string): { frontmatter?: any; markdown: string } {
-    // Match ALL frontmatter blocks and merge them
-    const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/g;
+    // Match ALL frontmatter blocks anywhere in the file and merge them (later blocks override earlier)
+    const frontmatterRegex = /---\s*\n([\s\S]*?)\n---\s*\n/g;
     const matches = [...content.matchAll(frontmatterRegex)];
     
     if (matches.length > 0) {
@@ -914,7 +904,7 @@ export class SupabaseWikiService {
         }
         
         // Remove all frontmatter blocks from content to get just the markdown
-        const markdown = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/g, '');
+        const markdown = content.replace(/---\s*\n[\s\S]*?\n---\s*\n/g, '');
         
         return { frontmatter: mergedFrontmatter, markdown };
       } catch (error) {

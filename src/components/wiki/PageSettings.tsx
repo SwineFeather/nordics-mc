@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { MoreHorizontal, Edit3, Trash2, Copy, Download, Upload, Settings, FileText, Move, Save } from 'lucide-react';
 import { WikiPage } from '@/types/wiki';
 import { toast } from 'sonner';
+import { SupabaseWikiService } from '@/services/supabaseWikiService';
 
 interface PageSettingsProps {
   page: WikiPage;
@@ -47,7 +48,21 @@ const PageSettings: React.FC<PageSettingsProps> = ({
   const [isPublic, setIsPublic] = useState(true);
   const [allowComments, setAllowComments] = useState(true);
   const [allowEdits, setAllowEdits] = useState(true);
+  const [liveSyncEnabled, setLiveSyncEnabled] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  // Initialize switches based on current page frontmatter
+  useEffect(() => {
+    try {
+      const { frontmatter } = SupabaseWikiService.parseFrontmatterPublic(page.content || '');
+      const liveEnabled = String(frontmatter?.live_sync_enabled || '').toLowerCase() === 'true';
+      setLiveSyncEnabled(liveEnabled);
+      // Optionally map allowComments from frontmatter if present
+      if (typeof frontmatter?.allow_comments !== 'undefined') {
+        setAllowComments(String(frontmatter.allow_comments).toLowerCase() === 'true');
+      }
+    } catch {}
+  }, [page.id, page.content]);
 
   const handleDelete = () => {
     onDelete(page.id);
@@ -91,10 +106,12 @@ const PageSettings: React.FC<PageSettingsProps> = ({
   };
 
   const handleSaveSettings = () => {
+    // Build a minimal settings object, but we still pass live_sync_enabled for frontmatter persistence
     onUpdateSettings(page.id, {
       status: newStatus,
       description: newDescription,
-      // Add other settings as needed
+      // Persist live sync preference which will be stored in frontmatter by handler
+      live_sync_enabled: liveSyncEnabled
     });
     setShowSettingsDialog(false);
     toast.success('Page settings updated!');
@@ -274,6 +291,15 @@ const PageSettings: React.FC<PageSettingsProps> = ({
                   id="edits"
                   checked={allowEdits}
                   onCheckedChange={setAllowEdits}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="live-sync">Enable Live Data Sync (Quick Stats / Location / Info)</Label>
+                <Switch
+                  id="live-sync"
+                  checked={liveSyncEnabled}
+                  onCheckedChange={setLiveSyncEnabled}
                 />
               </div>
             </div>

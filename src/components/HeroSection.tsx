@@ -1,7 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Users, ArrowRight, Flag } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useServerStatus } from '@/hooks/useServerStatus';
 import { useTownLocations } from '@/hooks/useTownLocations';
 import OnlinePlayersHover from './OnlinePlayersHover';
@@ -67,8 +66,8 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden py-20 lg:py-32">
-      <style jsx>{`
+    <section ref={sectionRef} className="relative overflow-hidden py-24 lg:py-40 min-h-[90vh]">
+      <style>{`
         @keyframes townPulse {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 0.7; }
@@ -111,7 +110,6 @@ const HeroSection = () => {
           alt="Europe outline"
           className="w-full h-full object-contain opacity-20 dark:opacity-10"
           style={{ 
-            // Solid dark-orange tint with slight blur
             filter: 'sepia(100%) saturate(600%) hue-rotate(-18deg) brightness(0.68) contrast(1.15) blur(1px)'
           }}
         />
@@ -303,27 +301,10 @@ const HeroSection = () => {
 
       <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-none">
         <div className="text-center">
-          {/* Logo */}
+          {/* Logo above heading */}
           <div className="flex justify-center mb-6">
-            <NordicsLogo size="lg" className="animate-fade-in" />
+            <NordicsLogo size="lg" className="shrink-0 w-20 h-20 md:w-24 md:h-24" />
           </div>
-
-          {/* Server Status Badge */}
-          <div className="flex justify-center items-center mb-6 pointer-events-auto">
-            {status?.online && (
-              <OnlinePlayersHover 
-                players={playersList} 
-                loading={serverStatusLoading}
-              >
-                <Badge className="bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-200 border-orange-300 dark:border-orange-700 px-4 py-2 rounded-2xl animate-fade-in cursor-pointer transition-all hover:bg-orange-200 dark:hover:bg-orange-900/30">
-                  <span className="w-2 h-2 rounded-full mr-2 bg-green-500 animate-pulse"></span>
-                  Server Online • {playersOnline} Players
-                </Badge>
-              </OnlinePlayersHover>
-            )}
-          </div>
-
-          {/* Main heading */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-medium mb-6 animate-fade-in">
             Welcome to{' '}
             <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">Nordics Minecraft</span>
@@ -333,42 +314,35 @@ const HeroSection = () => {
           <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-in" style={{
             animationDelay: '0.2s'
           }}>
-            Build with friends. Explore the world. Make your town thrive.
+            Build a thriving town. Start companies, make money, and grow. Form alliances, face rivals, and shape the world.
           </p>
 
           
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in pointer-events-auto" style={{
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in pointer-events-none" style={{
             animationDelay: '0.4s'
           }}>
-            <Button size="lg" className="backdrop-blur-sm bg-gradient-to-r from-orange-500/85 to-red-500/85 hover:from-orange-500/95 hover:to-red-500/95 text-white px-8 py-4 rounded-2xl text-lg font-medium hover-lift glow-primary group" onClick={() => setShowServerModal(true)}>
+            <Button size="lg" className="backdrop-blur-sm bg-gradient-to-r from-orange-500/85 to-red-500/85 hover:from-orange-500/95 hover:to-red-500/95 text-white px-8 py-4 rounded-2xl text-lg font-medium hover-lift glow-primary group pointer-events-auto" onClick={() => setShowServerModal(true)}>
               Join nordics.world
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="outline" size="lg" className="backdrop-blur-sm bg-white/30 dark:bg-neutral-900/30 border-2 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-white/40 dark:hover:bg-neutral-900/40 px-8 py-4 rounded-2xl text-lg font-medium hover-lift" onClick={() => window.open('https://map.nordics.world', '_blank')}>
+            <Button variant="outline" size="lg" className="backdrop-blur-sm bg-white/30 dark:bg-neutral-900/30 border-2 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-white/40 dark:hover:bg-neutral-900/40 px-8 py-4 rounded-2xl text-lg font-medium hover-lift pointer-events-auto" onClick={() => window.open('https://map.nordics.world', '_blank')}>
               View Live Map
             </Button>
           </div>
 
-          {/* Server stats */}
-          <div className="flex justify-center max-w-4xl mx-auto animate-fade-in pointer-events-auto" style={{
-            animationDelay: '0.6s'
-          }}>
-            <div className="glass-card p-6 rounded-3xl hover-lift group border border-orange-200 dark:border-orange-800">
-              <OnlinePlayersHover 
-                players={playersList} 
-                loading={serverStatusLoading}
-              >
-                <div className="cursor-pointer">
-                  <Users className="w-8 h-8 text-orange-500 mb-4 mx-auto group-hover:scale-110 transition-transform" />
-                  <div className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                    {serverStatusLoading ? '...' : playersOnline + '+'}
-                  </div>
-                  <div className="text-muted-foreground">Active Players</div>
+          {/* Combined server status + active players (smaller, semi-transparent) under buttons */}
+          <div className="flex justify-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            {status?.online && (
+              <OnlinePlayersHover players={playersList} loading={serverStatusLoading} side="top" sideOffset={2}>
+                <div className="inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 bg-white/20 dark:bg-neutral-900/20 backdrop-blur-sm border border-orange-300/60 dark:border-orange-800/60 text-orange-800 dark:text-orange-200 cursor-pointer pointer-events-auto">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  <span className="font-medium">Online</span>
+                  <span className="text-sm opacity-80">• {playersOnline} Players</span>
                 </div>
               </OnlinePlayersHover>
-            </div>
+            )}
           </div>
         </div>
       </div>

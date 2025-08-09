@@ -87,8 +87,14 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                 priority: matchScore,
                 data: profile,
                 onClick: () => {
-                  // Navigate to community page with player parameter
-                  navigate(`/community?player=${encodeURIComponent(profile.username || profile.displayName)}`);
+                  // Always navigate using the exact username so /community opens the right profile
+                  if (profile.username) {
+                    navigate(`/community?player=${encodeURIComponent(profile.username)}`);
+                  } else if (profile.displayName) {
+                    navigate(`/community?player=${encodeURIComponent(profile.displayName)}`);
+                  } else if (profile.minecraft_username) {
+                    navigate(`/community?player=${encodeURIComponent(profile.minecraft_username)}`);
+                  }
                 }
             });
         }

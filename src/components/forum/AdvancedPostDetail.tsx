@@ -450,7 +450,8 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
 
   const categoryAny: any = (post as any).category;
   if (categoryAny && (categoryAny.nation_name || categoryAny.town_name)) {
-    const allowed = (isAdmin || isModerator) || hasAccessToForum(categoryAny.nation_name || null, categoryAny.town_name || null);
+    const isLoggedIn = !!user;
+    const allowed = (isAdmin || isModerator) || (isLoggedIn && hasAccessToForum(categoryAny.nation_name || null, categoryAny.town_name || null));
     if (!allowed) {
       return (
         <div className="space-y-4">
@@ -503,7 +504,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <h1 className="text-2xl font-bold">{post.title}</h1>
+                    <h1 className="text-2xl font-bold text-foreground">{post.title}</h1>
                     {post.is_pinned && <Pin className="w-4 h-4 text-amber-500" />}
                     {post.is_locked && <Lock className="w-4 h-4 text-red-500" />}
                     {post.is_featured && <Star className="w-4 h-4 text-yellow-500" />}
@@ -512,10 +513,10 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-6 h-6">
-                        <AvatarImage src={post.author?.avatar_url} />
+                        <AvatarImage src={post.author?.avatar_url || ''} />
                         <AvatarFallback>{(post.author?.minecraft_username || post.author?.full_name)?.[0]}</AvatarFallback>
                       </Avatar>
-                      <span>{post.author?.minecraft_username || post.author?.full_name}</span>
+                      <span className="text-foreground">{post.author?.minecraft_username || post.author?.full_name}</span>
                                               {badges && badges.length > 0 && (
                           <div className="flex items-center space-x-1">
                             {badges?.slice(0, 3).map((badge) => (
@@ -574,9 +575,9 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
               </div>
             </CardHeader>
             
-            <CardContent className="space-y-6">
+             <CardContent className="space-y-6">
               {/* Post Content */}
-              <div className="prose max-w-none">
+               <div className="prose max-w-none dark:prose-invert">
                 <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} />
               </div>
               

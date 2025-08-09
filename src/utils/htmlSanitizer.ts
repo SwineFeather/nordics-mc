@@ -230,8 +230,8 @@ export function sanitizeMarkdown(markdown: string): string {
   let withoutFrontmatter = markdown.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/g, '');
 
   // Also strip loose frontmatter-like metadata at the very top (no --- wrappers)
-  // Only remove known keys to avoid eating real content
-  withoutFrontmatter = withoutFrontmatter.replace(/^(?:\s*(title|updated_at|created_at|status|tags|icon|description)\s*:\s*.*\n)+\s*/i, '');
+  // Include live-related keys so they don't render
+  withoutFrontmatter = withoutFrontmatter.replace(/^(?:\s*(title|updated_at|created_at|status|tags|icon|description|live_sync_enabled|live_data|auto_generated|entity_type|entity_name)\s*:\s*.*\n)+\s*/i, '');
 
   // Convert markdown to HTML first, then sanitize
   const html = convertMarkdownToHtml(withoutFrontmatter);

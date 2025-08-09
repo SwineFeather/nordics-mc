@@ -42,7 +42,7 @@ export class LiveWikiDataService {
    */
   static shouldUseLiveData(pagePath: string): boolean {
     // Check if this is a town or nation page
-    return pagePath.includes('/towns/') || pagePath.includes('/nations/');
+    return pagePath.includes('/towns/') || pagePath.includes('/nations/') || pagePath.includes('/Nordics/towns/') || pagePath.includes('/Nordics/nations/');
   }
 
   /**

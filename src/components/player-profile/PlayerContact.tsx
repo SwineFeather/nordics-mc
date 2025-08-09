@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 import type { PlayerProfile } from '@/types/player';
+import { useNavigate } from 'react-router-dom';
 
 interface PlayerContactProps {
   profile: PlayerProfile;
@@ -11,6 +12,7 @@ interface PlayerContactProps {
 }
 
 const PlayerContact = ({ profile, isAuthenticated, onContactClick }: PlayerContactProps) => {
+  const navigate = useNavigate();
   const canBeContacted = profile.discord || (profile.isWebsiteUser && profile.websiteUserId);
 
   if (!canBeContacted) return null;
@@ -31,7 +33,14 @@ const PlayerContact = ({ profile, isAuthenticated, onContactClick }: PlayerConta
           </div>
         )}
         {profile.isWebsiteUser && profile.websiteUserId && isAuthenticated && (
-          <Button variant="outline" className="w-full" onClick={onContactClick}>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              // Open the Messages page preloaded with this user
+              navigate(`/messages?with=${encodeURIComponent(profile.websiteUserId!)}`);
+            }}
+          >
             <MessageCircle className="w-4 h-4 mr-2" />
             Send Message
           </Button>

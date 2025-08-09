@@ -294,11 +294,8 @@ const PlayerCard = ({
   };
 
   // Helper function to get influence status based on influence score
-  const getInfluenceStatus = (score: number) => {
-    if (score >= 400) return { label: 'Established', color: 'text-green-600', bgColor: 'bg-green-50' };
-    if (score >= 200) return { label: 'Active', color: 'text-blue-600', bgColor: 'bg-blue-50' };
-    return null; // Don't show status for lower tiers
-  };
+  // Influence status removed per request
+  const getInfluenceStatus = (_score: number) => null;
 
   const getRoleColor = (role: string) => {
     switch (role.toLowerCase()) {
@@ -324,7 +321,7 @@ const PlayerCard = ({
 
   // Get resident data for this player
   const residentData = allResidents?.find(r => r.name === profile.username);
-  const influenceStatus = residentData ? getInfluenceStatus(residentData.activity_score) : null;
+  const influenceStatus = null;
 
   // Get primary badge
   const primaryBadge = profile.badges?.find((b: PlayerBadge) => b.is_verified) || profile.badges?.[0];
@@ -375,12 +372,7 @@ const PlayerCard = ({
               )}
             </div>
 
-            {/* Influence status - more subtle */}
-            {influenceStatus && (
-              <div className="text-xs text-muted-foreground mb-2">
-                {influenceStatus.label} member
-              </div>
-            )}
+            {/* Influence status removed */}
             
 
 

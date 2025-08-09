@@ -54,6 +54,7 @@ import AdminBadgeManager from '../AdminBadgeManager';
 import { calculateLevelInfoSync } from '@/lib/leveling';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { usePlayerResidentData } from '@/hooks/usePlayerResidentData';
 
@@ -105,7 +106,9 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
   const [isStatsOpen, setIsStatsOpen] = useState(true);
   const [playerBio, setPlayerBio] = useState<string>('');
   const [bioLoading, setBioLoading] = useState(true);
+  const [linkedWebsiteUserId, setLinkedWebsiteUserId] = useState<string | null>(null);
   const { userRole } = useAuth();
+  const navigate = useNavigate();
   const stats = profile.stats || {};
   const { data: leaderboardData, loading: leaderboardLoading } = usePlayerLeaderboard(profile.id);
 
@@ -134,19 +137,22 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
       try {
         const { data: profileData, error } = await supabase
           .from('profiles')
-          .select('bio')
+          .select('id, bio')
           .eq('minecraft_username', profile.username)
           .single();
         
         if (error) {
           console.log('No auth profile linked for player:', profile.username);
           setPlayerBio('');
+          setLinkedWebsiteUserId(null);
         } else {
           setPlayerBio(profileData?.bio || '');
+          setLinkedWebsiteUserId(profileData?.id || null);
         }
       } catch (error) {
         console.log('Error fetching bio for player:', profile.username);
         setPlayerBio('');
+        setLinkedWebsiteUserId(null);
       } finally {
         setBioLoading(false);
       }
@@ -309,6 +315,16 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
             </div>
 
             <div className="flex items-center gap-2">
+              {linkedWebsiteUserId && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => navigate(`/messages?with=${encodeURIComponent(linkedWebsiteUserId)}`)}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Chat
+                </Button>
+              )}
               {isAdmin && (
                 <Button 
                   variant="outline" 
