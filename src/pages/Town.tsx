@@ -52,7 +52,7 @@ const TownPage = () => {
   
   // Use the same profiles hook as the community page
   const { profiles, getProfileByUsername } = useProfiles({ fetchAll: true });
-  const { user, userRole } = useAuth();
+  const { user, userRole, profile } = useAuth();
 
   useEffect(() => {
     const fetchTownData = async () => {
@@ -188,7 +188,16 @@ const TownPage = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Crown className="w-3 h-3" />
-                    Mayor: {townData.mayor}
+                    Mayor: 
+                    <button
+                      className="font-medium hover:underline text-left ml-1"
+                      onClick={() => {
+                        // Navigate to community page with mayor parameter
+                        navigate(`/community?player=${encodeURIComponent(townData.mayor)}`);
+                      }}
+                    >
+                      {townData.mayor}
+                    </button>
                   </Badge>
                   {townData.nation && (
                     <Badge variant="outline" className="flex items-center gap-1">
@@ -244,7 +253,7 @@ const TownPage = () => {
               Message Mayor
             </Button>
             {/* Only show Update Image button if user is the mayor or has admin privileges */}
-            {(townData?.mayor === user?.username || userRole === 'admin' || userRole === 'moderator') && (
+            {(townData?.mayor === profile?.minecraft_username || userRole === 'admin' || userRole === 'moderator') && (
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2"
@@ -353,7 +362,10 @@ const TownPage = () => {
                         <div className="flex items-center gap-2">
                           <button
                             className="font-medium truncate hover:underline text-left"
-                            onClick={() => setSelectedPlayerUsername(resident.name)}
+                            onClick={() => {
+                              // Navigate to community page with player parameter
+                              navigate(`/community?player=${encodeURIComponent(resident.name)}`);
+                            }}
                           >
                             {resident.name}
                           </button>
@@ -451,7 +463,15 @@ const TownPage = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Mayor:</span>
-                        <span className="font-medium">{townData.mayor}</span>
+                        <button
+                          className="font-medium hover:underline text-left"
+                          onClick={() => {
+                            // Navigate to community page with mayor parameter
+                            navigate(`/community?player=${encodeURIComponent(townData.mayor)}`);
+                          }}
+                        >
+                          {townData.mayor}
+                        </button>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Founded:</span>

@@ -86,18 +86,16 @@ class UserPermissionsService {
 
   // Determine user role based on profile data
   private determineUserRole(profile: any): UserRole {
-    // Check for admin role first
-    if (profile.role === 'admin' || profile.is_admin) {
+    // Use only the role enum field for consistent authorization
+    if (profile.role === 'admin') {
       return 'admin';
     }
 
-    // Check for moderator role
-    if (profile.role === 'moderator' || profile.is_moderator) {
+    if (profile.role === 'moderator') {
       return 'moderator';
     }
 
-    // Check for editor role
-    if (profile.role === 'editor' || profile.is_editor) {
+    if (profile.role === 'editor') {
       return 'editor';
     }
 

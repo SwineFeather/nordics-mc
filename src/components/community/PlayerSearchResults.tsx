@@ -237,26 +237,6 @@ const PlayerSearchResults = ({
                       </div>
                     )}
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-2">
-                      <div className="flex items-center space-x-1">
-                        <BarChart3 className="w-3 h-3" />
-                        <span>XP: {formatTotalXp(totalXp)}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Medal className="w-3 h-3" />
-                        <span>Medals: {medalPoints}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Pickaxe className="w-3 h-3" />
-                        <span>Blocks: {formatTotalXp(blocksPlaced + blocksBroken)}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Activity className="w-3 h-3" />
-                        <span>Kills: {mobKills}</span>
-                      </div>
-                    </div>
-
                     {/* Influence Score */}
                     {influenceScore > 0 && (
                       <div className="flex items-center space-x-2 mb-2">

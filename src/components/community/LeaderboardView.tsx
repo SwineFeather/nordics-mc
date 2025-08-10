@@ -124,7 +124,15 @@ const LeaderboardView = ({ stat, profiles, loading, onBack }: LeaderboardViewPro
                       <AvatarFallback>{player.username.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{player.username}</p>
+                      <button
+                        className="font-medium hover:underline cursor-pointer"
+                        onClick={() => {
+                          // Navigate to community page with player parameter
+                          window.location.href = `/community?player=${encodeURIComponent(player.username)}`;
+                        }}
+                      >
+                        {player.username}
+                      </button>
                       <p className="text-sm text-muted-foreground">
                         UUID: {player.uuid.slice(0, 8)}...
                       </p>

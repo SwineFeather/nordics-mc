@@ -32,7 +32,16 @@ export const TownProfilePicture: React.FC<TownProfilePictureProps> = ({
   };
 
   // Let images display at their natural size with max constraints
-  const defaultStyle = {
+  // Only apply default constraints if no specific dimensions are provided via className
+  const hasCustomDimensions = className.includes('h-') || className.includes('w-') || 
+                             (style.width && style.width !== 'auto') || 
+                             (style.height && style.height !== 'auto');
+  
+  const defaultStyle = hasCustomDimensions ? {
+    ...style,
+    width: 'auto',
+    height: 'auto'
+  } : {
     ...style,
     maxWidth: '32px',
     maxHeight: '32px',

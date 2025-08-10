@@ -92,7 +92,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
 
   // Separate categories by type
   const generalCategories = categories.filter(cat => 
-    !cat.is_moderator_only && 
+            cat.role_required === 'member' && 
     cat.slug !== 'patches' && 
     cat.slug !== 'nations' &&
     !cat.nation_name &&
@@ -120,7 +120,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
     index === self.findIndex(c => c.id === cat.id)
   );
   
-  const moderatorCategories = categories.filter(cat => cat.is_moderator_only && !cat.is_archived);
+      const moderatorCategories = categories.filter(cat => cat.role_required === 'moderator' && !cat.is_archived);
 
   const getIconComponent = (iconName: string) => {
     return iconMap[iconName as keyof typeof iconMap] || MessageSquare;

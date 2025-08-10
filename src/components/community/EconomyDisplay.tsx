@@ -50,7 +50,15 @@ const EconomyDisplay: React.FC<EconomyDisplayProps> = ({ economyStats, totalServ
                     <Badge variant={player.rank <= 3 ? 'default' : 'secondary'} className="w-8 h-8 rounded-full flex items-center justify-center">
                       {player.rank}
                     </Badge>
-                    <span className="font-medium">{player.player}</span>
+                    <button
+                      className="font-medium hover:underline cursor-pointer"
+                      onClick={() => {
+                        // Navigate to community page with player parameter
+                        window.location.href = `/community?player=${encodeURIComponent(player.player)}`;
+                      }}
+                    >
+                      {player.player}
+                    </button>
                   </div>
                   <span className="font-bold text-accent">{player.balance}</span>
                 </div>

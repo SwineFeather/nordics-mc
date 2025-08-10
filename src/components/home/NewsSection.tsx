@@ -50,7 +50,7 @@ const NewsSection: React.FC = () => {
             .select('id')
             .is('nation_name', null)
             .is('town_name', null)
-            .eq('is_moderator_only', false);
+            .eq('role_required', 'member');
 
           const publicCategoryIds = (publicCategories || []).map((c: any) => c.id);
 

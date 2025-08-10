@@ -181,7 +181,17 @@ const TownDetails = ({ town, onClose }: TownDetailsProps) => {
                   <Crown className="w-5 h-5 text-primary" />
                   <span className="font-medium">Leadership</span>
                 </div>
-                <p>Mayor: {town.mayor}</p>
+                <p>Mayor: 
+                  <button
+                    className="font-medium hover:underline text-left ml-1"
+                    onClick={() => {
+                      // Navigate to community page with mayor parameter
+                      window.location.href = `/community?player=${encodeURIComponent(town.mayor)}`;
+                    }}
+                  >
+                    {town.mayor}
+                  </button>
+                </p>
                 <p className="text-sm text-muted-foreground">Since {town.founded || 'Unknown'}</p>
               </CardContent>
             </Card>

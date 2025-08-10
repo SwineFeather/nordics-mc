@@ -1,59 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
-  Pickaxe, 
-  Sword, 
+  Star, 
+  User, 
+  Award, 
+  X, 
+  MessageSquare, 
+  Calendar, 
   Clock, 
-  Medal, 
-  Activity, 
-  Target, 
-  Heart, 
-  Zap,
-  MapPin,
-  Building,
-  Crown,
-  Star,
-  Award,
-  Sparkles,
-  Globe,
-  Book,
-  Wrench,
-  Flame,
-  Sun,
-  Moon,
-  Key,
-  Lock,
-  Smile,
-  Ghost,
-  Skull,
-  Leaf,
-  Rocket,
-  Wand2,
-  User,
-  TrendingUp,
-  Shield,
-  Calendar,
-  X,
-  Coins,
-  MessageSquare,
-  ChevronDown
+  MapPin, 
+  AlertTriangle
 } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import AllStatisticsModal from './AllStatisticsModal';
-// Achievements modal removed per requirements
 import { usePlayerLeaderboard } from '../../hooks/usePlayerLeaderboard';
 import { useAuth } from '@/hooks/useAuth';
 import AdminBadgeManager from '../AdminBadgeManager';
 import { calculateLevelInfoSync } from '@/lib/leveling';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { usePlayerResidentData } from '@/hooks/usePlayerResidentData';
@@ -67,35 +35,33 @@ interface PlayerStatsDetailProps {
 const BADGE_ICONS = {
   User: User,
   Star: Star,
-  Crown: Crown,
-  Shield: Shield,
+  Crown: Star, // Using Star as fallback for Crown
+  Shield: Star, // Using Star as fallback for Shield
   Award: Award,
-  Sparkles: Sparkles,
-  Globe: Globe,
-  Book: Book,
-  Wrench: Wrench,
-  Flame: Flame,
-  Sun: Sun,
-  Moon: Moon,
-  Key: Key,
-  Lock: Lock,
-  Smile: Smile,
-  Ghost: Ghost,
-  Skull: Skull,
-  Leaf: Leaf,
-  Rocket: Rocket,
-  Wand2: Wand2,
-  Heart: Heart,
-  Zap: Zap,
-  Activity: Activity,
-  Target: Target,
-  Medal: Medal,
+  Sparkles: Star, // Using Star as fallback for Sparkles
+  Globe: Star, // Using Star as fallback for Globe
+  Book: Star, // Using Star as fallback for Book
+  Wrench: Star, // Using Star as fallback for Wrench
+  Flame: Star, // Using Star as fallback for Flame
+  Sun: Star, // Using Star as fallback for Sun
+  Moon: Star, // Using Star as fallback for Moon
+  Key: Star, // Using Star as fallback for Key
+  Lock: Star, // Using Star as fallback for Lock
+  Smile: Star, // Using Star as fallback for Smile
+  Ghost: Star, // Using Star as fallback for Ghost
+  Skull: Star, // Using Star as fallback for Skull
+  Leaf: Star, // Using Star as fallback for Leaf
+  Rocket: Star, // Using Star as fallback for Rocket
+  Wand2: Star, // Using Star as fallback for Wand2
+  Heart: Star, // Using Star as fallback for Heart
+  Zap: Star, // Using Star as fallback for Zap
+  Activity: Star, // Using Star as fallback for Activity
+  Target: Star, // Using Star as fallback for Target
+  Medal: Star, // Using Star as fallback for Medal
   Clock: Clock,
-  Sword: Sword,
-  Pickaxe: Pickaxe,
-  Building: Building,
+  Building: Star, // Using Star as fallback for Building
   MapPin: MapPin,
-  TrendingUp: TrendingUp,
+  TrendingUp: Star, // Using Star as fallback for TrendingUp
   Calendar: Calendar
 };
 
@@ -103,13 +69,11 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
   const [profile, setProfile] = useState(initialProfile);
   const [showAllStats, setShowAllStats] = useState(false);
   const [showBadgeManager, setShowBadgeManager] = useState(false);
-  const [isStatsOpen, setIsStatsOpen] = useState(true);
   const [playerBio, setPlayerBio] = useState<string>('');
   const [bioLoading, setBioLoading] = useState(true);
   const [linkedWebsiteUserId, setLinkedWebsiteUserId] = useState<string | null>(null);
-  const { userRole } = useAuth();
+  const { userRole, profile: currentUserProfile } = useAuth();
   const navigate = useNavigate();
-  const stats = profile.stats || {};
   const { data: leaderboardData, loading: leaderboardLoading } = usePlayerLeaderboard(profile.id);
 
   // Refetch player profile from backend
@@ -127,14 +91,21 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
   };
   
   // Fetch bio from profiles table
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchBio = async () => {
       if (!profile.username) {
         setBioLoading(false);
         return;
       }
 
+      // Check if profile has a websiteUserId or if we can derive it
+      if (profile.websiteUserId || profile.id) {
+        const userId = profile.websiteUserId || profile.id;
+        setLinkedWebsiteUserId(userId);
+      }
+
       try {
+        // Try to get bio from profiles table
         const { data: profileData, error } = await supabase
           .from('profiles')
           .select('id, bio')
@@ -142,24 +113,23 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
           .single();
         
         if (error) {
-          console.log('No auth profile linked for player:', profile.username);
           setPlayerBio('');
-          setLinkedWebsiteUserId(null);
         } else {
           setPlayerBio(profileData?.bio || '');
-          setLinkedWebsiteUserId(profileData?.id || null);
+          // If we found a profile, use its ID for chat
+          if (profileData?.id && !linkedWebsiteUserId) {
+            setLinkedWebsiteUserId(profileData.id);
+          }
         }
       } catch (error) {
-        console.log('Error fetching bio for player:', profile.username);
         setPlayerBio('');
-        setLinkedWebsiteUserId(null);
       } finally {
         setBioLoading(false);
       }
     };
 
     fetchBio();
-  }, [profile.username]);
+  }, [profile.username, profile.websiteUserId, profile.id, linkedWebsiteUserId]);
   
   // Calculate level info for display
   const levelInfo = profile.levelInfo || calculateLevelInfoSync(profile.levelInfo?.totalXp || 0);
@@ -176,12 +146,6 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
     color: levelInfo?.color || '#6b7280'
   };
 
-  // Helper function to safely get numeric values
-  const getNumericStat = (value: number | { [key: string]: number } | undefined): number => {
-    if (typeof value === 'number') return value;
-    return 0;
-  };
-
   // Helper function to parse dates correctly
   const parseDate = (dateString: string | number): Date => {
     if (typeof dateString === 'number') {
@@ -191,36 +155,10 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
     return new Date(dateString);
   };
 
-  // Calculate summary stats using the correct stat keys
-  const playtimeHours = stats.playtimeHours || 0;
-  const blocksPlaced = getNumericStat(stats.blocksPlaced) || getNumericStat(stats.use_dirt) || 0;
-  const blocksBroken = getNumericStat(stats.blocksBroken) || getNumericStat(stats.mine_ground) || 0;
-  const mobKills = getNumericStat(stats.mobKills) || getNumericStat(stats.kill_any) || 0;
-  const deaths = getNumericStat(stats.deaths) || getNumericStat(stats.death) || 0;
-  const medalPoints = getNumericStat(stats.medalPoints) || 0;
-  const survivalStreak = getNumericStat(stats.survivalStreak) || 0;
-  const itemsCrafted = getNumericStat(stats.itemsCrafted) || 0;
-  const itemsPickedUp = getNumericStat(stats.itemsPickedUp) || 0;
-  const itemsDropped = getNumericStat(stats.itemsDropped) || 0;
-  const balance = getNumericStat(stats.balance) || 0;
-
   // Parse dates correctly
   const joinDate = parseDate(profile.joinDate);
   const lastSeenDate = parseDate(profile.lastSeen);
   const location = residentData?.town_name || profile.town || 'Wanderer';
-  
-  // Get top stats by category
-  const topMined = getTopStats(stats, 'mined');
-  const topUsed = getTopStats(stats, 'used');
-  const topKilled = getTopStats(stats, 'killed');
-  const topCrafted = getTopStats(stats, 'crafted');
-  
-  // Calculate K/D ratio
-  const kdRatio = deaths > 0 ? (mobKills / deaths).toFixed(2) : mobKills.toString();
-  
-  // Calculate efficiency stats
-  const blocksPerHour = playtimeHours > 0 ? Math.floor((blocksPlaced + blocksBroken) / playtimeHours) : 0;
-  const killsPerHour = playtimeHours > 0 ? Math.floor(mobKills / playtimeHours) : 0;
 
   const isAdmin = userRole === 'admin' || userRole === 'moderator';
 
@@ -315,16 +253,38 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
             </div>
 
             <div className="flex items-center gap-2">
-              {linkedWebsiteUserId && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => navigate(`/messages?with=${encodeURIComponent(linkedWebsiteUserId)}`)}
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Chat
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // Check if current user has a linked Minecraft account
+                  if (!currentUserProfile?.minecraft_username) {
+                    alert('You need to link your Minecraft account to the website to use chat. Please go to your profile settings and link your account.');
+                    return;
+                  }
+                  
+                  if (linkedWebsiteUserId) {
+                    navigate(`/messages?with=${encodeURIComponent(linkedWebsiteUserId)}`);
+                  } else {
+                    // Show a helpful message about linking accounts
+                    alert('To enable chat, both players need to link their Minecraft accounts to the website. Please ask the player to log in to the website and link their account.');
+                  }
+                }}
+                title={
+                  !currentUserProfile?.minecraft_username 
+                    ? "You need to link your Minecraft account to use chat"
+                    : linkedWebsiteUserId 
+                    ? "Click to start a chat" 
+                    : "Player needs to link their website account to enable chat"
+                }
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                {!currentUserProfile?.minecraft_username 
+                  ? "Chat (Link Your Account)" 
+                  : linkedWebsiteUserId 
+                  ? "Chat" 
+                  : "Chat (Link Account)"}
+              </Button>
               {isAdmin && (
                 <Button 
                   variant="outline" 
@@ -346,7 +306,7 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <span className="text-muted-foreground">Joined:</span>
-              <span className="font-medium"></span>
+              <span className="font-medium">{joinDate.toLocaleDateString()}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
@@ -411,13 +371,11 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    We’re rebuilding the statistics experience. Current data is unreliable and this section is temporarily disabled.
+                    We're rebuilding the statistics experience. Current data is unreliable and this section is temporarily disabled.
                   </p>
                 </CardContent>
               </Card>
             </TabsContent>
-
-            {/* Achievements tab removed */}
           </Tabs>
 
           {/* Admin Badge Manager Modal */}
@@ -442,22 +400,5 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
     </div>
   );
 };
-
-// Helper function to get top stats by category
-function getTopStats(stats: any, category: string): Array<{ name: string; value: number }> {
-  const categoryStats = Object.entries(stats)
-    .filter(([key, value]) => {
-      if (typeof value !== 'number') return false;
-      return key.toLowerCase().includes(category.toLowerCase());
-    })
-    .map(([key, value]) => ({
-      name: key,
-      value: value as number
-    }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 3);
-
-  return categoryStats;
-}
 
 export default PlayerStatsDetail; 

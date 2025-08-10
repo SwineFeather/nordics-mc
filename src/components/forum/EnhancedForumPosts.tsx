@@ -35,7 +35,7 @@ const EnhancedForumPosts = ({ categoryId, onBack, onPostSelect }: EnhancedForumP
 
   // Get current category to check if it's moderator-only
   const currentCategory = categories.find(cat => cat.id === categoryId);
-  const isModeratorOnlyCategory = currentCategory?.is_moderator_only || false;
+        const isModeratorOnlyCategory = currentCategory?.role_required === 'moderator' || false;
   const userHasStaffPermissions = profile && isStaffRole(profile.role);
   const canCreatePost = user && (!isModeratorOnlyCategory || userHasStaffPermissions);
 

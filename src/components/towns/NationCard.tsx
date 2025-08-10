@@ -132,7 +132,15 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <Crown className="w-4 h-4 text-yellow-500" />
               <span className="font-semibold text-foreground">Leader:</span>
-              <span className="font-medium text-foreground">{nation.leader}</span>
+              <button
+                className="font-medium text-foreground hover:underline text-left"
+                onClick={() => {
+                  // Navigate to community page with leader parameter
+                  window.location.href = `/community?player=${encodeURIComponent(nation.leader)}`;
+                }}
+              >
+                {nation.leader}
+              </button>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <MapPin className="w-4 h-4 text-blue-500" />

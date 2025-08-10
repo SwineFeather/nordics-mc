@@ -9,7 +9,7 @@ export interface ForumCategory {
   icon: string;
   color: string;
   order_index: number;
-  is_moderator_only: boolean;
+  role_required: string;
   nation_name?: string | null;
   town_name?: string | null;
   is_archived?: boolean;

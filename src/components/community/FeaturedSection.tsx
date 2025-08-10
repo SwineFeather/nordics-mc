@@ -63,7 +63,15 @@ const FeaturedSection = () => {
         <CardContent>
           {wealthiestPlayer && (
             <div>
-              <div className="font-semibold">{wealthiestPlayer.name}</div>
+              <button
+                className="font-semibold hover:underline text-left"
+                onClick={() => {
+                  // Navigate to community page with player parameter
+                  window.location.href = `/community?player=${encodeURIComponent(wealthiestPlayer.name)}`;
+                }}
+              >
+                {wealthiestPlayer.name}
+              </button>
               <div className="text-sm text-muted-foreground">
                 Balance: ${wealthiestPlayer.balance.toLocaleString()}
               </div>
@@ -85,7 +93,15 @@ const FeaturedSection = () => {
         <CardContent>
           {mayors[0] && (
             <div>
-              <div className="font-semibold">{mayors[0].name}</div>
+              <button
+                className="font-semibold hover:underline text-left"
+                onClick={() => {
+                  // Navigate to community page with mayor parameter
+                  window.location.href = `/community?player=${encodeURIComponent(mayors[0].name)}`;
+                }}
+              >
+                {mayors[0].name}
+              </button>
               <div className="text-sm text-muted-foreground">
                 Mayor of {mayors[0].town_name}
               </div>
@@ -105,7 +121,15 @@ const FeaturedSection = () => {
         <CardContent>
           {kings[0] && (
             <div>
-              <div className="font-semibold">{kings[0].name}</div>
+              <button
+                className="font-semibold hover:underline text-left"
+                onClick={() => {
+                  // Navigate to community page with player parameter
+                  window.location.href = `/community?player=${encodeURIComponent(kings[0].name)}`;
+                }}
+              >
+                {kings[0].name}
+              </button>
               <div className="text-sm text-muted-foreground">
                 King of {kings[0].nation_name}
               </div>
@@ -125,7 +149,15 @@ const FeaturedSection = () => {
         <CardContent>
           {mostActivePlayer && (
             <div>
-              <div className="font-semibold">{mostActivePlayer.name}</div>
+              <button
+                className="font-semibold hover:underline text-left"
+                onClick={() => {
+                  // Navigate to community page with player parameter
+                  window.location.href = `/community?player=${encodeURIComponent(mostActivePlayer.name)}`;
+                }}
+              >
+                {mostActivePlayer.name}
+              </button>
               <div className="text-sm text-muted-foreground">
                 Activity Score: {mostActivePlayer.activity_score}
               </div>

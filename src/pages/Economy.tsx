@@ -79,7 +79,15 @@ const Economy = () => {
           <Card className="glass-card rounded-3xl text-center">
             <CardContent className="p-6">
               <Crown className="w-8 h-8 mx-auto mb-3 text-yellow-500" />
-              <div className="text-2xl font-bold gradient-text">{serverStats.topPlayer}</div>
+              <button
+                className="text-2xl font-bold gradient-text hover:underline cursor-pointer"
+                onClick={() => {
+                  // Navigate to community page with player parameter
+                  window.location.href = `/community?player=${encodeURIComponent(serverStats.topPlayer)}`;
+                }}
+              >
+                {serverStats.topPlayer}
+              </button>
               <div className="text-sm text-muted-foreground">Richest Player</div>
             </CardContent>
           </Card>

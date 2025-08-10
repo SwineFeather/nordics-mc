@@ -34,7 +34,17 @@ const CompactStatsCards: React.FC<CompactStatsCardsProps> = ({ type, data }) => 
     {
       icon: <Crown className="h-3 w-3" />,
       title: 'Mayor',
-      value: data.mayor_name || '[Unknown]',
+      value: (
+        <button
+          className="font-medium hover:underline text-left"
+          onClick={() => {
+            // Navigate to community page with mayor parameter
+            window.location.href = `/community?player=${encodeURIComponent(data.mayor_name || '')}`;
+          }}
+        >
+          {data.mayor_name || '[Unknown]'}
+        </button>
+      ),
       color: 'primary'
     },
     {

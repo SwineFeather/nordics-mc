@@ -44,7 +44,17 @@ const TownRow: React.FC<TownRowProps> = ({ town, nationName, nationColor, onView
             <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <span>Mayor: {town.mayor}</span>
+            <span>Mayor: 
+              <button
+                className="font-medium hover:underline text-left ml-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/community?player=${encodeURIComponent(town.mayor || '')}`);
+                }}
+              >
+                {town.mayor}
+              </button>
+            </span>
             <span>•</span>
             <div className="flex items-center space-x-1">
               <Users className="w-3 h-3" />

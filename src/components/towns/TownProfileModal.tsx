@@ -123,7 +123,16 @@ const TownProfileModal = ({ town, isOpen, onClose }: TownProfileModalProps) => {
                 <div className="flex items-center gap-2 mt-2">
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Crown className="w-3 h-3" />
-                    Mayor: {town.mayor}
+                    Mayor: 
+                    <button
+                      className="font-medium hover:underline text-left ml-1"
+                      onClick={() => {
+                        // Navigate to community page with mayor parameter
+                        window.location.href = `/community?player=${encodeURIComponent(town.mayor)}`;
+                      }}
+                    >
+                      {town.mayor}
+                    </button>
                   </Badge>
                   {town.nation && (
                     <Badge variant="outline" className="flex items-center gap-1">

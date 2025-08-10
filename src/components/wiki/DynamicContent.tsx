@@ -171,7 +171,15 @@ const DynamicContent = ({
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Crown className="w-3 h-3" />
-                      <span>{town.mayor}</span>
+                      <button
+                        className="font-medium hover:underline text-left"
+                        onClick={() => {
+                          // Navigate to community page with mayor parameter
+                          window.location.href = `/community?player=${encodeURIComponent(town.mayor)}`;
+                        }}
+                      >
+                        {town.mayor}
+                      </button>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Users className="w-3 h-3" />
@@ -263,7 +271,15 @@ const DynamicContent = ({
               <Crown className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">Leader</span>
             </div>
-            <p className="text-sm">{nation.leader}</p>
+            <button
+              className="text-sm hover:underline cursor-pointer"
+              onClick={() => {
+                // Navigate to community page with leader parameter
+                window.location.href = `/community?player=${encodeURIComponent(nation.leader)}`;
+              }}
+            >
+              {nation.leader}
+            </button>
           </div>
           
           <div className="space-y-2">

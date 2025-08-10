@@ -194,7 +194,15 @@ const TownListTab: React.FC<TownListTabProps> = ({ searchTerm }) => {
                 <div className="flex items-center gap-2 text-sm">
                   <Crown className="w-4 h-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Mayor:</span>
-                  <span className="font-medium truncate">{town.mayor || 'Unknown'}</span>
+                  <button
+                    className="font-medium truncate hover:underline text-left"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/community?player=${encodeURIComponent(town.mayor || '')}`);
+                    }}
+                  >
+                    {town.mayor || 'Unknown'}
+                  </button>
                 </div>
 
                 {/* Population */}

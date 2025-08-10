@@ -258,9 +258,15 @@ const StatisticsLeaderboard: React.FC<StatisticsLeaderboardProps> = ({
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold truncate">
+                        <button
+                          className="font-semibold truncate hover:underline text-left"
+                          onClick={() => {
+                            // Navigate to community page with player parameter
+                            window.location.href = `/community?player=${encodeURIComponent(player.username)}`;
+                          }}
+                        >
                           {player.displayName || player.username}
-                        </h3>
+                        </button>
                         {primaryBadge && (
                           <Badge 
                             style={{ backgroundColor: primaryBadge.badge_color, color: 'white' }}

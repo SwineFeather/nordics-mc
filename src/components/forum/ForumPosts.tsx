@@ -34,7 +34,7 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
       setCategoryLoading(true);
       const { data } = await supabase
         .from('forum_categories')
-        .select('id, name, is_moderator_only, nation_name, town_name')
+        .select('id, name, role_required, nation_name, town_name')
         .eq('id', categoryId)
         .single();
       if (isMounted) {
@@ -47,7 +47,7 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
   }, [categoryId]);
 
   const currentCategory = category;
-  const isModeratorOnlyCategory = currentCategory?.is_moderator_only || false;
+        const isModeratorOnlyCategory = currentCategory?.role_required === 'moderator' || false;
   const userHasStaffPermissions = profile && isStaffRole(profile.role);
   const canCreatePost = user && (!isModeratorOnlyCategory || userHasStaffPermissions);
 
