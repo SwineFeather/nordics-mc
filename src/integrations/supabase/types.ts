@@ -71,8 +71,8 @@ export type Database = {
           achievement_id: string
           achievement_type: string
           color: string | null
+          created_at: string | null
           description: string | null
-          id: number
           name: string
           stat: string
         }
@@ -80,8 +80,8 @@ export type Database = {
           achievement_id: string
           achievement_type: string
           color?: string | null
+          created_at?: string | null
           description?: string | null
-          id?: number
           name: string
           stat: string
         }
@@ -89,8 +89,8 @@ export type Database = {
           achievement_id?: string
           achievement_type?: string
           color?: string | null
+          created_at?: string | null
           description?: string | null
-          id?: number
           name?: string
           stat?: string
         }
@@ -99,6 +99,7 @@ export type Database = {
       achievement_tiers: {
         Row: {
           achievement_id: string
+          created_at: string | null
           description: string | null
           icon: string | null
           id: number
@@ -109,16 +110,18 @@ export type Database = {
         }
         Insert: {
           achievement_id: string
+          created_at?: string | null
           description?: string | null
           icon?: string | null
           id?: number
           name: string
-          points: number
+          points?: number
           threshold: number
           tier: number
         }
         Update: {
           achievement_id?: string
+          created_at?: string | null
           description?: string | null
           icon?: string | null
           id?: number
@@ -2436,6 +2439,7 @@ export type Database = {
       level_definitions: {
         Row: {
           color: string | null
+          created_at: string | null
           description: string | null
           id: number
           level: number
@@ -2445,6 +2449,7 @@ export type Database = {
         }
         Insert: {
           color?: string | null
+          created_at?: string | null
           description?: string | null
           id?: number
           level: number
@@ -2454,6 +2459,7 @@ export type Database = {
         }
         Update: {
           color?: string | null
+          created_at?: string | null
           description?: string | null
           id?: number
           level?: number
@@ -3325,33 +3331,6 @@ export type Database = {
         }
         Relationships: []
       }
-      online_players: {
-        Row: {
-          id: string
-          is_online: boolean | null
-          last_seen: string | null
-          player_name: string
-          player_uuid: string
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          is_online?: boolean | null
-          last_seen?: string | null
-          player_name: string
-          player_uuid: string
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          is_online?: boolean | null
-          last_seen?: string | null
-          player_name?: string
-          player_uuid?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       page_revisions: {
         Row: {
           author_id: string | null
@@ -3406,36 +3385,6 @@ export type Database = {
           },
         ]
       }
-      performance_metrics: {
-        Row: {
-          id: number
-          metric_name: string
-          metric_type: string
-          metric_value: number
-          tags: Json | null
-          timestamp: string | null
-          unit: string | null
-        }
-        Insert: {
-          id?: number
-          metric_name: string
-          metric_type: string
-          metric_value: number
-          tags?: Json | null
-          timestamp?: string | null
-          unit?: string | null
-        }
-        Update: {
-          id?: number
-          metric_name?: string
-          metric_type?: string
-          metric_value?: number
-          tags?: Json | null
-          timestamp?: string | null
-          unit?: string | null
-        }
-        Relationships: []
-      }
       player_achievements: {
         Row: {
           achievement_name: string
@@ -3465,39 +3414,42 @@ export type Database = {
       }
       player_awards: {
         Row: {
-          achieved_at: string | null
+          achieved_at: number
           award_description: string | null
           award_id: string
           award_name: string
+          created_at: string | null
           id: number
           medal: string
-          player_uuid: string | null
+          player_uuid: string
           points: number
           stat_path: string | null
           stat_value: number | null
           tier: string
         }
         Insert: {
-          achieved_at?: string | null
+          achieved_at: number
           award_description?: string | null
           award_id: string
           award_name: string
+          created_at?: string | null
           id?: number
           medal: string
-          player_uuid?: string | null
+          player_uuid: string
           points: number
           stat_path?: string | null
           stat_value?: number | null
           tier: string
         }
         Update: {
-          achieved_at?: string | null
+          achieved_at?: number
           award_description?: string | null
           award_id?: string
           award_name?: string
+          created_at?: string | null
           id?: number
           medal?: string
-          player_uuid?: string | null
+          player_uuid?: string
           points?: number
           stat_path?: string | null
           stat_value?: number | null
@@ -3516,13 +3468,6 @@ export type Database = {
             columns: ["player_uuid"]
             isOneToOne: false
             referencedRelation: "player_leaderboard"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "player_awards_player_uuid_fkey"
-            columns: ["player_uuid"]
-            isOneToOne: false
-            referencedRelation: "player_profiles_view"
             referencedColumns: ["uuid"]
           },
           {
@@ -3578,33 +3523,6 @@ export type Database = {
           },
         ]
       }
-      player_data: {
-        Row: {
-          id: number
-          name: string
-          placeholder_name: string
-          updated_at: number | null
-          uuid: string
-          value: string | null
-        }
-        Insert: {
-          id?: number
-          name: string
-          placeholder_name: string
-          updated_at?: number | null
-          uuid: string
-          value?: string | null
-        }
-        Update: {
-          id?: number
-          name?: string
-          placeholder_name?: string
-          updated_at?: number | null
-          uuid?: string
-          value?: string | null
-        }
-        Relationships: []
-      }
       player_dividends: {
         Row: {
           created_at: string | null
@@ -3651,27 +3569,36 @@ export type Database = {
       }
       player_medals: {
         Row: {
-          bronze_count: number
-          gold_count: number
+          bronze_count: number | null
+          created_at: string | null
+          gold_count: number | null
+          last_updated: number
+          player_name: string
           player_uuid: string
-          silver_count: number
-          total_medals: number
+          silver_count: number | null
+          total_medals: number | null
           updated_at: string | null
         }
         Insert: {
-          bronze_count?: number
-          gold_count?: number
+          bronze_count?: number | null
+          created_at?: string | null
+          gold_count?: number | null
+          last_updated: number
+          player_name: string
           player_uuid: string
-          silver_count?: number
-          total_medals?: number
+          silver_count?: number | null
+          total_medals?: number | null
           updated_at?: string | null
         }
         Update: {
-          bronze_count?: number
-          gold_count?: number
+          bronze_count?: number | null
+          created_at?: string | null
+          gold_count?: number | null
+          last_updated?: number
+          player_name?: string
           player_uuid?: string
-          silver_count?: number
-          total_medals?: number
+          silver_count?: number | null
+          total_medals?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3687,13 +3614,6 @@ export type Database = {
             columns: ["player_uuid"]
             isOneToOne: true
             referencedRelation: "player_leaderboard"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "player_medals_player_uuid_fkey"
-            columns: ["player_uuid"]
-            isOneToOne: true
-            referencedRelation: "player_profiles_view"
             referencedColumns: ["uuid"]
           },
           {
@@ -3707,18 +3627,27 @@ export type Database = {
       }
       player_points: {
         Row: {
+          created_at: string | null
+          last_updated: number
+          player_name: string
           player_uuid: string
-          total_points: number
+          total_points: number | null
           updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
+          last_updated: number
+          player_name: string
           player_uuid: string
-          total_points?: number
+          total_points?: number | null
           updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
+          last_updated?: number
+          player_name?: string
           player_uuid?: string
-          total_points?: number
+          total_points?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3734,13 +3663,6 @@ export type Database = {
             columns: ["player_uuid"]
             isOneToOne: true
             referencedRelation: "player_leaderboard"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "player_points_player_uuid_fkey"
-            columns: ["player_uuid"]
-            isOneToOne: true
-            referencedRelation: "player_profiles_view"
             referencedColumns: ["uuid"]
           },
           {
@@ -3752,75 +3674,27 @@ export type Database = {
           },
         ]
       }
-      player_sessions: {
-        Row: {
-          actions_performed: number | null
-          client_version: string | null
-          duration_seconds: number | null
-          id: number
-          ip_address: unknown | null
-          join_location: Json | null
-          leave_location: Json | null
-          player_name: string
-          player_uuid: string
-          plots_visited: number | null
-          session_end: string | null
-          session_start: string
-          towns_visited: number | null
-          transactions_made: number | null
-        }
-        Insert: {
-          actions_performed?: number | null
-          client_version?: string | null
-          duration_seconds?: number | null
-          id?: number
-          ip_address?: unknown | null
-          join_location?: Json | null
-          leave_location?: Json | null
-          player_name: string
-          player_uuid: string
-          plots_visited?: number | null
-          session_end?: string | null
-          session_start: string
-          towns_visited?: number | null
-          transactions_made?: number | null
-        }
-        Update: {
-          actions_performed?: number | null
-          client_version?: string | null
-          duration_seconds?: number | null
-          id?: number
-          ip_address?: unknown | null
-          join_location?: Json | null
-          leave_location?: Json | null
-          player_name?: string
-          player_uuid?: string
-          plots_visited?: number | null
-          session_end?: string | null
-          session_start?: string
-          towns_visited?: number | null
-          transactions_made?: number | null
-        }
-        Relationships: []
-      }
       player_stats: {
         Row: {
-          id: number
-          last_updated: number | null
-          player_uuid: string | null
+          created_at: string | null
+          last_updated: number
+          player_uuid: string
           stats: Json
+          updated_at: string | null
         }
         Insert: {
-          id?: number
-          last_updated?: number | null
-          player_uuid?: string | null
+          created_at?: string | null
+          last_updated: number
+          player_uuid: string
           stats?: Json
+          updated_at?: string | null
         }
         Update: {
-          id?: number
-          last_updated?: number | null
-          player_uuid?: string | null
+          created_at?: string | null
+          last_updated?: number
+          player_uuid?: string
           stats?: Json
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -3835,13 +3709,6 @@ export type Database = {
             columns: ["player_uuid"]
             isOneToOne: true
             referencedRelation: "player_leaderboard"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "player_stats_player_uuid_fkey"
-            columns: ["player_uuid"]
-            isOneToOne: true
-            referencedRelation: "player_profiles_view"
             referencedColumns: ["uuid"]
           },
           {
@@ -3934,30 +3801,33 @@ export type Database = {
       }
       players: {
         Row: {
+          created_at: string | null
           last_level_up: number | null
-          last_seen: number | null
+          last_seen: number
           level: number | null
           name: string
-          player_uuid: string
           total_xp: number | null
+          updated_at: string | null
           uuid: string
         }
         Insert: {
+          created_at?: string | null
           last_level_up?: number | null
-          last_seen?: number | null
+          last_seen: number
           level?: number | null
           name: string
-          player_uuid: string
           total_xp?: number | null
+          updated_at?: string | null
           uuid: string
         }
         Update: {
+          created_at?: string | null
           last_level_up?: number | null
-          last_seen?: number | null
+          last_seen?: number
           level?: number | null
           name?: string
-          player_uuid?: string
           total_xp?: number | null
+          updated_at?: string | null
           uuid?: string
         }
         Relationships: []
@@ -4264,71 +4134,6 @@ export type Database = {
           title?: string | null
         }
         Relationships: []
-      }
-      reputation_events: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          event_type: string
-          id: string
-          points_change: number
-          related_post_id: string | null
-          related_reaction_id: string | null
-          related_reply_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          event_type: string
-          id?: string
-          points_change: number
-          related_post_id?: string | null
-          related_reaction_id?: string | null
-          related_reply_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          event_type?: string
-          id?: string
-          points_change?: number
-          related_post_id?: string | null
-          related_reaction_id?: string | null
-          related_reply_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reputation_events_related_post_id_fkey"
-            columns: ["related_post_id"]
-            isOneToOne: false
-            referencedRelation: "forum_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reputation_events_related_reaction_id_fkey"
-            columns: ["related_reaction_id"]
-            isOneToOne: false
-            referencedRelation: "forum_reactions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reputation_events_related_reply_id_fkey"
-            columns: ["related_reply_id"]
-            isOneToOne: false
-            referencedRelation: "forum_replies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reputation_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       residents: {
         Row: {
@@ -5468,27 +5273,48 @@ export type Database = {
       }
       town_achievements: {
         Row: {
-          achieved_at: string | null
           achievement_id: string
+          created_at: string | null
           id: number
           tier: number
           town_name: string
+          unlocked_at: string | null
+          xp_awarded: number
         }
         Insert: {
-          achieved_at?: string | null
           achievement_id: string
+          created_at?: string | null
           id?: number
           tier: number
           town_name: string
+          unlocked_at?: string | null
+          xp_awarded?: number
         }
         Update: {
-          achieved_at?: string | null
           achievement_id?: string
+          created_at?: string | null
           id?: number
           tier?: number
           town_name?: string
+          unlocked_at?: string | null
+          xp_awarded?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "town_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_definitions"
+            referencedColumns: ["achievement_id"]
+          },
+          {
+            foreignKeyName: "town_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_progress"
+            referencedColumns: ["achievement_id"]
+          },
+        ]
       }
       town_gallery: {
         Row: {
@@ -5647,70 +5473,58 @@ export type Database = {
       }
       town_levels: {
         Row: {
+          created_at: string | null
           id: number
-          last_updated: number | null
-          level: number | null
-          total_xp: number | null
+          last_updated: number
+          level: number
+          total_xp: number
           town_name: string
+          updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
           id?: number
-          last_updated?: number | null
-          level?: number | null
-          total_xp?: number | null
+          last_updated: number
+          level?: number
+          total_xp?: number
           town_name: string
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
           id?: number
-          last_updated?: number | null
-          level?: number | null
-          total_xp?: number | null
+          last_updated?: number
+          level?: number
+          total_xp?: number
           town_name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
       town_stats: {
         Row: {
-          age: number | null
-          balance: number | null
+          created_at: string | null
           id: number
-          is_capital: boolean | null
-          is_independent: boolean | null
-          last_updated: string | null
-          mayor: string | null
-          nation: string | null
-          plot_count: number | null
-          population: number | null
-          size: number | null
+          last_updated: number
+          stats: Json
           town_name: string
+          updated_at: string | null
         }
         Insert: {
-          age?: number | null
-          balance?: number | null
+          created_at?: string | null
           id?: number
-          is_capital?: boolean | null
-          is_independent?: boolean | null
-          last_updated?: string | null
-          mayor?: string | null
-          nation?: string | null
-          plot_count?: number | null
-          population?: number | null
-          size?: number | null
+          last_updated: number
+          stats?: Json
           town_name: string
+          updated_at?: string | null
         }
         Update: {
-          age?: number | null
-          balance?: number | null
+          created_at?: string | null
           id?: number
-          is_capital?: boolean | null
-          is_independent?: boolean | null
-          last_updated?: string | null
-          mayor?: string | null
-          nation?: string | null
-          plot_count?: number | null
-          population?: number | null
-          size?: number | null
+          last_updated?: number
+          stats?: Json
           town_name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -6025,6 +5839,7 @@ export type Database = {
       unlocked_achievements: {
         Row: {
           achievement_id: string
+          created_at: string | null
           id: number
           player_uuid: string | null
           tier: number
@@ -6034,6 +5849,7 @@ export type Database = {
         }
         Insert: {
           achievement_id: string
+          created_at?: string | null
           id?: number
           player_uuid?: string | null
           tier: number
@@ -6043,6 +5859,7 @@ export type Database = {
         }
         Update: {
           achievement_id?: string
+          created_at?: string | null
           id?: number
           player_uuid?: string | null
           tier?: number
@@ -6077,13 +5894,6 @@ export type Database = {
             columns: ["player_uuid"]
             isOneToOne: false
             referencedRelation: "player_leaderboard"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "unlocked_achievements_player_uuid_fkey"
-            columns: ["player_uuid"]
-            isOneToOne: false
-            referencedRelation: "player_profiles_view"
             referencedColumns: ["uuid"]
           },
           {
@@ -7137,12 +6947,19 @@ export type Database = {
     Views: {
       achievement_progress: {
         Row: {
+          achievement_color: string | null
+          achievement_description: string | null
           achievement_id: string | null
           achievement_name: string | null
-          player_name: string | null
+          achievement_type: string | null
+          icon: string | null
           player_uuid: string | null
+          points: number | null
+          stat: string | null
+          status: string | null
           threshold: number | null
           tier: number | null
+          tier_description: string | null
           tier_name: string | null
           town_name: string | null
           unlocked_at: string | null
@@ -7167,13 +6984,6 @@ export type Database = {
             foreignKeyName: "unlocked_achievements_player_uuid_fkey"
             columns: ["player_uuid"]
             isOneToOne: false
-            referencedRelation: "player_profiles_view"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "unlocked_achievements_player_uuid_fkey"
-            columns: ["player_uuid"]
-            isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["uuid"]
           },
@@ -7181,42 +6991,34 @@ export type Database = {
       }
       award_leaderboard: {
         Row: {
-          achieved_at: string | null
-          award_id: string | null
-          award_name: string | null
-          medal: string | null
+          bronze_count: number | null
+          gold_count: number | null
+          last_updated: number | null
           player_name: string | null
           player_uuid: string | null
-          points: number | null
-          rank: number | null
-          tier: string | null
+          silver_count: number | null
+          total_medals: number | null
+          total_points: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "player_awards_player_uuid_fkey"
+            foreignKeyName: "player_points_player_uuid_fkey"
             columns: ["player_uuid"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "level_leaderboard"
             referencedColumns: ["uuid"]
           },
           {
-            foreignKeyName: "player_awards_player_uuid_fkey"
+            foreignKeyName: "player_points_player_uuid_fkey"
             columns: ["player_uuid"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "player_leaderboard"
             referencedColumns: ["uuid"]
           },
           {
-            foreignKeyName: "player_awards_player_uuid_fkey"
+            foreignKeyName: "player_points_player_uuid_fkey"
             columns: ["player_uuid"]
-            isOneToOne: false
-            referencedRelation: "player_profiles_view"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "player_awards_player_uuid_fkey"
-            columns: ["player_uuid"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "players"
             referencedColumns: ["uuid"]
           },
@@ -7266,54 +7068,26 @@ export type Database = {
       }
       level_leaderboard: {
         Row: {
-          last_level_up: number | null
+          last_seen: number | null
           level: number | null
+          level_color: string | null
+          level_description: string | null
+          level_title: string | null
           name: string | null
           total_xp: number | null
           uuid: string | null
-        }
-        Insert: {
-          last_level_up?: number | null
-          level?: number | null
-          name?: string | null
-          total_xp?: number | null
-          uuid?: string | null
-        }
-        Update: {
-          last_level_up?: number | null
-          level?: number | null
-          name?: string | null
-          total_xp?: number | null
-          uuid?: string | null
         }
         Relationships: []
       }
       player_leaderboard: {
         Row: {
-          bronze_medals: number | null
-          gold_medals: number | null
           last_seen: number | null
-          name: string | null
-          silver_medals: number | null
-          total_medals: number | null
-          total_points: number | null
-          uuid: string | null
-        }
-        Relationships: []
-      }
-      player_profiles_view: {
-        Row: {
-          created_at: string | null
-          first_joined: string | null
-          is_online: boolean | null
-          last_seen: string | null
           level: number | null
-          medals: Json | null
-          ranks: Json | null
-          stats: Json | null
-          stats_updated_at: string | null
+          level_color: string | null
+          level_description: string | null
+          level_title: string | null
+          name: string | null
           total_xp: number | null
-          username: string | null
           uuid: string | null
         }
         Relationships: []
@@ -7332,6 +7106,16 @@ export type Database = {
           type: string | null
           unlimited: boolean | null
           world: string | null
+        }
+        Relationships: []
+      }
+      town_leaderboard: {
+        Row: {
+          last_updated: number | null
+          level: number | null
+          stats: Json | null
+          total_xp: number | null
+          town_name: string | null
         }
         Relationships: []
       }
