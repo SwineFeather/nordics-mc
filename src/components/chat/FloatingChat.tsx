@@ -2,12 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, X, Users, Pin, PinOff } from 'lucide-react';
+import { MessageCircle, X, Users, Pin, PinOff, Wifi, WifiOff, Zap, Smile } from 'lucide-react';
 import { useMinecraftWebSocket } from '@/hooks/useMinecraftWebSocket';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EmojiPicker } from './EmojiPicker';
@@ -20,13 +19,19 @@ interface FloatingChatProps {
 
 const FloatingChat = ({ isVisible, onToggle }: FloatingChatProps) => {
   const { user, profile } = useAuth();
-  const { messages, connectionState, connect, disconnect, sendMessage, sendPrivateMessage, sendReaction, sendPin, isConnected, triggerThorTest } = useMinecraftWebSocket();
+  const { messages, connectionState, connect, disconnect, sendMessage, sendPrivateMessage, sendReaction, sendPin, isConnected } = useMinecraftWebSocket();
   const [newMessage, setNewMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('minecraft');
   const [pmRecipient, setPmRecipient] = useState<string | null>(null);
-  const [showThorTest, setShowThorTest] = useState(false);
-  const [thorTestMessage, setThorTestMessage] = useState('Hey Thor, what time is it?');
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-connect when component mounts and stay connected
+  useEffect(() => {
+    if (!isConnected && connectionState.status !== 'connecting') {
+      connect();
+    }
+  }, [isConnected, connectionState.status, connect]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -39,6 +44,11 @@ const FloatingChat = ({ isVisible, onToggle }: FloatingChatProps) => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
+
+    setIsTyping(false);
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
 
     try {
       if (pmRecipient) {
@@ -74,21 +84,39 @@ const FloatingChat = ({ isVisible, onToggle }: FloatingChatProps) => {
     setNewMessage(`@${recipient} `);
   };
 
-  const handleThorTest = async () => {
-    try {
-      await triggerThorTest(thorTestMessage);
-      setShowThorTest(false);
-    } catch (error) {
-      console.error('Thor test failed:', error);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    if (!isTyping) {
+      setIsTyping(true);
     }
+    
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+    
+    const timeout = setTimeout(() => {
+      setIsTyping(false);
+    }, 1000);
+    
+    setTypingTimeout(timeout);
   };
 
   const getStatusColor = () => {
     switch (connectionState.status) {
-      case 'connected': return 'bg-green-500';
-      case 'connecting': return 'bg-yellow-500';
-      case 'error': return 'bg-red-500';
+      case 'connected': return 'bg-green-500 animate-pulse';
+      case 'connecting': return 'bg-yellow-500 animate-pulse';
+      case 'error': return 'bg-red-500 animate-pulse';
       default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusIcon = () => {
+    switch (connectionState.status) {
+      case 'connected': return <Wifi className="h-3 w-3 text-green-600" />;
+      case 'connecting': return <Zap className="h-3 w-3 text-yellow-600 animate-spin" />;
+      case 'error': return <WifiOff className="h-3 w-3 text-red-600" />;
+      default: return <WifiOff className="h-3 w-3 text-gray-600" />;
     }
   };
 
@@ -127,11 +155,7 @@ const FloatingChat = ({ isVisible, onToggle }: FloatingChatProps) => {
   };
 
   const filteredMessages = messages
-    .filter(msg => {
-      if (activeTab === 'minecraft') return true; // Show all messages in Minecraft tab
-      if (activeTab === 'community') return msg.source === 'web' && !msg.isPrivate; // Show web non-private messages
-      return false;
-    })
+    .filter(msg => true) // Show all messages since we only have Minecraft chat now
     .map(formatMessage);
 
   if (!isVisible) {
@@ -140,321 +164,215 @@ const FloatingChat = ({ isVisible, onToggle }: FloatingChatProps) => {
         <Button
           onClick={onToggle}
           size="lg"
-          className="rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+          className="rounded-full shadow-lg hover:shadow-xl transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground transform hover:scale-110 border-0"
         >
           <MessageCircle className="h-6 w-6" />
+          {isConnected && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+          )}
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <Card className="w-96 h-[600px] shadow-2xl border-0 bg-gradient-to-br from-blue-50 to-purple-100 dark:from-blue-950/50 dark:to-purple-900/50 backdrop-blur-sm">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-b border-blue-200/50 dark:border-blue-700/50">
-          <div className="flex items-center space-x-2">
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+    <div className="fixed bottom-4 right-4 z-50 animate-fade-in">
+      <Card className="w-96 h-[600px] shadow-2xl border border-border bg-card/95 backdrop-blur-md overflow-hidden">
+        <CardHeader className="relative pb-3 flex flex-row items-center justify-between space-y-0 bg-muted/80 border-b border-border backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-lg transform hover:scale-105 transition-transform duration-200">
               <MessageCircle className="h-4 w-4" />
             </div>
-            <CardTitle className="text-lg font-bold text-blue-900 dark:text-blue-100">Community Chat</CardTitle>
+            <div>
+              <CardTitle className="text-lg font-bold text-foreground">
+                Minecraft Chat
+              </CardTitle>
+              <div className="flex items-center space-x-2 mt-1">
+                <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
+                <span className="text-xs text-muted-foreground font-medium">{getStatusText()}</span>
+                {getStatusIcon()}
+              </div>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggle}
-              className="hover:bg-blue-200/50 dark:hover:bg-blue-800/50"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggle}
+            className="hover:bg-muted/50 rounded-full transition-all duration-200 hover:scale-110"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </CardHeader>
         
-        <CardContent className="p-0 flex flex-col h-[calc(600px-80px)]">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-            <div className="px-4 pt-3 pb-2 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30">
-              <TabsList className="grid w-full grid-cols-2 bg-blue-100/50 dark:bg-blue-900/50">
-                <TabsTrigger value="minecraft" className="flex items-center gap-2 text-xs data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-                  <MessageCircle className="h-4 w-4" />
-                  Minecraft
-                </TabsTrigger>
-                <TabsTrigger value="community" className="flex items-center gap-2 text-xs data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-                  <Users className="h-4 w-4" />
-                  Web Only
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <div className="flex-1 min-h-0 px-4">
-              <TabsContent value="minecraft" className="h-full mt-0">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center gap-2 p-2 border-b">
-                    <Button
-                      size="sm"
-                      variant={isConnected ? "destructive" : "default"}
-                      onClick={handleConnect}
-                      className="flex-1"
-                    >
-                      {isConnected ? "Disconnect" : "Connect"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setShowThorTest(!showThorTest)}
-                      title="Test Thor AI"
-                    >
-                      ⚡ Thor Test
-                    </Button>
+        <CardContent className="relative p-0 flex flex-col h-[calc(600px-80px)]">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center gap-2 p-3 border-b border-border bg-muted/30">
+              <Button
+                size="sm"
+                variant={isConnected ? "destructive" : "default"}
+                onClick={handleConnect}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transform hover:scale-105 transition-all duration-200"
+              >
+                {isConnected ? "Disconnect" : "Connect"}
+              </Button>
+              {isTyping && (
+                <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                  <span>Typing</span>
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  
-                  {showThorTest && (
-                    <div className="p-2 border-b bg-muted/50">
-                      <div className="space-y-2">
-                        <Input
-                          value={thorTestMessage}
-                          onChange={(e) => setThorTestMessage(e.target.value)}
-                          placeholder="Enter test message for Thor..."
-                          className="text-sm"
-                        />
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={handleThorTest} disabled={!isConnected}>
-                            Test Thor
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => setShowThorTest(false)}>
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <ScrollArea className="flex-1 border border-blue-200 dark:border-blue-700 rounded-md p-3 bg-white/50 dark:bg-gray-800/50 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
-                    <div className="space-y-3">
-                      {filteredMessages.map((msg) => (
-                        <div key={msg.id} className="flex items-start space-x-3 text-sm bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 shadow-sm">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={msg.source === 'minecraft' ? `https://mc-heads.net/avatar/${msg.player}/32` : (profile?.avatar_url || undefined)} />
-                            <AvatarFallback className="text-xs">
-                              {msg.player.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-1 flex-wrap">
-                              <span className="font-medium text-xs truncate">
-                                {msg.isPrivate && msg.sender ? `${msg.sender} → ${msg.player}` : msg.player}
-                              </span>
-                              <Badge 
-                                variant={msg.isPrivate ? 'default' : 'secondary'} 
-                                className={`text-xs px-1 py-0 ${msg.isPrivate ? 'bg-purple-100 text-purple-800' : ''}`}
-                              >
-                                {msg.source === 'web' ? 'Web' : 'MC'}
-                                {msg.isPrivate && ' (PM)'}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {msg.time}
-                              </span>
-                              {msg.type === 'chat' && user && (
-                                <div className="flex items-center space-x-1">
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                        😊
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-80">
-                                      <EmojiPicker onEmojiSelect={(emoji: string) => handleEmojiSelect(emoji, msg.id)} />
-                                    </PopoverContent>
-                                  </Popover>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => handlePrivateMessage(msg.player)}
-                                  >
-                                    <MessageCircle className="h-4 w-4" />
-                                  </Button>
-                                  {profile?.role === 'admin' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 w-6 p-0"
-                                      onClick={() => handlePin(msg.id, !!msg.pinned)}
-                                    >
-                                      {msg.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
-                                    </Button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            <p className={`text-xs break-words ${
-                              msg.isJoinLeave ? 'text-muted-foreground italic' :
-                              msg.isSystem ? 'text-red-600 italic' :
-                              msg.isPrivate ? 'text-purple-600' :
-                              msg.isReaction ? 'text-blue-600 italic' :
-                              msg.isPin ? 'text-orange-600 italic' : ''
-                            }`}>
-                              {msg.message}
-                            </p>
-                            {msg.formattedPlaceholders && Object.keys(msg.formattedPlaceholders).length > 0 && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {msg.formattedPlaceholders.townyadvanced_town && (
-                                  <span className={msg.formattedPlaceholders.townyadvanced_town.classes.join(' ')}>
-                                    Town: {msg.formattedPlaceholders.townyadvanced_town.text}{' '}
-                                  </span>
-                                )}
-                                {msg.formattedPlaceholders.townyadvanced_nation && (
-                                  <span className={msg.formattedPlaceholders.townyadvanced_nation.classes.join(' ')}>
-                                    Nation: {msg.formattedPlaceholders.townyadvanced_nation.text}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                            {msg.emoji && (
-                              <span className="text-xs text-blue-600">{msg.emoji}</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      <div ref={messagesEndRef} />
-                    </div>
-                  </ScrollArea>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="community" className="h-full mt-0">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="outline" className="text-xs">
-                      Web Users Only
-                    </Badge>
-                  </div>
-                  
-                  <ScrollArea className="flex-1 border border-blue-200 dark:border-blue-700 rounded-md p-3 bg-white/50 dark:bg-gray-800/50 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
-                    <div className="space-y-3">
-                      {filteredMessages.map((msg) => (
-                        <div key={msg.id} className="flex items-start space-x-3 text-sm bg-white/70 dark:bg-gray-800/70 rounded-lg p-2 shadow-sm">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={profile?.avatar_url || undefined} />
-                            <AvatarFallback className="text-xs">
-                              {msg.player.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-1 flex-wrap">
-                              <span className="font-medium text-xs truncate">
-                                {msg.player}
-                              </span>
-                              <Badge variant="secondary" className="text-xs px-1 py-0">
-                                Web
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {msg.time}
-                              </span>
-                              {msg.type === 'chat' && user && (
-                                <div className="flex items-center space-x-1">
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                        😊
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-80">
-                                      <EmojiPicker onEmojiSelect={(emoji: string) => handleEmojiSelect(emoji, msg.id)} />
-                                    </PopoverContent>
-                                  </Popover>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => handlePrivateMessage(msg.player)}
-                                  >
-                                    <MessageCircle className="h-4 w-4" />
-                                  </Button>
-                                  {profile?.role === 'admin' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 w-6 p-0"
-                                      onClick={() => handlePin(msg.id, !!msg.pinned)}
-                                    >
-                                      {msg.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
-                                    </Button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            <p className={`text-xs break-words ${
-                              msg.isJoinLeave ? 'text-muted-foreground italic' :
-                              msg.isSystem ? 'text-red-600 italic' :
-                              msg.isReaction ? 'text-blue-600 italic' :
-                              msg.isPin ? 'text-orange-600 italic' : ''
-                            }`}>
-                              {msg.message}
-                            </p>
-                            {msg.formattedPlaceholders && Object.keys(msg.formattedPlaceholders).length > 0 && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {msg.formattedPlaceholders.townyadvanced_town && (
-                                  <span className={msg.formattedPlaceholders.townyadvanced_town.classes.join(' ')}>
-                                    Town: {msg.formattedPlaceholders.townyadvanced_town.text}{' '}
-                                  </span>
-                                )}
-                                {msg.formattedPlaceholders.townyadvanced_nation && (
-                                  <span className={msg.formattedPlaceholders.townyadvanced_nation.classes.join(' ')}>
-                                    Nation: {msg.formattedPlaceholders.townyadvanced_nation.text}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                            {msg.emoji && (
-                              <span className="text-xs text-blue-600">{msg.emoji}</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      <div ref={messagesEndRef} />
-                    </div>
-                  </ScrollArea>
-                </div>
-              </TabsContent>
-            </div>
-
-            <div className="p-4 border-t border-blue-200/50 dark:border-blue-700/50 bg-gradient-to-t from-blue-50/50 to-transparent dark:from-blue-950/30">
-              {user ? (
-                <form onSubmit={handleSendMessage} className="flex space-x-3">
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder={pmRecipient ? `Private message to ${pmRecipient}...` : isConnected ? 'Type a message...' : 'Connect to chat'}
-                    disabled={!isConnected}
-                    className="flex-1 border-blue-300 focus:border-blue-500 focus:ring-blue-500/20 bg-white dark:bg-gray-800 dark:border-blue-600 dark:focus:border-blue-400"
-                  />
-                  {pmRecipient && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setPmRecipient(null)}
-                      className="h-8 w-8 p-0 hover:bg-blue-200/50 dark:hover:bg-blue-800/50"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button 
-                    type="submit" 
-                    disabled={!isConnected || !newMessage.trim()}
-                    size="sm"
-                    className="bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
-                  >
-                    Send
-                  </Button>
-                </form>
-              ) : (
-                <div className="text-center text-sm text-blue-700 dark:text-blue-300">
-                  Sign in to participate in chat
                 </div>
               )}
             </div>
-          </Tabs>
+            
+            <ScrollArea className="flex-1 p-3 bg-muted/10">
+              <div className="space-y-2">
+                {filteredMessages.map((msg, index) => (
+                  <div 
+                    key={msg.id} 
+                    className="flex items-start space-x-3 text-sm bg-card/70 rounded-lg p-3 border border-border/50 hover:border-border/80 hover:bg-card/90 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg backdrop-blur-sm animate-fade-in"
+                    style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
+                  >
+                    <Avatar className="h-6 w-6 flex-shrink-0 ring-2 ring-border/30 hover:ring-primary/50 transition-all duration-200">
+                      <AvatarImage src={msg.source === 'minecraft' ? `https://mc-heads.net/avatar/${msg.player}/32` : (profile?.avatar_url || undefined)} />
+                      <AvatarFallback className="text-xs bg-muted">
+                        {msg.player.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 flex-wrap mb-2">
+                        <span className="font-semibold text-xs text-foreground truncate">
+                          {msg.isPrivate && msg.sender ? `${msg.sender} → ${msg.player}` : msg.player}
+                        </span>
+                        <Badge 
+                          variant={msg.isPrivate ? 'default' : 'secondary'} 
+                          className={`text-xs px-2 py-1 font-medium ${msg.isPrivate ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground'}`}
+                        >
+                          {msg.source === 'web' ? 'Web' : 'MC'}
+                          {msg.isPrivate && ' (PM)'}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground font-medium">
+                          {msg.time}
+                        </span>
+                        {msg.type === 'chat' && user && (
+                          <div className="flex items-center space-x-1">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-muted/80 rounded-full transition-all duration-200 hover:scale-110">
+                                  😊
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80">
+                                <EmojiPicker onEmojiSelect={(emoji: string) => handleEmojiSelect(emoji, msg.id)} />
+                              </PopoverContent>
+                            </Popover>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-muted/80 rounded-full transition-all duration-200 hover:scale-110"
+                              onClick={() => handlePrivateMessage(msg.player)}
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                            </Button>
+                            {profile?.role === 'admin' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-muted/80 rounded-full transition-all duration-200 hover:scale-110"
+                                onClick={() => handlePin(msg.id, !!msg.pinned)}
+                              >
+                                {msg.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <p className={`text-sm break-words leading-relaxed ${
+                        msg.isJoinLeave ? 'text-muted-foreground italic' :
+                        msg.isSystem ? 'text-destructive italic font-medium' :
+                        msg.isPrivate ? 'text-primary italic font-medium' :
+                        msg.isReaction ? 'text-accent italic' :
+                        msg.isPin ? 'text-orange-600 italic font-medium' : 'text-foreground'
+                      }`}>
+                        {msg.message}
+                      </p>
+                      {msg.formattedPlaceholders && Object.keys(msg.formattedPlaceholders).length > 0 && (
+                        <div className="text-xs text-muted-foreground mt-2 space-y-1">
+                          {msg.formattedPlaceholders.townyadvanced_town && (
+                            <span className={`${msg.formattedPlaceholders.townyadvanced_town.classes.join(' ')} px-2 py-1 rounded-md bg-muted/50`}>
+                              🏘️ Town: {msg.formattedPlaceholders.townyadvanced_town.text}
+                            </span>
+                          )}
+                          {msg.formattedPlaceholders.townyadvanced_nation && (
+                            <span className={`${msg.formattedPlaceholders.townyadvanced_nation.classes.join(' ')} px-2 py-1 rounded-md bg-muted/50`}>
+                              🏛️ Nation: {msg.formattedPlaceholders.townyadvanced_nation.text}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {msg.emoji && (
+                        <span className="text-lg text-accent mt-2 block animate-bounce">{msg.emoji}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+          </div>
+
+          <div className="p-4 border-t border-border bg-muted/30 backdrop-blur-sm">
+            {user ? (
+              <form onSubmit={handleSendMessage} className="flex space-x-2">
+                <Input
+                  value={newMessage}
+                  onChange={handleInputChange}
+                  placeholder={pmRecipient ? `Private message to ${pmRecipient}...` : isConnected ? 'Type a message...' : 'Connect to chat'}
+                  disabled={!isConnected}
+                  className="flex-1 border-border focus:border-ring focus:ring-ring/20 bg-background/80 backdrop-blur-sm rounded-lg transition-all duration-200 focus:scale-[1.02]"
+                />
+                {pmRecipient && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPmRecipient(null)}
+                    className="h-9 w-9 p-0 hover:bg-muted/80 rounded-full transition-all duration-200 hover:scale-110"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 w-9 p-0 hover:bg-muted/80 rounded-full transition-all duration-200 hover:scale-110"
+                    >
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    <EmojiPicker onEmojiSelect={(emoji: string) => setNewMessage(prev => prev + emoji)} />
+                  </PopoverContent>
+                </Popover>
+                <Button 
+                  type="submit" 
+                  disabled={!isConnected || !newMessage.trim()}
+                  size="sm"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Send
+                </Button>
+              </form>
+            ) : (
+              <div className="text-center text-sm text-muted-foreground bg-muted/30 rounded-lg p-3 backdrop-blur-sm">
+                Sign in to participate in chat
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

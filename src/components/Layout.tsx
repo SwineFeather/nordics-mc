@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import Footer from './layout/Footer';  
@@ -11,11 +11,19 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const [isChatVisible, setIsChatVisible] = useState(false);
+  const [isChatVisible, setIsChatVisible] = useState(() => {
+    // Initialize from localStorage if available, default to false
+    const saved = localStorage.getItem('chatVisible');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
   const location = useLocation();
 
   const toggleChat = () => {
-    setIsChatVisible(!isChatVisible);
+    const newState = !isChatVisible;
+    setIsChatVisible(newState);
+    // Persist to localStorage
+    localStorage.setItem('chatVisible', JSON.stringify(newState));
   };
 
   // Check if we're on the map page
