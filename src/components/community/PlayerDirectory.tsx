@@ -3,34 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  Eye, 
-  MapPin, 
-  Building, 
   BarChart3, 
-  Crown,
-  User,
-  Star,
-  Award,
-  Sparkles,
-  Heart,
-  Globe,
-  Book,
-  Wrench,
-  Flame,
-  Sun,
-  Moon,
-  Zap,
-  Key,
-  Lock,
-  Smile,
-  Ghost,
-  Skull,
-  Leaf,
-  Rocket,
-  Sword,
-  Wand2,
   Clock,
   ChevronLeft,
   ChevronRight,
@@ -44,6 +18,7 @@ import PlayerSearchAndFilter from './PlayerSearchAndFilter';
 import PlayerSearchResults from './PlayerSearchResults';
 import PlayerProfile from '@/components/PlayerProfile';
 import PlayerStatsDetail from './PlayerStatsDetail';
+import SharedPlayerCard from './SharedPlayerCard';
 import type { PlayerBadge } from '@/types/player';
 
 // Badge icons mapping
@@ -277,145 +252,14 @@ const PlayerCard = ({
   allResidents: any[];
   showDetailedStats: boolean;
 }) => {
-  // Helper function to safely get numeric values
-  const getNumericStat = (value: number | { [key: string]: number } | undefined): number => {
-    if (typeof value === 'number') return value;
-    if (typeof value === 'object' && value !== null) {
-      const firstValue = Object.values(value)[0];
-      if (typeof firstValue === 'number') return firstValue;
-    }
-    return 0;
-  };
-
-  const formatTotalXp = (totalXp: number) => {
-    if (totalXp >= 1000000) return `${(totalXp / 1000000).toFixed(1)}M`;
-    if (totalXp >= 1000) return `${(totalXp / 1000).toFixed(1)}K`;
-    return totalXp.toString();
-  };
-
-  // Helper function to get influence status based on influence score
-  // Influence status removed per request
-  const getInfluenceStatus = (_score: number) => null;
-
-  const getRoleColor = (role: string) => {
-    switch (role.toLowerCase()) {
-      case 'admin': return 'bg-red-500';
-      case 'moderator': return 'bg-orange-500';
-      case 'vip': return 'bg-purple-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getServerRoleColor = (serverRole: string) => {
-    switch (serverRole.toLowerCase()) {
-      case 'admin': return 'bg-red-500';
-      case 'moderator': return 'bg-orange-500';
-      case 'vip': return 'bg-purple-500';
-      case 'kala': return 'bg-green-500';
-      case 'fancy kala': return 'bg-blue-500';
-      case 'golden kala': return 'bg-yellow-500';
-      case 'former supporter': return 'bg-purple-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  // Get resident data for this player
-  const residentData = allResidents?.find(r => r.name === profile.username);
-  const influenceStatus = null;
-
-  // Get primary badge
-  const primaryBadge = profile.badges?.find((b: PlayerBadge) => b.is_verified) || profile.badges?.[0];
-
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer dark:bg-card dark:border-border" onClick={onClick}>
-      <CardContent className="p-4">
-        <div className="flex items-start space-x-3">
-          <div className="relative">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={`https://mc-heads.net/avatar/${profile.username}/64`} />
-              <AvatarFallback className="text-sm">
-                {profile.username?.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            {profile.isOnline && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-sm truncate dark:text-white">
-                {profile.displayName || profile.username}
-              </h3>
-              {/* Display primary badge */}
-              {primaryBadge && (
-                <Badge 
-                  style={{ backgroundColor: primaryBadge.badge_color, color: 'white' }}
-                  className="text-xs flex items-center gap-1"
-                >
-                  {BADGE_ICONS[primaryBadge.icon as keyof typeof BADGE_ICONS] || BADGE_ICONS.User}
-                  {!primaryBadge.icon_only && <span>{primaryBadge.badge_type}</span>}
-                </Badge>
-              )}
-              {/* Display server role if different from badge */}
-              {profile.serverRole && (!primaryBadge || primaryBadge.badge_type.toLowerCase() !== profile.serverRole.toLowerCase()) && (
-                <Badge 
-                  variant="outline"
-                  className={`text-xs ${getServerRoleColor(profile.serverRole)} text-white`}
-                >
-                  {profile.serverRole}
-                </Badge>
-              )}
-              {/* Show loading indicator for badges if no badges but detailed stats are enabled */}
-              {showDetailedStats && !primaryBadge && profile.badges === undefined && (
-                <div className="w-4 h-4 animate-spin rounded-full border-2 border-gray-300 border-t-primary"></div>
-              )}
-            </div>
-
-            {/* Influence status removed */}
-            
-
-
-            {/* Nation and Town info */}
-            {(residentData?.nation_name || residentData?.town_name) && (
-              <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-                {residentData.nation_name && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    <span>{residentData.nation_name}</span>
-                  </div>
-                )}
-                {residentData.town_name && (
-                  <div className="flex items-center gap-1">
-                    <Building className="w-3 h-3" />
-                    <span>{residentData.town_name}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="space-y-1">
-              {/* Removed detailed stats to make cards more compact */}
-            </div>
-
-            <div className="flex items-center justify-between mt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs h-6 dark:border-muted-foreground dark:text-muted-foreground"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClick();
-                }}
-              >
-                <Eye className="w-3 h-3 mr-1" />
-                View Profile
-              </Button>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <SharedPlayerCard
+      profile={profile}
+      onClick={onClick}
+      allResidents={allResidents}
+      showDetailedStats={showDetailedStats}
+      isSearchResult={false}
+    />
   );
 };
 

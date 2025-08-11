@@ -12,7 +12,7 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const [isChatVisible, setIsChatVisible] = useState(() => {
-    // Initialize from localStorage if available, default to false
+    // Initialize from localStorage if available, default to false (don't auto-open)
     const saved = localStorage.getItem('chatVisible');
     return saved ? JSON.parse(saved) : false;
   });

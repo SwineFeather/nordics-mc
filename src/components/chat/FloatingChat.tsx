@@ -26,12 +26,12 @@ const FloatingChat = ({ isVisible, onToggle }: FloatingChatProps) => {
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-connect when component mounts and stay connected
-  useEffect(() => {
-    if (!isConnected && connectionState.status !== 'connecting') {
-      connect();
-    }
-  }, [isConnected, connectionState.status, connect]);
+  // Remove auto-connect - let users manually connect when they want to chat
+  // useEffect(() => {
+  //   if (!isConnected && connectionState.status !== 'connecting') {
+  //     connect();
+  //   }
+  // }, [isConnected, connectionState.status, connect]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -154,8 +154,18 @@ const FloatingChat = ({ isVisible, onToggle }: FloatingChatProps) => {
     };
   };
 
+  // Filter out duplicate messages and only show unique ones
   const filteredMessages = messages
-    .filter(msg => true) // Show all messages since we only have Minecraft chat now
+    .filter((msg, index, arr) => {
+      // Remove duplicates by checking if this message is the same as the previous one
+      if (index === 0) return true;
+      const prevMsg = arr[index - 1];
+      return !(
+        msg.player === prevMsg.player &&
+        msg.message === prevMsg.message &&
+        Math.abs(new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime()) < 1000
+      );
+    })
     .map(formatMessage);
 
   if (!isVisible) {
