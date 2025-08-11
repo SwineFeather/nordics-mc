@@ -1,7 +1,8 @@
 const express = require('express');
 const path = require('path');
+const config = require('./config');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = config.server.port;
 
 // Health check endpoint
 app.get('/health', (req, res) => {
