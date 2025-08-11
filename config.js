@@ -3,13 +3,14 @@
 
 const config = {
   supabase: {
-    url: 'your_supabase_url_here', // Replace with your actual Supabase URL
-    anonKey: 'your_supabase_anon_key_here', // Replace with your actual anon key
-    s3SecretKey: 'your_supabase_s3_secret_key_here' // Replace with your actual S3 secret key
+    url: 'https://erdconvorgecupvavlwv.supabase.co', // Replace with your actual Supabase URL
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZGNvbnZvcmdlY3VwdmF2bHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1ODM4ODcsImV4cCI6MjA2NTE1OTg4N30.1JAp47oJDpiNmnKjpYB_tS9__0Sytk18o8dL-Dfnrdg', // Replace with your actual anon key
   },
   storage: {
-    domain: 'your_storage_domain_here', // Replace with your storage domain
-    cdnDomain: 'your_cdn_domain_here' // Replace with your CDN domain (optional)
+    wiki: 'wiki',
+    nation_town_images: 'nation_town_images',
+    minecraft: 'minecraft',
+    ai-docs: 'ai-docs',
   },
   server: {
     port: process.env.PORT || 3000
