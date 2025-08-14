@@ -52,6 +52,8 @@ import EnhancedWikiEditor from '@/components/wiki/EnhancedWikiEditor';
 import { PlayerTownService } from '@/services/playerTownService';
 import ShopCard from '@/components/towns/ShopCard';
 import { formatPrice, formatLastUpdated } from '@/utils/marketplaceUtils';
+import CompanyStarRating from '@/components/companies/CompanyStarRating';
+import CompanyRatingSection from '@/components/companies/CompanyRatingSection';
 
 interface Company {
   id: string;
@@ -351,18 +353,6 @@ const Company: React.FC = () => {
             description,
             company_id,
             is_featured
-          ),
-          staff:company_staff(
-            id,
-            company_id,
-            user_uuid,
-            role,
-            joined_at,
-            profiles!user_uuid(
-              minecraft_username,
-              full_name,
-              avatar_url
-            )
           )
         `)
         .eq('slug', slug)
@@ -400,13 +390,38 @@ const Company: React.FC = () => {
         subsidiaries = subsidiariesData || [];
       }
 
+      // Get staff data separately
+      const { data: staffData, error: staffError } = await (supabase as any)
+        .from('company_staff')
+        .select(`
+          id,
+          company_id,
+          user_uuid,
+          role,
+          joined_at,
+          profiles!user_uuid(
+            minecraft_username,
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('company_id', companyData.id);
+
+      if (staffError) {
+        console.error('Error fetching staff:', staffError);
+      }
+
       // Get staff with user profiles
-      const staffWithProfiles = (companyData.staff || []).map(staffMember => ({
+      const staffWithProfiles = (staffData || []).map(staffMember => ({
         ...staffMember,
         user_name: staffMember.profiles?.full_name || 'Unknown User',
         user_avatar: staffMember.profiles?.avatar_url,
         minecraft_username: staffMember.profiles?.minecraft_username
       }));
+      
+      // Debug logging for staff data
+      console.log('Raw staff data:', staffData);
+      console.log('Processed staff data:', staffWithProfiles);
 
       let ownerMinecraftName = null;
       if (companyData.owner_uuid) {
@@ -418,12 +433,30 @@ const Company: React.FC = () => {
         ownerMinecraftName = ownerProfile?.minecraft_username || null;
       }
 
+      // Calculate actual member count from staff data
+      // Check if owner is already in staff list to avoid double counting
+      const ownerInStaff = staffWithProfiles.some(staff => staff.user_uuid === companyData.owner_uuid);
+      let actualMemberCount = ownerInStaff ? staffWithProfiles.length : staffWithProfiles.length + 1;
+      
+      // Ensure we always have at least 1 member (the owner)
+      if (actualMemberCount < 1) {
+        actualMemberCount = 1;
+      }
+      
+      // Debug logging
+      console.log('Staff count:', staffWithProfiles.length);
+      console.log('Owner in staff:', ownerInStaff);
+      console.log('Owner UUID:', companyData.owner_uuid);
+      console.log('Staff UUIDs:', staffWithProfiles.map(s => s.user_uuid));
+      console.log('Calculated member count:', actualMemberCount);
+      
       setCompany({
         ...companyData,
         parent_company: parentCompany,
         subsidiaries: subsidiaries,
         staff: staffWithProfiles,
-        inventory: companyData.inventory || []
+        inventory: companyData.inventory || [],
+        member_count: actualMemberCount // Override the static member_count with actual count
       });
       setOwnerMinecraftName(ownerMinecraftName);
     } catch (err) {
@@ -708,6 +741,16 @@ const Company: React.FC = () => {
                 <p className="text-lg text-muted-foreground mb-4">{company.tagline}</p>
               )}
               
+              {/* Company Rating */}
+              <div className="mb-4">
+                <CompanyStarRating 
+                  rating={company.average_rating || 0} 
+                  reviewCount={company.review_count || 0}
+                  size="md"
+                  showCount={true}
+                />
+              </div>
+
               <div className="flex items-center gap-4 mb-4">
                 {company.is_featured && (
                   <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
@@ -821,8 +864,8 @@ const Company: React.FC = () => {
           <TabsTrigger value="overview" className="px-3 py-1 text-sm min-w-[80px]">Overview</TabsTrigger>
           <TabsTrigger value="shops" className="px-3 py-1 text-sm min-w-[80px]">Shops</TabsTrigger>
           <TabsTrigger value="inventory" className="px-3 py-1 text-sm min-w-[80px]">Inventory</TabsTrigger>
-          <TabsTrigger value="transactions" className="px-3 py-1 text-sm min-w-[80px]">Transactions</TabsTrigger>
-          <TabsTrigger value="analytics" className="px-3 py-1 text-sm min-w-[80px]">Analytics</TabsTrigger>
+          <TabsTrigger value="transactions" className="px-3 py-1 text-sm min-w-[80px]">Transactions & Analytics</TabsTrigger>
+          <TabsTrigger value="ratings" className="px-3 py-1 text-sm min-w-[80px]">Ratings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -1024,7 +1067,8 @@ const Company: React.FC = () => {
           )}
         </TabsContent>
 
-        {/* Shops and Analytics tabs remain unchanged */}
+
+        {/* Shops tab - only company shops */}
         <TabsContent value="shops" className="space-y-6 max-w-4xl mx-auto">
           <Card>
             <CardHeader>
@@ -1078,7 +1122,9 @@ const Company: React.FC = () => {
           </Card>
         </TabsContent>
 
+        {/* Transactions & Analytics tab */}
         <TabsContent value="transactions" className="space-y-6 max-w-4xl mx-auto">
+          {/* Transactions List */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Company Transactions</CardTitle>
@@ -1157,15 +1203,11 @@ const Company: React.FC = () => {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6 max-w-4xl mx-auto">
+          {/* Analytics Section */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader>
               <CardTitle>Company Analytics</CardTitle>
-              <Button size="sm" onClick={() => setShowTransactionModal(true)}>
-                Create Transaction
-              </Button>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1209,7 +1251,9 @@ const Company: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Average Rating:</span>
-                      <span className="font-semibold">{company.average_rating.toFixed(1)}/5</span>
+                      <span className="font-semibold">
+                        {company.average_rating > 0 ? company.average_rating.toFixed(1) : 'No ratings yet'}/5
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Inventory Items:</span>
@@ -1235,7 +1279,7 @@ const Company: React.FC = () => {
                         ).map(([type, count]) => (
                           <div key={type} className="flex justify-between text-sm">
                             <span className="capitalize">{type}:</span>
-                            <span className="font-medium">{count}</span>
+                            <span className="font-medium">{count as number}</span>
                           </div>
                         ))}
                       </div>
@@ -1254,7 +1298,7 @@ const Company: React.FC = () => {
                         ).map(([category, count]) => (
                           <div key={category} className="flex justify-between text-sm">
                             <span>{category}:</span>
-                            <span className="font-medium">{count}</span>
+                            <span className="font-medium">{count as number}</span>
                           </div>
                         ))}
                       </div>
@@ -1292,6 +1336,13 @@ const Company: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="ratings" className="space-y-6 max-w-4xl mx-auto">
+          <CompanyRatingSection 
+            companyId={company.id} 
+            companyName={company.name}
+          />
         </TabsContent>
       </Tabs>
 
@@ -1343,27 +1394,21 @@ const Company: React.FC = () => {
       )}
 
       {showEditModal && (
-        <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Edit Company</DialogTitle>
-            </DialogHeader>
-            {/* You can use the CreateCompanyModal form fields here, prefilled with company data. */}
-            <CreateCompanyModal
-              initialData={{
-                ...company,
-                staff: company.staff?.map(s => ({
-                  user_uuid: s.user_uuid,
-                  displayName: s.user_name || 'Unknown User',
-                  role: s.role
-                })) || []
-              }}
-              onClose={() => setShowEditModal(false)}
-              onCompanyUpdated={fetchCompany}
-              isEditMode={true}
-            />
-          </DialogContent>
-        </Dialog>
+        <CreateCompanyModal
+          initialData={{
+            ...company,
+            staff: company.staff?.map(s => ({
+              user_uuid: s.user_uuid,
+              displayName: s.user_name || 'Unknown User',
+              role: s.role
+            })) || []
+          }}
+          onClose={() => setShowEditModal(false)}
+          onCompanyUpdated={fetchCompany}
+          isEditMode={true}
+          open={showEditModal}
+          onOpenChange={setShowEditModal}
+        />
       )}
 
       {showAddStaffModal && (

@@ -5,23 +5,24 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Crown, 
+  ArrowLeft, 
   Users, 
-  MapPin, 
   Calendar, 
-  Building2, 
-  MessageCircle, 
-  UserPlus,
-  Star,
-  Globe,
-  Camera,
-  Coins,
-  ArrowLeft,
-  BookOpen,
+  Star, 
+  Coins, 
+  MapPin, 
+  BookOpen, 
   Settings,
   Home,
-
-  Image
+  Image as ImageIcon,
+  Edit3,
+  X,
+  Crown,
+  Globe,
+  MessageCircle,
+  UserPlus,
+  Camera,
+  Building2
 } from 'lucide-react';
 import TownImageUploadDialog from '@/components/towns/TownImageUploadDialog';
 import DynmapEmbed from '@/components/towns/DynmapEmbed';
@@ -33,6 +34,11 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import PlayerStatsDetail from '@/components/community/PlayerStatsDetail';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useAuth } from '@/hooks/useAuth';
+import { TownDescriptionService } from '@/services/townDescriptionService';
+import EnhancedWikiEditor from '@/components/wiki/EnhancedWikiEditor';
+import SimpleMarkdownRenderer from '@/components/SimpleMarkdownRenderer';
+import TownCompaniesSection from '@/components/towns/TownCompaniesSection';
+import TownCompaniesCount from '@/components/towns/TownCompaniesCount';
 
 const TownPage = () => {
   const { townName } = useParams<{ townName: string }>();
@@ -49,6 +55,9 @@ const TownPage = () => {
 
   const [selectedPlayerUsername, setSelectedPlayerUsername] = useState<string | null>(null);
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descriptionDraft, setDescriptionDraft] = useState('');
+  const [savingDescription, setSavingDescription] = useState(false);
   
   // Use the same profiles hook as the community page
   const { profiles, getProfileByUsername } = useProfiles({ fetchAll: true });
@@ -79,6 +88,7 @@ const TownPage = () => {
 
         setTownData(townResult);
         setResidents(townResult.residents || []);
+        setDescriptionDraft(townResult.description || '');
         setDataSource('supabase');
 
 
@@ -259,7 +269,7 @@ const TownPage = () => {
                 className="flex items-center gap-2"
                 onClick={() => setShowImageUploadDialog(true)}
               >
-                <Image className="w-4 h-4" />
+                <ImageIcon className="w-4 h-4" />
                 Update Image
               </Button>
             )}
@@ -270,71 +280,181 @@ const TownPage = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-8">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Home className="w-4 h-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="gallery" className="flex items-center gap-2">
-            <Camera className="w-4 h-4" />
-            Gallery
-          </TabsTrigger>
-        </TabsList>
+          <TabsList className="grid w-full grid-cols-3 mb-8 h-12">
+            <TabsTrigger value="overview" className="flex items-center gap-2 text-sm font-medium">
+              <Home className="w-4 h-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="gallery" className="flex items-center gap-2 text-sm font-medium">
+              <Camera className="w-4 h-4" />
+              Gallery
+            </TabsTrigger>
+            <TabsTrigger value="companies" className="flex items-center gap-2 text-sm font-medium">
+              <Building2 className="w-4 h-4" />
+              Companies
+            </TabsTrigger>
+          </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             {/* Town Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-8 h-8 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Population</p>
-                      <p className="text-2xl font-bold">{townData.resident_count}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <Card className="w-auto min-w-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-6 h-6 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Population</p>
+                      <p className="text-lg font-bold truncate">{townData.resident_count}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-8 h-8 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Founded</p>
-                      <p className="text-2xl font-bold">{new Date(townData.created).toLocaleDateString()}</p>
+              <Card className="w-auto min-w-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-6 h-6 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Founded</p>
+                      <p className="text-lg font-bold truncate">{new Date(townData.created).toLocaleDateString()}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <Star className="w-8 h-8 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Plots</p>
-                      <p className="text-2xl font-bold">{townData.plots?.[0]?.count || 0}</p>
+              <Card className="w-auto min-w-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-6 h-6 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Plots</p>
+                      <p className="text-lg font-bold truncate">{townData.plots?.[0]?.count || 0}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <Coins className="w-8 h-8 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Balance</p>
-                      <p className="text-2xl font-bold">${(townData.balance || 0).toFixed(2)}</p>
+              <Card className="w-auto min-w-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-6 h-6 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Balance</p>
+                      <p className="text-lg font-bold truncate">${(townData.balance || 0).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="w-auto min-w-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-6 h-6 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Companies</p>
+                      <p className="text-lg font-bold truncate">
+                        <TownCompaniesCount townId={parseInt(townData.id)} />
+                      </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-
+            {/* Town Description */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5" />
+                  Town Description
+                  {(townData?.mayor === profile?.minecraft_username || userRole === 'admin' || userRole === 'moderator') && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (editingDescription) {
+                          setEditingDescription(false);
+                        } else {
+                          setDescriptionDraft(townData.description || '');
+                          setEditingDescription(true);
+                        }
+                      }}
+                      className="ml-auto"
+                    >
+                      {editingDescription ? (
+                        <>
+                          <X className="w-4 h-4 mr-2" />
+                          Cancel
+                        </>
+                      ) : (
+                        <>
+                          <Edit3 className="w-4 h-4 mr-2" />
+                          Edit
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {editingDescription ? (
+                  <div className="max-w-4xl mx-auto">
+                    <EnhancedWikiEditor
+                      page={{ 
+                        content: descriptionDraft, 
+                        title: townData.name, 
+                        status: 'published', 
+                        updatedAt: '', 
+                        authorName: '', 
+                        id: townData.id,
+                        slug: townData.name.toLowerCase().replace(/\s+/g, '-'),
+                        authorId: profile?.id || '',
+                        createdAt: townData.created_at,
+                        category: null,
+                        order: 0
+                      }}
+                      userRole={userRole === 'admin' || userRole === 'moderator' ? 'admin' : 'member'}
+                      isEditing={true}
+                      onSave={async (updates) => {
+                        setSavingDescription(true);
+                        const success = await TownDescriptionService.updateTownDescription(parseInt(townData.id), updates.content || '');
+                        setSavingDescription(false);
+                        if (success) {
+                          setEditingDescription(false);
+                          setDescriptionDraft(updates.content || '');
+                          // Refresh town data to get updated description
+                          const updatedTown = await SupabaseTownService.getTown(decodeURIComponent(townName || ''));
+                          if (updatedTown) {
+                            setTownData(updatedTown);
+                          }
+                        }
+                      }}
+                      onToggleEdit={() => setEditingDescription(false)}
+                      autoSaveEnabled={false}
+                      onAutoSaveToggle={() => {}}
+                    />
+                  </div>
+                ) : (
+                  <div className="prose max-w-4xl mx-auto px-4">
+                    {townData.description ? (
+                      <SimpleMarkdownRenderer content={townData.description} />
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-lg font-medium mb-2">No description yet</p>
+                        <p className="text-sm">
+                          {profile?.minecraft_username === townData.mayor || userRole === 'admin' || userRole === 'moderator'
+                            ? 'Add a description to tell visitors about your town!'
+                            : 'This town hasn\'t added a description yet.'
+                          }
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Residents */}
             <Card>
@@ -564,6 +684,21 @@ const TownPage = () => {
               </CardHeader>
               <CardContent>
                 <TownPhotoGallery townName={townData.name} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Companies Tab */}
+          <TabsContent value="companies">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  Town Companies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TownCompaniesSection townId={parseInt(townData.id)} />
               </CardContent>
             </Card>
           </TabsContent>

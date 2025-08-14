@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Crown, Calendar, Activity, DollarSign, MapPin, Building } from 'lucide-react';
 import type { PlayerProfile } from '@/types/player';
 import { usePlayerResidentData } from '@/hooks/usePlayerResidentData';
+import { useOnlinePlayers } from '@/hooks/useOnlinePlayers';
 
 interface PlayerPoliticalInfoProps {
   profile: PlayerProfile;
@@ -11,6 +12,13 @@ interface PlayerPoliticalInfoProps {
 
 const PlayerPoliticalInfo = ({ profile }: PlayerPoliticalInfoProps) => {
   const { data: residentData, loading, error } = usePlayerResidentData(profile.username);
+  const { onlinePlayers } = useOnlinePlayers();
+  
+  // Check if this player is online
+  const isPlayerOnline = onlinePlayers.some(player => 
+    player.name && typeof player.name === 'string' && 
+    player.name.toLowerCase() === profile.username.toLowerCase()
+  );
 
   // Helper function to get influence status based on influence score
   const getInfluenceStatus = (score: number) => {
@@ -154,9 +162,14 @@ const PlayerPoliticalInfo = ({ profile }: PlayerPoliticalInfoProps) => {
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Status:</span>
-            <Badge variant={profile.isOnline ? "default" : "secondary"}>
-              {profile.isOnline ? "Online" : "Offline"}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant={isPlayerOnline ? "default" : "secondary"}>
+                {isPlayerOnline ? "Online" : "Offline"}
+              </Badge>
+              {isPlayerOnline && (
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

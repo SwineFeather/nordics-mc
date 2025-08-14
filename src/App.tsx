@@ -19,11 +19,13 @@ const Shop = lazy(() => import('./pages/Shop'));
 const Company = lazy(() => import('./pages/Company'));
 const Economy = lazy(() => import('./pages/Economy'));
 const Map = lazy(() => import('./pages/Map'));
+const PlayerProfilePage = lazy(() => import('./pages/PlayerProfilePage'));
 const Wiki = lazy(() => import('./pages/Wiki'));
 const OptimizedWiki = lazy(() => import('./pages/OptimizedWiki'));
 const WikiDebug = lazy(() => import('./pages/WikiDebug'));
 const SupabaseWikiTest = lazy(() => import('./components/wiki/SupabaseWikiTest'));
 const SimpleWikiTest = lazy(() => import('./components/wiki/SimpleWikiTest'));
+const Guide = lazy(() => import('./pages/Guide'));
 const Store = lazy(() => import('./pages/Store'));
 const Rules = lazy(() => import('./pages/Rules'));
 const Contact = lazy(() => import('./pages/Contact'));
@@ -81,6 +83,7 @@ function App() {
                  <Route path="/nsi/:slug" element={<Layout><NSISubsidiariesRouter /></Layout>} />
                 <Route path="/company/:slug" element={<Layout><Company /></Layout>} />
                 <Route path="/economy" element={<Layout><Economy /></Layout>} />
+                <Route path="/player/:username" element={<Layout><PlayerProfilePage /></Layout>} />
                 <Route path="/map" element={<Layout><Map /></Layout>} />
                 <Route path="/map/:mapDate" element={<Layout><Map /></Layout>} />
                 <Route path="/wiki" element={<Layout><Wiki /></Layout>} />
@@ -90,6 +93,8 @@ function App() {
                 <Route path="/wiki-debug" element={<Layout><WikiDebug /></Layout>} />
                 <Route path="/wiki-test" element={<Layout><SupabaseWikiTest /></Layout>} />
                 <Route path="/simple-wiki-test" element={<Layout><SimpleWikiTest /></Layout>} />
+                <Route path="/guide" element={<Layout><Guide /></Layout>} />
+                <Route path="/guide/:tab" element={<Layout><Guide /></Layout>} />
                 <Route path="/store" element={<Layout><Store /></Layout>} />
                 <Route path="/rules" element={<Layout><Rules /></Layout>} />
                 <Route path="/contact" element={<Layout><Contact /></Layout>} />

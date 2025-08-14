@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Book, Info, Users, ShoppingBag, Building, Building2, Store, Crown, MapPin, Menu, X, Search, Settings, LogOut, User, ChevronDown } from 'lucide-react';
+import { Book, BookOpen, Info, Users, ShoppingBag, Building, Building2, Store, Crown, MapPin, Menu, X, Search, Settings, LogOut, User, ChevronDown } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ import SettingsModal from './SettingsModal';
 import { SearchDialog } from './search/SearchDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { usePlayerProfile } from '@/hooks/usePlayerProfile';
+import { usePlayerProfileByUsername } from '@/hooks/usePlayerProfileByUsername';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,7 +33,7 @@ const Navigation = () => {
   const { user, profile } = useAuth();
   
   // Fetch player profile if user has minecraft_username
-  const { profile: playerProfile, loading: playerProfileLoading } = usePlayerProfile(
+  const { profile: playerProfile, loading: playerProfileLoading } = usePlayerProfileByUsername(
     profile?.minecraft_username ? profile.minecraft_username : ''
   );
 
@@ -41,6 +41,9 @@ const Navigation = () => {
   const isActive = (href: string) => {
     if (href === '/') {
       return location.pathname === '/' || location.pathname === '/home';
+    }
+    if (href === '/guide') {
+      return location.pathname.startsWith('/guide');
     }
     return location.pathname.startsWith(href);
   };
@@ -147,7 +150,7 @@ const Navigation = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${['/forum','/map','/store','/rules','/wiki'].some(isActive) ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
+                  className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${['/guide','/forum','/map','/store','/rules','/wiki'].some(isActive) ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
                 >
                   <Book className="h-4 w-4 mr-1" />
                   Resources <ChevronDown className="h-3 w-3 ml-1" />
@@ -156,6 +159,9 @@ const Navigation = () => {
               <DropdownMenuContent align="center" className="w-48 z-[60] bg-popover border shadow-lg">
                 <DropdownMenuLabel>Resources</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/guide"><BookOpen className="inline h-4 w-4 mr-2 align-text-bottom" />Guide</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/wiki"><Info className="inline h-4 w-4 mr-2 align-text-bottom" />Wiki</Link>
                 </DropdownMenuItem>
@@ -324,6 +330,13 @@ const Navigation = () => {
                   <Book className="w-4 h-4" />
                   Resources
                 </div>
+                <Link
+                  to="/guide"
+                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${isActive('/guide') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <BookOpen className="inline h-4 w-4 mr-2 align-text-bottom" />Guide
+                </Link>
                 <Link
                   to="/wiki"
                   className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${isActive('/wiki') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}

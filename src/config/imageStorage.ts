@@ -1,12 +1,13 @@
 export const IMAGE_STORAGE_CONFIG = {
-  // Custom domain for storage (if configured)
-  baseUrl: import.meta.env.VITE_STORAGE_DOMAIN || 'https://erdconvorgecupvavlwv.supabase.co',
+  // Always use the default Supabase URL for now to fix image loading issues
+  // TODO: Re-enable custom domain support once the fallback system is properly implemented
+  baseUrl: 'https://erdconvorgecupvavlwv.supabase.co',
   
   // Path where images are served from
   uploadPath: '/storage/v1/object/public',
   
-  // Clean CDN domain (without Supabase path)
-  cdnDomain: import.meta.env.VITE_CDN_DOMAIN || null,
+  // Clean CDN domain (without Supabase path) - disabled for now
+  cdnDomain: null,
   
   // Allowed domains for external image uploads
   allowedDomains: [
@@ -18,8 +19,8 @@ export const IMAGE_STORAGE_CONFIG = {
     'images-ext-2.discordapp.net'
   ],
   
-  // Maximum file size (5MB)
-  maxFileSize: 5 * 1024 * 1024,
+  // Maximum file size (10MB)
+  maxFileSize: 10 * 1024 * 1024,
   
   // Allowed image formats
   allowedFormats: ['png', 'jpg', 'jpeg', 'webp', 'gif'],

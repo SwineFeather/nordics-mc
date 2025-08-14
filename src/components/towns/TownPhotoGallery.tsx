@@ -41,12 +41,49 @@ const TownPhotoGallery = ({ townName, className = "" }: TownPhotoGalleryProps) =
     refresh
   } = useTownGallery(townName);
 
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<TownPhoto | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [filteredPhotos, setFilteredPhotos] = useState<TownPhoto[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Convert old custom domain URLs to Supabase URLs
+  const convertImageUrl = (url: string): string => {
+    if (url.includes('storage.nordics.world')) {
+      // Extract the path after the bucket name and convert to Supabase URL
+      const pathMatch = url.match(/\/nation-town-images\/(.+)$/);
+      if (pathMatch) {
+        const storagePath = pathMatch[1];
+        return `https://erdconvorgecupvavlwv.supabase.co/storage/v1/object/public/nation-town-images/${storagePath}`;
+      }
+    }
+    return url;
+  };
+
+  // Handle image error with fallback
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, photo: TownPhoto) => {
+    const img = e.currentTarget;
+    const originalUrl = photo.file_url;
+    
+    console.error('Failed to load image:', originalUrl);
+    
+    // Try to convert the URL if it's the old custom domain
+    const convertedUrl = convertImageUrl(originalUrl);
+    
+    if (convertedUrl !== originalUrl) {
+      console.log('Trying converted URL:', convertedUrl);
+      img.src = convertedUrl;
+      return;
+    }
+    
+    // If conversion didn't help, use placeholder
+    if (viewMode === 'grid') {
+      img.src = 'https://via.placeholder.com/400x400/6B7280/FFFFFF?text=Image+Error';
+    } else {
+      img.src = 'https://via.placeholder.com/96x96/6B7280/FFFFFF?text=Error';
+    }
+  };
 
   // Handle search
   const handleSearch = async (query: string) => {
@@ -254,13 +291,10 @@ const TownPhotoGallery = ({ townName, className = "" }: TownPhotoGalleryProps) =
                   {viewMode === 'grid' ? (
                     <>
                       <img
-                        src={photo.file_url}
+                        src={convertImageUrl(photo.file_url)}
                         alt={photo.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        onError={(e) => {
-                          console.error('Failed to load image:', photo.file_url);
-                          e.currentTarget.src = 'https://via.placeholder.com/400x400/6B7280/FFFFFF?text=Image+Error';
-                        }}
+                        onError={(e) => handleImageError(e, photo)}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="absolute bottom-2 left-2 right-2 text-white">
@@ -286,13 +320,10 @@ const TownPhotoGallery = ({ townName, className = "" }: TownPhotoGalleryProps) =
                     <>
                       <div className="w-24 h-24 flex-shrink-0">
                         <img
-                          src={photo.file_url}
+                          src={convertImageUrl(photo.file_url)}
                           alt={photo.title}
                           className="w-full h-full object-cover rounded"
-                          onError={(e) => {
-                            console.error('Failed to load image:', photo.file_url);
-                            e.currentTarget.src = 'https://via.placeholder.com/96x96/6B7280/FFFFFF?text=Error';
-                          }}
+                          onError={(e) => handleImageError(e, photo)}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -361,7 +392,7 @@ const TownPhotoGallery = ({ townName, className = "" }: TownPhotoGalleryProps) =
         onOpenChange={(open) => !open && setSelectedPhoto(null)}
         onDelete={handleDelete}
         onUpdate={handleUpdate}
-        canEdit={permissions.canManage}
+        canEdit={permissions.canUpload}
         canDelete={permissions.canDelete}
       />
     </>

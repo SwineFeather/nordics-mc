@@ -83,25 +83,15 @@ const GroupsTab: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-          🏢 Enterprise Groups
-        </h1>
-        <p className="text-xl text-muted-foreground mb-6">
-          Major business conglomerates and their subsidiaries across Nordics World
-        </p>
-        
-        {/* Create Enterprise Button */}
-        <div className="flex justify-center mb-8">
-          <CreateCompanyModal 
-            onCompanyCreated={() => {
-              // Refresh the companies data
-              window.location.reload();
-            }}
-          />
-        </div>
-      </div>
+             {/* Create Enterprise Button */}
+       <div className="flex justify-center mb-8">
+         <CreateCompanyModal 
+           onCompanyCreated={() => {
+             // Refresh the companies data
+             window.location.reload();
+           }}
+         />
+       </div>
 
       {/* Benefits Section */}
       <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800">
@@ -331,7 +321,7 @@ const GroupsTab: React.FC = () => {
       )}
 
       {/* Information Section */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-blue-200 dark:border-blue-800">
+      <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-blue-200 dark:border-cyan-800">
         <CardContent className="p-8">
           <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <Building2 className="w-6 h-6" />

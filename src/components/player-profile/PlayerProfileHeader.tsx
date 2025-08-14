@@ -2,12 +2,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, Clock, Users, Hammer, User, Star, Award, Sparkles, Crown, Heart, Globe, Book, Wrench, Flame, Sun, Moon, Zap, Key, Lock, Smile, Ghost, Skull, Leaf, Rocket, Sword, Wand2, Medal, MapPin } from 'lucide-react';
+import { Calendar, Clock, Users, Hammer, User, Star, Award, Sparkles, Crown, Heart, Globe, Book, Wrench, Flame, Sun, Moon, Zap, Key, Lock, Smile, Ghost, Skull, Leaf, Rocket, Sword, Wand2, Medal, MapPin, Zap as ZapIcon } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import type { PlayerProfile } from '@/types/player';
 import LevelDisplay from './LevelDisplay';
 import { usePlayerBadges } from '@/hooks/usePlayerBadges';
 import { usePlayerResidentData } from '@/hooks/usePlayerResidentData';
+import { useOnlinePlayers } from '@/hooks/useOnlinePlayers';
 import { calculateLevelInfoSync } from '@/lib/leveling';
 
 const BADGE_ICONS = {
@@ -22,6 +23,37 @@ const BADGE_ICONS = {
   MapPin: <MapPin className="w-3 h-3" />,
 };
 
+// Patron tier configuration
+const PATRON_TIERS = {
+  'Golden Kala': {
+    color: 'from-amber-400 via-yellow-500 to-orange-600',
+    borderColor: 'border-amber-400',
+    glowColor: 'shadow-amber-400/50',
+    banner: 'bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-600',
+    icon: <Crown className="w-5 h-5 text-amber-400" />,
+    effects: ['animate-pulse', 'shadow-lg'],
+    benefits: ['€5 passive income', '25% Treasure Chest discount', 'Exclusive cosmetics', 'Priority support']
+  },
+  'Fancy Kala': {
+    color: 'from-red-400 via-pink-500 to-purple-600',
+    borderColor: 'border-red-400',
+    glowColor: 'shadow-red-400/50',
+    banner: 'bg-gradient-to-r from-red-400 via-pink-500 to-purple-600',
+    icon: <Sparkles className="w-5 h-5 text-red-400" />,
+    effects: ['animate-bounce'],
+    benefits: ['€4.5 passive income', '20% Treasure Chest discount', 'Enhanced cosmetics', 'Priority support']
+  },
+  'Kala': {
+    color: 'from-orange-400 via-red-500 to-pink-600',
+    borderColor: 'border-orange-400',
+    glowColor: 'shadow-orange-400/50',
+    banner: 'bg-gradient-to-r from-orange-400 via-red-500 to-pink-600',
+    icon: <Star className="w-5 h-5 text-orange-400" />,
+    effects: ['animate-pulse'],
+    benefits: ['€4 passive income', '15% Treasure Chest discount', 'Special cosmetics', 'Priority support']
+  }
+};
+
 interface PlayerProfileHeaderProps {
   profile: PlayerProfile;
 }
@@ -29,6 +61,19 @@ interface PlayerProfileHeaderProps {
 const PlayerProfileHeader = ({ profile }: PlayerProfileHeaderProps) => {
   const { data: badges } = usePlayerBadges(profile.id);
   const { data: residentData } = usePlayerResidentData(profile.username);
+  const { onlinePlayers } = useOnlinePlayers();
+  
+  // Check if this player is online
+  const isPlayerOnline = onlinePlayers.some(player => 
+    player.name && typeof player.name === 'string' && 
+    player.name.toLowerCase() === profile.username.toLowerCase()
+  );
+
+  // Check if player has patron tier badges
+  const patronBadge = badges?.find(badge => 
+    ['Golden Kala', 'Fancy Kala', 'Kala'].includes(badge.badge_type)
+  );
+  const patronTier = patronBadge ? PATRON_TIERS[patronBadge.badge_type as keyof typeof PATRON_TIERS] : null;
 
   const formatDate = (dateString: string) => {
     try {
@@ -63,7 +108,7 @@ const PlayerProfileHeader = ({ profile }: PlayerProfileHeaderProps) => {
     color: levelInfo?.color || '#6b7280'
   };
 
-  // Fallback badge logic
+  // Fallback badge logic - only show Member for verified website users
   const fallbackBadgeType = profile.isWebsiteUser ? 'Member' : 'Player';
   const fallbackBadgeIcon = fallbackBadgeType === 'Member' ? BADGE_ICONS.Star : BADGE_ICONS.User;
   const fallbackBadgeColor = fallbackBadgeType === 'Member' ? '#22c55e' : '#6b7280';
@@ -75,19 +120,66 @@ const PlayerProfileHeader = ({ profile }: PlayerProfileHeaderProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Patron Tier Banner */}
+      {patronTier && (
+        <div className={`${patronTier.banner} text-white p-4 rounded-lg shadow-lg relative overflow-hidden`}>
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {patronTier.icon}
+              <div>
+                <h2 className="text-xl font-bold">{patronBadge?.badge_type}</h2>
+                <p className="text-sm opacity-90">Premium Patron Member</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm opacity-90">Active Benefits</div>
+              <div className="text-lg font-bold">{patronTier.benefits[0]}</div>
+            </div>
+          </div>
+          
+          {/* Floating particles effect */}
+          <div className="absolute top-2 right-2 opacity-30">
+            <div className="animate-bounce">✨</div>
+          </div>
+          <div className="absolute bottom-2 left-2 opacity-30">
+            <div className="animate-pulse">⭐</div>
+          </div>
+        </div>
+      )}
+
       {/* Main Profile Section */}
-      <div className="flex flex-col md:flex-row gap-6 items-start">
+      <div className={`flex flex-col md:flex-row gap-6 items-start p-6 rounded-lg ${
+        patronTier 
+          ? `${patronTier.borderColor} border-2 ${patronTier.glowColor} shadow-xl` 
+          : 'bg-card/50'
+      }`}>
         <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={profile.avatar} alt={profile.username} />
-            <AvatarFallback className="text-2xl">
-              {profile.username.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          {/* Enhanced Avatar with patron effects */}
+          <div className={`relative ${patronTier ? 'group' : ''}`}>
+            <Avatar className={`h-20 w-20 ${patronTier ? patronTier.effects.join(' ') : ''}`}>
+              <AvatarImage src={profile.avatar} alt={profile.username} />
+              <AvatarFallback className="text-2xl">
+                {profile.username.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* Patron tier border effect */}
+            {patronTier && (
+              <div className={`absolute -inset-2 rounded-full bg-gradient-to-r ${patronTier.color} opacity-75 blur-sm group-hover:opacity-100 transition-opacity duration-300`}></div>
+            )}
+            
+            {/* Online status indicator */}
+            {isPlayerOnline && (
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
+            )}
+          </div>
           
           <div className="space-y-3">
             <div>
-              <h1 className="text-3xl font-bold">{profile.displayName || profile.username}</h1>
+              <h1 className={`text-3xl font-bold ${patronTier ? 'bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent' : ''}`}>
+                {profile.displayName || profile.username}
+              </h1>
               {profile.displayName && profile.displayName !== profile.username && (
                 <p className="text-lg text-muted-foreground">@{profile.username}</p>
               )}
@@ -95,8 +187,8 @@ const PlayerProfileHeader = ({ profile }: PlayerProfileHeaderProps) => {
 
             {/* Level and Status Row */}
             <div className="flex items-center gap-3">
-              <Badge variant={profile.isOnline ? "default" : "secondary"}>
-                {profile.isOnline ? "Online" : "Offline"}
+              <Badge variant={isPlayerOnline ? "default" : "secondary"}>
+                {isPlayerOnline ? "Online" : "Offline"}
               </Badge>
               
               {/* Level Badge */}
@@ -119,11 +211,15 @@ const PlayerProfileHeader = ({ profile }: PlayerProfileHeaderProps) => {
               {badges && badges.length > 0 ? (
                 badges.map((badge) => {
                   const IconComponent = BADGE_ICONS[badge.icon as keyof typeof BADGE_ICONS] || BADGE_ICONS.User;
+                  const isPatronBadge = ['Golden Kala', 'Fancy Kala', 'Kala'].includes(badge.badge_type);
+                  
                   return (
                     <Badge
                       key={badge.id}
                       style={{ backgroundColor: badge.badge_color, color: 'white' }}
-                      className="text-xs flex items-center gap-1"
+                      className={`text-xs flex items-center gap-1 ${
+                        isPatronBadge ? 'ring-2 ring-white/50 shadow-lg' : ''
+                      }`}
                     >
                       {IconComponent}
                       {!badge.icon_only && <span>{badge.badge_type}</span>}
@@ -131,15 +227,33 @@ const PlayerProfileHeader = ({ profile }: PlayerProfileHeaderProps) => {
                   );
                 })
               ) : (
-                <Badge
-                  style={{ backgroundColor: fallbackBadgeColor, color: 'white' }}
-                  className="text-xs flex items-center gap-1"
-                >
-                  {fallbackBadgeIcon}
-                  <span>{fallbackBadgeType}</span>
-                </Badge>
+                // Only show Member badge for verified website users, hide Player badge for everyone
+                profile.isWebsiteUser && (
+                  <Badge
+                    style={{ backgroundColor: fallbackBadgeColor, color: 'white' }}
+                    className="text-xs flex items-center gap-1"
+                  >
+                    {fallbackBadgeIcon}
+                    <span>{fallbackBadgeType}</span>
+                  </Badge>
+                )
               )}
             </div>
+
+            {/* Patron Benefits Display */}
+            {patronTier && (
+              <div className="bg-gradient-to-r from-white/10 to-white/5 p-3 rounded-lg border border-white/20">
+                <div className="text-sm font-medium text-white mb-2">Patron Benefits:</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {patronTier.benefits.map((benefit, index) => (
+                    <div key={index} className="flex items-center gap-1">
+                      <span className="text-green-300">✓</span>
+                      <span className="text-white/90">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Level Progress */}
             <div className="space-y-2">

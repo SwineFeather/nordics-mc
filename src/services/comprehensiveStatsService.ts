@@ -30,14 +30,64 @@ export const getComprehensivePlayerStats = async (uuid: string): Promise<Record<
     // Then, try to get detailed stats from JSON file
     let fileStats: Record<string, number> = {};
     try {
-      const response = await fetch(`/stats/data/playerdata/${uuid}.json`);
-      if (response.ok) {
-        const data = await response.json();
-        Object.entries(data).forEach(([key, statData]: [string, any]) => {
-          if (statData && typeof statData.value === 'number') {
-            fileStats[key] = statData.value;
+      // Try multiple possible paths for stats files
+      const possiblePaths = [
+        `/stats/data/playerdata/${uuid}.json`,
+        `/data/playerdata/${uuid}.json`,
+        `./stats/data/playerdata/${uuid}.json`
+      ];
+      
+      let statsUrl = '';
+      let response: Response | null = null;
+      
+      for (const path of possiblePaths) {
+        try {
+          console.debug(`Trying to fetch stats from: ${path}`);
+          response = await fetch(path);
+          if (response.ok) {
+            statsUrl = path;
+            break;
           }
-        });
+        } catch (pathError) {
+          console.debug(`Failed to fetch from ${path}:`, pathError);
+          continue;
+        }
+      }
+      
+      if (response && response.ok) {
+        console.debug(`Successfully fetched from: ${statsUrl}, status: ${response.status}`);
+        
+        // Check if response is actually JSON
+        const contentType = response.headers.get('content-type');
+        console.debug(`Content-Type: ${contentType}`);
+        
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const data = await response.json();
+            console.debug(`Successfully parsed JSON for ${uuid}, data keys:`, Object.keys(data));
+            Object.entries(data).forEach(([key, statData]: [string, any]) => {
+              if (statData && typeof statData.value === 'number') {
+                fileStats[key] = statData.value;
+              }
+            });
+          } catch (jsonError) {
+            console.warn(`Failed to parse JSON for ${uuid}:`, jsonError);
+          }
+        } else {
+          console.warn(`Response for ${uuid} is not JSON, content-type: ${contentType}`);
+          // Log a sample of the response to debug
+          try {
+            const textResponse = await response.text();
+            console.warn(`Response preview for ${uuid}:`, textResponse.substring(0, 200));
+          } catch (textError) {
+            console.warn(`Could not read response text for ${uuid}:`, textError);
+          }
+        }
+      } else if (response && response.status === 404) {
+        // File doesn't exist, which is normal for some players
+        console.debug(`No stats file found for ${uuid} at any path`);
+      } else {
+        console.warn(`Failed to fetch stats for ${uuid} from all paths`);
       }
     } catch (error) {
       console.warn(`Failed to fetch detailed stats for ${uuid}:`, error);

@@ -267,7 +267,7 @@ const StatisticsLeaderboard: React.FC<StatisticsLeaderboardProps> = ({
                         >
                           {player.displayName || player.username}
                         </button>
-                        {primaryBadge && (
+                        {primaryBadge && primaryBadge.badge_type !== 'Player' && (
                           <Badge 
                             style={{ backgroundColor: primaryBadge.badge_color, color: 'white' }}
                             className="text-xs flex items-center gap-1"

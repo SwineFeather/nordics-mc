@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Plus, ArrowLeft, Search, Filter, SortAsc, SortDesc } from 'lucide-react';
 import ForumCategories from '@/components/forum/ForumCategories';
+
 import ForumPosts from '@/components/forum/ForumPosts';
 import PostEditor from '@/components/forum/PostEditor';
 import { AdvancedPostDetail } from '@/components/forum/AdvancedPostDetail';
@@ -15,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 type ForumView = 'categories' | 'posts' | 'post' | 'create' | 'edit';
 
 const Forum: React.FC = () => {
+
   const { categoryId: urlCategoryId, postId } = useParams<{ categoryId?: string; postId?: string }>();
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<ForumView>('categories');
@@ -34,14 +36,7 @@ const Forum: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Debug logging to see what's being passed
-  console.log('🔍 Forum Debug:', {
-    urlCategoryId,
-    postId,
-    typeOfUrlCategoryId: typeof urlCategoryId,
-    selectedCategoryId,
-    typeOfSelectedCategoryId: typeof selectedCategoryId
-  });
+
 
   // Handle URL parameters
   useEffect(() => {
@@ -67,24 +62,20 @@ const Forum: React.FC = () => {
         return;
       }
       
-      console.log('✅ Setting categoryId from URL:', decodedCategoryId);
-      setSelectedCategoryId(decodedCategoryId);
+             setSelectedCategoryId(decodedCategoryId);
       setCurrentView('posts');
     } else {
-      console.log('📁 No categoryId in URL, showing categories');
-      setCurrentView('categories');
+             setCurrentView('categories');
     }
   }, [urlCategoryId, postId]);
 
   const handleCategorySelect = (categoryId: string) => {
-    console.log('🎯 Category selected:', categoryId);
     setSelectedCategoryId(categoryId);
     setCurrentView('posts');
     navigate(`/forum/category/${categoryId}`);
   };
 
   const handlePostSelect = (postId: string) => {
-    console.log('📝 Post selected:', postId);
     setSelectedPostId(postId);
     setCurrentView('post');
     navigate(`/forum/post/${postId}`);
@@ -173,6 +164,8 @@ const Forum: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
+
+      
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">

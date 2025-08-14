@@ -46,6 +46,7 @@ interface DatabaseTown {
   level: number | null;
   total_xp: number | null;
   image_url: string | null;
+  description: string | null;
   created_at: string | null;
   last_updated: string | null;
 }
@@ -96,6 +97,7 @@ export interface SupabaseTownData {
   created_at: string;
   updated_at: string;
   image_url?: string | null;
+  description?: string | null;
   location_x?: number | null;
   location_z?: number | null;
   // Additional fields for compatibility
@@ -127,7 +129,7 @@ export interface SupabaseTownData {
     history?: string;
     balance?: number;
   };
-  residents?: TownResident[];
+  residents: TownResident[];
 }
 
 export interface TownResident {
@@ -233,6 +235,7 @@ export class SupabaseTownService {
         level: dbTown.level || 1,
         total_xp: Number(dbTown.total_xp) || 0,
         image_url: dbTown.image_url || null,
+        description: dbTown.description || null,
         created_at: dbTown.created_at || new Date().toISOString(),
         updated_at: dbTown.last_updated || new Date().toISOString(),
         nation: nationData,
@@ -471,6 +474,7 @@ export class SupabaseTownService {
             level: dbTown.level || 1,
             total_xp: Number(dbTown.total_xp) || 0,
             image_url: dbTown.image_url || null,
+            description: dbTown.description || null,
             location_x: dbTown.location_x,
             location_z: dbTown.location_z,
             created_at: dbTown.created_at || new Date().toISOString(),

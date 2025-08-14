@@ -22,6 +22,8 @@ interface CreateCompanyModalProps {
   isEditMode?: boolean;
   onClose?: () => void;
   onCompanyUpdated?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface FormData {
@@ -81,12 +83,22 @@ Company Creation Level Requirements:
 \n- Admins are exempt from level requirements and can create unlimited companies
 `;
 
-const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ onCompanyCreated, initialData, isEditMode, onClose, onCompanyUpdated }) => {
+const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({ 
+  onCompanyCreated, 
+  initialData, 
+  isEditMode, 
+  onClose, 
+  onCompanyUpdated,
+  open,
+  onOpenChange
+}) => {
   const { user, profile } = useAuth();
   const { companies } = useCompaniesData();
   const { towns } = useTownsData();
-  // Remove dialog open/close logic for edit mode
-  const [isOpen, setIsOpen] = useState(isEditMode ? true : false);
+  // Use external open state if provided, otherwise use internal state
+  const [internalOpen, setInternalOpen] = useState(isEditMode ? true : false);
+  const isOpen = open !== undefined ? open : internalOpen;
+  const setIsOpen = onOpenChange || setInternalOpen;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);

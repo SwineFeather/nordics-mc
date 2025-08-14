@@ -3,61 +3,75 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Star, Crown, Sparkles, ExternalLink } from 'lucide-react';
+import { ShoppingCart, Star, Crown, Sparkles, ExternalLink, HelpCircle } from 'lucide-react';
+
+// Custom component for Treasure Chests with hover info
+const TreasureChestInfo = ({ discount }: { discount: string }) => (
+  <span className="group relative inline-flex items-center gap-1 cursor-help">
+    <span className="underline decoration-dotted">{discount} discount on Treasure Chests</span>
+    <HelpCircle className="w-4 h-4 text-muted-foreground" />
+    
+    {/* Hover tooltip */}
+    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+      <div className="text-center">
+        <p>Treasure Chests cost €500</p>
+        <p>Right-click 4 chests to earn cosmetics & money</p>
+        <p>Use command: <code className="bg-gray-800 px-1 rounded">/uc menu</code></p>
+        <a href="/guide/cosmetics" className="text-blue-300 hover:text-blue-100 underline">Read more →</a>
+      </div>
+      {/* Arrow */}
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
+  </span>
+);
 
 const Store = () => {
   const patronTiers = [
     {
       name: 'Kala',
-      price: '$5/month',
+      price: '$1/month',
+      moneyEarned: '€4 passive income',
       color: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-200 dark:border-orange-800',
       icon: <Star className="w-6 h-6 text-orange-500" />,
       features: [
-        '/hat command (block in hand becomes hat)',
         'Invisible item frames (/itf toggle)',
-        '/nick command with ~ prefix',
-        '/me command for narrative messages',
-        '15% discount on Treasure Chests',
+        <TreasureChestInfo key="kala-chest" discount="15%" />,
         'Pets: Piggy, Cow',
         'Particle Effects: Snow footprints',
         'Mounts: Horse',
-        'Own Discord role',
+        'Kala Discord role',
         'Access to Supporter channel on Discord',
         'Priority support'
       ]
     },
     {
       name: 'Fancy Kala',
-      price: '$10/month',
-      color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800',
+      price: '$5/month',
+      moneyEarned: '€4.5 passive income',
+      color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-orange-800',
       icon: <Crown className="w-6 h-6 text-red-500" />,
       features: [
         'All Kala benefits',
-        'Rename items with /itemname',
-        'Change item lore with /itemlore',
-        '20% discount on Treasure Chests',
+        <TreasureChestInfo key="fancy-chest" discount="20%" />,
         'Pets: Frog',
         'Particle Effects: Spring footprints, Rain Cloud, Notes',
         'Mounts: Donkey, Pig',
-        'Own Discord role',
-        'Access to Supporter channel on Discord',
-        'Priority support'
+        'Fancy Kala Discord role'
       ]
     },
     {
       name: 'Golden Kala',
-      price: '$15/month',
-      color: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-800',
+      price: '$10/month',
+      moneyEarned: '€5 passive income',
+      color: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-200 dark:border-orange-800',
       icon: <Sparkles className="w-6 h-6 text-amber-500" />,
       features: [
         'All Fancy Kala benefits',
-        '25% discount on Treasure Chests',
+        <TreasureChestInfo key="golden-chest" discount="25%" />,
         'Pets: Allay',
         'Particle Effects: Divine Halo, Ender Aura',
         'Mounts: Ecologist Horse',
-        'Own Discord role',
-        'Access to Supporter channel on Discord',
-        'Priority support'
+        'Golden Kala Discord role'
       ]
     }
   ];
@@ -73,9 +87,24 @@ const Store = () => {
           </h1>
         </div>
         <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-          Support our server and gain access to exclusive cosmetics, commands, and features. 
-          Every contribution helps keep Nordics alive and thriving!
+          
         </p>
+        <div className="mt-4 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <p className="text-green-800 dark:text-green-200 text-sm">
+            <span className="font-semibold">💰 Active Player Rewards:</span> All players earn €2 passive income for being active on the server. 
+            Patrons earn even more: Kala (€4), Fancy Kala (€4.5), Golden Kala (€5) - <span className="italic">Coming Soon!</span>
+          </p>
+        </div>
+        
+        {/* Cosmetics Guide Link */}
+        <div className="mt-4 text-center">
+          <a 
+            href="/guide/cosmetics" 
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+          >
+            🎨 Learn more about cosmetics and drops →
+          </a>
+        </div>
       </div>
 
       {/* Patreon Support Section */}
@@ -83,7 +112,7 @@ const Store = () => {
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">Monthly Patron Support</h2>
           <p className="text-muted-foreground">
-            Become a monthly supporter and gain access to exclusive cosmetics that refresh every month
+            
           </p>
         </div>
 
@@ -101,6 +130,11 @@ const Store = () => {
                 </div>
                 <CardTitle className="text-2xl">{tier.name}</CardTitle>
                 <div className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">{tier.price}</div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  <span className="font-semibold text-green-600 dark:text-green-400">{tier.moneyEarned}</span>
+                  <br />
+                  <span className="text-xs">(Coming Soon)</span>
+                </div>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 mb-6">

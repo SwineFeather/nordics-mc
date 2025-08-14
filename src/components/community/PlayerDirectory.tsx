@@ -9,11 +9,34 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  User,
+  Star,
+  Award,
+  Sparkles,
+  Crown,
+  Heart,
+  Globe,
+  Book,
+  Wrench,
+  Flame,
+  Sun,
+  Moon,
+  Zap,
+  Key,
+  Lock,
+  Smile,
+  Ghost,
+  Skull,
+  Leaf,
+  Rocket,
+  Sword,
+  Wand2
 } from 'lucide-react';
 import { usePlayerStatsConditional } from '@/hooks/usePlayerStatsConditional';
 import { usePlayerSearch } from '@/hooks/usePlayerSearch';
 import { useAllResidents } from '@/hooks/usePlayerResidentData';
+import { useOnlinePlayers } from '@/hooks/useOnlinePlayers';
 import PlayerSearchAndFilter from './PlayerSearchAndFilter';
 import PlayerSearchResults from './PlayerSearchResults';
 import PlayerProfile from '@/components/PlayerProfile';
@@ -66,10 +89,10 @@ const SERVER_ROLE_PRIORITY = {
   'admin': 100,
   'moderator': 90,
   'helper': 80,
-  'vip': 40,
-  'kala': 50,
-  'fancy kala': 60,
   'golden kala': 70,
+  'fancy kala': 60,
+  'kala': 50,
+  'vip': 40,
   'former supporter': 30,
   'member': 20,
   'player': 10,
@@ -135,7 +158,9 @@ const PlayerGrid = ({
   allResidents,
   searchTerm,
   statusFilter,
-  showDetailedStats
+  showDetailedStats,
+  onlinePlayers,
+  sortBy
 }: { 
   profiles: any[];
   onPlayerClick: (profile: any) => void;
@@ -143,11 +168,12 @@ const PlayerGrid = ({
   searchTerm: string;
   statusFilter: string;
   showDetailedStats: boolean;
+  onlinePlayers: any[];
+  sortBy: string;
 }) => {
 
   // Calculate player priority score based on influence, badges, and server roles
   const calculatePlayerPriority = (profile: any, residentData: any): number => {
-    const influenceScore = residentData?.activity_score || 0;
     let priority = 0;
 
     // SwineFeather always first
@@ -155,19 +181,20 @@ const PlayerGrid = ({
       return 2000000;
     }
 
-    // Give highest priority to top players by playtime
-    if (profile.id && TOP_PLAYERS_BY_PLAYTIME.includes(profile.id)) {
-      const playtimeRank = TOP_PLAYERS_BY_PLAYTIME.indexOf(profile.id);
-      priority = 1000000 - playtimeRank; // Higher rank = higher priority
-      return priority;
+    // Staff roles get highest priority (Admin, Moderator, Helper)
+    if (profile.badges && profile.badges.length > 0) {
+      const staffBadge = profile.badges.find((badge: PlayerBadge) => 
+        ['Admin', 'Moderator', 'Helper'].includes(badge.badge_type)
+      );
+      if (staffBadge) {
+        const badgePriority = BADGE_PRIORITY[staffBadge.badge_type as keyof typeof BADGE_PRIORITY] || 0;
+        priority += badgePriority * 100000; // Very high priority for staff
+        console.log(`Staff member ${profile.username} (${staffBadge.badge_type}): calculated priority = ${priority}`);
+        return priority;
+      }
     }
 
-    // Only give priority to players with significant influence (>= 200)
-    if (influenceScore >= 200) {
-      priority = influenceScore;
-    }
-
-    // Add badge priority
+    // Add badge priority for non-staff badges
     if (profile.badges && profile.badges.length > 0) {
       const highestBadge = profile.badges.reduce((highest: PlayerBadge, badge: PlayerBadge) => {
         const badgePriority = BADGE_PRIORITY[badge.badge_type as keyof typeof BADGE_PRIORITY] || 0;
@@ -176,13 +203,25 @@ const PlayerGrid = ({
       });
 
       const badgePriority = BADGE_PRIORITY[highestBadge.badge_type as keyof typeof BADGE_PRIORITY] || 0;
-      priority += badgePriority * 1000; // Multiply by 1000 to ensure badges take precedence over influence score
+      priority += badgePriority * 10000; // High priority for badges
     }
 
     // Add server role priority
     if (profile.serverRole) {
       const rolePriority = SERVER_ROLE_PRIORITY[profile.serverRole.toLowerCase() as keyof typeof SERVER_ROLE_PRIORITY] || 0;
-      priority += rolePriority * 500; // Multiply by 500 to ensure roles are important but not as much as badges
+      priority += rolePriority * 1000; // Medium priority for server roles
+    }
+
+    // Give priority to top players by playtime (but lower than staff/badges)
+    if (profile.id && TOP_PLAYERS_BY_PLAYTIME.includes(profile.id)) {
+      const playtimeRank = TOP_PLAYERS_BY_PLAYTIME.indexOf(profile.id);
+      priority += (100 - playtimeRank) * 100; // Lower priority than staff/badges
+    }
+
+    // Add influence score (lowest priority)
+    const influenceScore = residentData?.activity_score || 0;
+    if (influenceScore >= 200) {
+      priority += influenceScore;
     }
 
     return priority;
@@ -190,6 +229,18 @@ const PlayerGrid = ({
 
   // Filter and sort profiles
   const filteredAndSortedProfiles = useMemo(() => {
+    if (!profiles || !Array.isArray(profiles)) {
+      console.warn('PlayerGrid: Profiles is not an array:', profiles);
+      return [];
+    }
+    
+    if (!onlinePlayers || !Array.isArray(onlinePlayers)) {
+      console.warn('PlayerGrid: onlinePlayers is not an array:', onlinePlayers);
+      return profiles; // Return unfiltered profiles if onlinePlayers is not available
+    }
+    
+    console.log('PlayerGrid: Sorting by:', sortBy, 'with', profiles.length, 'profiles');
+    
     return profiles
       .filter(profile => {
         if (!profile) return false;
@@ -202,10 +253,14 @@ const PlayerGrid = ({
           if (!usernameMatch && !nameMatch) return false;
         }
 
-        // Status filter (online/offline)
+        // Status filter (online/offline) - use real-time data
         if (statusFilter !== 'all') {
-          if (statusFilter === 'online' && !profile.isOnline) return false;
-          if (statusFilter === 'offline' && profile.isOnline) return false;
+          const isPlayerOnline = onlinePlayers.some(player => 
+            player.name && typeof player.name === 'string' && 
+            player.name.toLowerCase() === profile.username?.toLowerCase()
+          );
+          if (statusFilter === 'online' && !isPlayerOnline) return false;
+          if (statusFilter === 'offline' && isPlayerOnline) return false;
         }
 
         return true;
@@ -214,17 +269,66 @@ const PlayerGrid = ({
         const residentData = allResidents?.find(r => r.name === profile.username);
         const priority = calculatePlayerPriority(profile, residentData);
         
+        // Debug logging for staff members
+        if (profile.badges && profile.badges.some((b: PlayerBadge) => ['Admin', 'Moderator', 'Helper'].includes(b.badge_type))) {
+          console.log(`Staff member ${profile.username}: priority=${priority}, badges=`, profile.badges.map((b: PlayerBadge) => b.badge_type));
+        }
+        
         return { ...profile, priority, residentData };
       })
       .sort((a, b) => {
-        // Sort by priority (influence score + badges) first
-        if (b.priority !== a.priority) {
-          return b.priority - a.priority;
+        // Apply the selected sort criteria
+        switch (sortBy) {
+          case 'name':
+            return (a.username || a.displayName || '').localeCompare(b.username || b.displayName || '');
+          case 'level':
+            const levelA = a.level || 0;
+            const levelB = b.level || 0;
+            if (levelB !== levelA) return levelB - levelA;
+            break;
+          case 'playtime':
+            const playtimeA = a.playtime || 0;
+            const playtimeB = b.playtime || 0;
+            if (playtimeB !== playtimeA) return playtimeB - playtimeA;
+            break;
+          case 'medals':
+            const medalsA = a.medals || 0;
+            const medalsB = b.medals || 0;
+            if (medalsB !== medalsA) return medalsB - medalsA;
+            break;
+          case 'activity':
+            const activityA = a.residentData?.activity_score || 0;
+            const activityB = b.residentData?.activity_score || 0;
+            if (activityB !== activityA) return activityB - activityA;
+            break;
+          case 'balance':
+            const balanceA = a.balance || 0;
+            const balanceB = b.balance || 0;
+            if (balanceB !== balanceA) return balanceB - balanceA;
+            break;
+          case 'priority':
+          default:
+            // Sort by priority (influence score + badges) first
+            if (b.priority !== a.priority) {
+              return b.priority - a.priority;
+            }
+            break;
         }
-        // Then by name for players with same priority
+        // Then by name for players with same priority/sort value
         return (a.username || a.displayName || '').localeCompare(b.username || b.displayName || '');
       });
-  }, [profiles, searchTerm, statusFilter, allResidents]);
+      
+      // Debug: Show top 5 priorities
+      if (sortBy === 'priority' && filteredAndSortedProfiles.length > 0) {
+        console.log('Top 5 players by priority:');
+        filteredAndSortedProfiles.slice(0, 5).forEach((profile, index) => {
+          console.log(`${index + 1}. ${profile.username}: priority=${profile.priority}, badges=`, 
+            profile.badges?.map((b: PlayerBadge) => b.badge_type) || []);
+        });
+      }
+      
+      return filteredAndSortedProfiles;
+  }, [profiles, searchTerm, statusFilter, allResidents, onlinePlayers, sortBy]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -268,11 +372,27 @@ const PlayerDirectory = () => {
   const navigate = useNavigate();
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [sortBy, setSortBy] = useState('priority'); // Changed default to priority
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'priority'); // Check URL for sort param
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(0);
   const [showDetailedStats, setShowDetailedStats] = useState(true); // Keep detailed stats on by default to show badges
   const [pageSize, setPageSize] = useState(50); // Page size selector
+
+  // Debug: Log initial sortBy value
+  useEffect(() => {
+    console.log('PlayerDirectory: Initial sortBy set to:', sortBy);
+  }, [sortBy]);
+
+  // Update URL when sort changes
+  useEffect(() => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (sortBy === 'priority') {
+      newSearchParams.delete('sort'); // Remove sort param if it's the default
+    } else {
+      newSearchParams.set('sort', sortBy);
+    }
+    setSearchParams(newSearchParams);
+  }, [sortBy, searchParams, setSearchParams]);
 
   // Reset to first page when page size changes
   useEffect(() => {
@@ -290,6 +410,10 @@ const PlayerDirectory = () => {
   const { players: searchResults, loading: searchLoading, count: searchCount } = usePlayerSearch(searchTerm);
   
   const { data: allResidents, loading: residentsLoading } = useAllResidents();
+  const { onlinePlayers = [], loading: onlinePlayersLoading } = useOnlinePlayers();
+
+  // Ensure onlinePlayers is always an array
+  const safeOnlinePlayers = Array.isArray(onlinePlayers) ? onlinePlayers : [];
 
   // Calculate pagination info
   const totalPages = Math.ceil((total || 0) / pageSize);
@@ -356,7 +480,7 @@ const PlayerDirectory = () => {
     setPage(0); // Reset to first page
   };
 
-  if (loading || residentsLoading) {
+  if (loading || residentsLoading || onlinePlayersLoading) {
     return (
       <div className="space-y-6">
         <div className="h-20 bg-muted/50 rounded-lg animate-pulse" />
@@ -455,6 +579,8 @@ const PlayerDirectory = () => {
           searchTerm={searchTerm}
           statusFilter={statusFilter}
           showDetailedStats={showDetailedStats}
+          onlinePlayers={safeOnlinePlayers}
+          sortBy={sortBy}
         />
       )}
 

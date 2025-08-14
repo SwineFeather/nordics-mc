@@ -24,6 +24,17 @@ export class ImageStorageService {
    * Generate a custom domain URL for a storage path
    */
   static generateCustomUrl(storagePath: string): string {
+    // Always use the default Supabase URL for now to fix image loading issues
+    // TODO: Re-enable custom domain support once the fallback system is properly implemented
+    
+    // Fallback to Supabase URL
+    const { data } = supabase.storage
+      .from(IMAGE_STORAGE_CONFIG.storageBucket)
+      .getPublicUrl(storagePath);
+    
+    return data.publicUrl;
+    
+    /* Original custom domain logic - commented out for now
     const customDomain = import.meta.env.VITE_STORAGE_DOMAIN;
     const cdnDomain = import.meta.env.VITE_CDN_DOMAIN;
     
@@ -43,6 +54,7 @@ export class ImageStorageService {
       .getPublicUrl(storagePath);
     
     return data.publicUrl;
+    */
   }
 
   /**

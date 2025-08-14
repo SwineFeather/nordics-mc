@@ -28,6 +28,9 @@ app.get('/health', (req, res) => {
 // Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// Serve stats directory
+app.use('/stats', express.static(path.join(__dirname, 'stats')));
+
 // Handle client-side routing by serving index.html for all routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));

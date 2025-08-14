@@ -32,6 +32,7 @@ import type { PlayerProfile } from '@/types/player';
 import ContactModal from './ContactModal';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useOnlinePlayers } from '@/hooks/useOnlinePlayers';
 import ProfileSettings from './ProfileSettings';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -46,6 +47,13 @@ const ProfileModal = ({ open, onClose, profile }: ProfileModalProps) => {
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(true);
   const { isAuthenticated, profile: currentUserProfile } = useAuth();
+  const { onlinePlayers } = useOnlinePlayers();
+  
+  // Check if this player is online
+  const isPlayerOnline = onlinePlayers.some(player => 
+    player.name && typeof player.name === 'string' && 
+    player.name.toLowerCase() === profile?.username.toLowerCase()
+  );
 
   if (!profile) return null;
 
@@ -116,9 +124,9 @@ const ProfileModal = ({ open, onClose, profile }: ProfileModalProps) => {
                     <Badge className={`text-xs ${getRoleBadgeColor(profile.serverRole)}`}>
                       {profile.serverRole || 'Member'}
                     </Badge>
-                    <div className={`w-2 h-2 rounded-full ${profile.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                    <div className={`w-2 h-2 rounded-full ${isPlayerOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
                     <span className="text-sm text-muted-foreground">
-                      {profile.isOnline ? 'Online' : `Last seen ${new Date(profile.lastSeen).toLocaleDateString()}`}
+                      {isPlayerOnline ? 'Online' : `Last seen ${new Date(profile.lastSeen).toLocaleDateString()}`}
                     </span>
                   </div>
                 </div>

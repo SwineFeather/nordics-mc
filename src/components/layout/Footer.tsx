@@ -37,6 +37,9 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-md font-medium text-foreground dark:text-foreground">Resources</h4>
             <div className="space-y-2">
+              <Link to="/guide" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Guide
+              </Link>
               <Link to="/wiki" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Wiki
               </Link>

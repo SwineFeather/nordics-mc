@@ -39,6 +39,8 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
   const { user, profile } = useAuth();
   const { categories, loading } = useForumCategories();
   const { userNation, userNationForums, isAdmin, isModerator, hasAccessToForum, loading: nationLoading } = useNationForumAccess();
+  
+
   const [unreadByCategory, setUnreadByCategory] = useState<Record<string, boolean>>({});
   const [playerRole, setPlayerRole] = useState<{ isMayor: boolean; isKing: boolean } | null>(null);
 
@@ -92,9 +94,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
 
   // Separate categories by type
   const generalCategories = categories.filter(cat => 
-            cat.role_required === 'member' && 
-    cat.slug !== 'patches' && 
-    cat.slug !== 'nations' &&
+    cat.role_required === 'member' && 
     !cat.nation_name &&
     !cat.town_name &&
     !cat.is_archived
@@ -120,7 +120,9 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
     index === self.findIndex(c => c.id === cat.id)
   );
   
-      const moderatorCategories = categories.filter(cat => cat.role_required === 'moderator' && !cat.is_archived);
+  const moderatorCategories = categories.filter(cat => cat.role_required === 'moderator' && !cat.is_archived);
+  
+
 
   const getIconComponent = (iconName: string) => {
     return iconMap[iconName as keyof typeof iconMap] || MessageSquare;
@@ -201,7 +203,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
       </div>
     );
   }
-
+  
   return (
     <div className="space-y-8">
       {/* Main Categories */}

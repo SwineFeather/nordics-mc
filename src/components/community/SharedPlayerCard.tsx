@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useOnlinePlayers } from '@/hooks/useOnlinePlayers';
 import { 
   Eye, 
   MapPin, 
@@ -74,6 +75,18 @@ const SharedPlayerCard = ({
   showDetailedStats = true,
   isSearchResult = false
 }: SharedPlayerCardProps) => {
+  const { onlinePlayers } = useOnlinePlayers();
+  
+  // Check if this player is online
+  const isPlayerOnline = onlinePlayers.some(player => {
+    // Debug logging
+    if (!player.name || typeof player.name !== 'string') {
+      console.log('Invalid player data:', player);
+      return false;
+    }
+    return player.name.toLowerCase() === profile.username.toLowerCase();
+  });
+  
   // Helper function to safely get numeric values
   const getNumericStat = (value: number | { [key: string]: number } | undefined): number => {
     if (typeof value === 'number') return value;
@@ -129,39 +142,58 @@ const SharedPlayerCard = ({
   // Get primary badge
   const primaryBadge = profile.badges?.find((b: PlayerBadge) => b.is_verified) || profile.badges?.[0];
 
+  // Handle player name click to open profile modal
+  const handlePlayerNameClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the card click from triggering
+    onClick(); // Open the profile modal
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer dark:bg-card dark:border-border" onClick={onClick}>
-      <CardContent className="p-4">
-        <div className="flex items-start space-x-3">
+      <CardContent className="p-3">
+        <div className="flex items-start space-x-2">
           <div className="relative">
-            <Avatar className="h-12 w-12">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={`https://mc-heads.net/avatar/${profile.username}/64`} />
-              <AvatarFallback className="text-sm">
+              <AvatarFallback className="text-xs">
                 {profile.username?.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            {profile.isOnline && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+            {isPlayerOnline && (
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
             )}
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-sm truncate dark:text-white">
+              <h3 
+                className="font-semibold text-sm truncate dark:text-white hover:text-primary cursor-pointer transition-colors"
+                onClick={handlePlayerNameClick}
+                title="Click to view full profile"
+              >
                 {profile.displayName || profile.username}
               </h3>
-              {/* Display primary badge */}
-              {primaryBadge && (
-                <Badge 
-                  style={{ backgroundColor: primaryBadge.badge_color, color: 'white' }}
-                  className="text-xs flex items-center gap-1"
-                >
-                  {BADGE_ICONS[primaryBadge.icon as keyof typeof BADGE_ICONS] || BADGE_ICONS.User}
-                  {!primaryBadge.icon_only && <span>{primaryBadge.badge_type}</span>}
-                </Badge>
+              
+              {/* Display staff badges next to name (Admin, Moderator, Helper) */}
+              {profile.badges && profile.badges.length > 0 && (
+                <>
+                  {profile.badges
+                    .filter(badge => ['Admin', 'Moderator', 'Helper'].includes(badge.badge_type))
+                    .map((badge) => (
+                      <Badge 
+                        key={badge.id} 
+                        style={{ backgroundColor: badge.badge_color, color: 'white' }}
+                        className="text-xs flex items-center gap-1"
+                      >
+                        {BADGE_ICONS[badge.icon as keyof typeof BADGE_ICONS] || BADGE_ICONS.User}
+                        {!badge.icon_only && <span>{badge.badge_type}</span>}
+                      </Badge>
+                    ))}
+                </>
               )}
-              {/* Display server role if different from badge */}
-              {profile.serverRole && (!primaryBadge || primaryBadge.badge_type.toLowerCase() !== profile.serverRole.toLowerCase()) && (
+              
+              {/* Display server role if different from badge and not default Member */}
+              {profile.serverRole && profile.serverRole !== 'Member' && (!primaryBadge || primaryBadge.badge_type.toLowerCase() !== profile.serverRole.toLowerCase()) && (
                 <Badge 
                   variant="outline"
                   className={`text-xs ${getServerRoleColor(profile.serverRole)} text-white`}
@@ -169,51 +201,45 @@ const SharedPlayerCard = ({
                   {profile.serverRole}
                 </Badge>
               )}
+              
               {/* Show loading indicator for badges if no badges but detailed stats are enabled */}
               {showDetailedStats && !primaryBadge && profile.badges === undefined && (
                 <div className="w-4 h-4 animate-spin rounded-full border-2 border-gray-300 border-t-primary"></div>
               )}
             </div>
 
-            {/* Badges - show more badges for search results */}
+            {/* Badges - show non-staff badges below the name */}
             {profile.badges && profile.badges.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
-                {(isSearchResult ? profile.badges.slice(0, 3) : [primaryBadge]).filter(Boolean).map((badge) => {
-                  const IconComponent = BADGE_ICONS[badge.icon as keyof typeof BADGE_ICONS] || <Star className="w-3 h-3" />;
-                  return (
-                    <Badge 
-                      key={badge.id} 
-                      variant="outline" 
-                      className="text-xs px-1.5 py-0.5"
-                      style={{ borderColor: badge.badge_color, color: badge.badge_color }}
-                    >
-                      {IconComponent}
-                    </Badge>
-                  );
-                })}
-                {isSearchResult && profile.badges.length > 3 && (
+              <div className="flex flex-wrap gap-1 mb-1">
+                {profile.badges
+                  .filter(badge => !['Admin', 'Moderator', 'Helper'].includes(badge.badge_type))
+                  .slice(0, 3)
+                  .map((badge) => {
+                    const IconComponent = BADGE_ICONS[badge.icon as keyof typeof BADGE_ICONS] || <Star className="w-3 h-3" />;
+                    return (
+                      <Badge 
+                        key={badge.id} 
+                        variant="outline" 
+                        className="text-xs px-1.5 py-0.5"
+                        style={{ borderColor: badge.badge_color, color: badge.badge_color }}
+                      >
+                        {IconComponent}
+                      </Badge>
+                    );
+                  })}
+                {profile.badges.filter(badge => !['Admin', 'Moderator', 'Helper'].includes(badge.badge_type)).length > 3 && (
                   <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-                    +{profile.badges.length - 3}
+                    +{profile.badges.filter(badge => !['Admin', 'Moderator', 'Helper'].includes(badge.badge_type)).length - 3}
                   </Badge>
                 )}
               </div>
             )}
 
-            {/* Influence Score - show for search results */}
-            {isSearchResult && influenceScore > 0 && (
-              <div className="flex items-center space-x-2 mb-2">
-                <Badge 
-                  variant="secondary" 
-                  className={`text-xs px-2 py-0.5 ${influenceStatus.color}`}
-                >
-                  {influenceStatus.label} ({influenceScore})
-                </Badge>
-              </div>
-            )}
 
-            {/* Nation and Town info */}
+
+            {/* Nation and Town info - show for both main page and search results */}
             {(residentData?.nation_name || residentData?.town_name) && (
-              <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 mb-1 text-xs text-muted-foreground">
                 {residentData.nation_name && (
                   <div className="flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
@@ -229,30 +255,9 @@ const SharedPlayerCard = ({
               </div>
             )}
 
-            {/* Last Seen - show for search results */}
-            {isSearchResult && profile.lastSeen && (
-              <div className="flex items-center space-x-1 text-xs text-muted-foreground mb-2">
-                <Clock className="w-3 h-3" />
-                <span>
-                  Last seen: {new Date(parseInt(profile.lastSeen)).toLocaleDateString()}
-                </span>
-              </div>
-            )}
+            {/* Stats - show for both main page and search results */}
 
-            <div className="flex items-center justify-between mt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs h-6 dark:border-muted-foreground dark:text-muted-foreground"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClick();
-                }}
-              >
-                <Eye className="w-3 h-3 mr-1" />
-                View Profile
-              </Button>
-            </div>
+
           </div>
         </div>
       </CardContent>

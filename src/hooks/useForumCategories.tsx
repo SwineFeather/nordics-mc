@@ -40,7 +40,9 @@ export const useForumCategories = () => {
           `)
           .order('order_index', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
 
         // Calculate post count and last activity for each category
         const categoriesWithStats = (data || []).map(category => {

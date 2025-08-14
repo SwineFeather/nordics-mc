@@ -25,6 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { usePlayerResidentData } from '@/hooks/usePlayerResidentData';
+import { useOnlinePlayers } from '@/hooks/useOnlinePlayers';
 
 interface PlayerStatsDetailProps {
   profile: any;
@@ -79,6 +80,13 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
   // Refetch player profile from backend
   const { profile: freshProfile, refetch } = usePlayerProfile(profile.id);
   const { data: residentData } = usePlayerResidentData(profile.username);
+  const { onlinePlayers } = useOnlinePlayers();
+  
+  // Check if this player is online
+  const isPlayerOnline = onlinePlayers.some(player => 
+    player.name && typeof player.name === 'string' && 
+    player.name.toLowerCase() === profile.username.toLowerCase()
+  );
 
   // When freshProfile changes, update local profile state
   useEffect(() => {
@@ -186,8 +194,8 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
 
                 {/* Level and Status Row */}
                 <div className="flex items-center gap-3">
-                  <Badge variant={profile.isOnline ? "default" : "secondary"}>
-                    {profile.isOnline ? "Online" : "Offline"}
+                  <Badge variant={isPlayerOnline ? "default" : "secondary"}>
+                    {isPlayerOnline ? "Online" : "Offline"}
                   </Badge>
                   
                   {/* Level Badge */}
@@ -222,13 +230,8 @@ const PlayerStatsDetail: React.FC<PlayerStatsDetailProps> = ({ profile: initialP
                       </Badge>
                     ))
                   ) : (
-                    <Badge
-                      style={{ backgroundColor: '#6b7280', color: 'white' }}
-                      className="text-xs flex items-center gap-1"
-                    >
-                      <User className="w-3 h-3" />
-                      <span>Player</span>
-                    </Badge>
+                    // Don't show default Player badge
+                    null
                   )}
                 </div>
 

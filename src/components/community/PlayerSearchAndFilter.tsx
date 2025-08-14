@@ -110,7 +110,7 @@ const PlayerSearchAndFilter = ({
                   variant="outline"
                   onClick={() => {
                     onSearchChange('');
-                    onSortChange('level');
+                    onSortChange('priority');
                     onFilterOnlineChange(false);
                   }}
                   className="w-full"

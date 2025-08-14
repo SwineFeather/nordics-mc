@@ -193,15 +193,7 @@ const ShopsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-          🏪 Nordics Shops
-        </h1>
-        <p className="text-muted-foreground">
-          Discover and trade with players across the server
-        </p>
-      </div>
+
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">

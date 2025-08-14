@@ -117,10 +117,10 @@ const SERVER_ROLE_PRIORITY = {
   'admin': 100,
   'moderator': 90,
   'helper': 80,
-  'vip': 40,
-  'kala': 50,
-  'fancy kala': 60,
   'golden kala': 70,
+  'fancy kala': 60,
+  'kala': 50,
+  'vip': 40,
   'former supporter': 30,
   'member': 20,
   'player': 10,
@@ -272,19 +272,7 @@ const calculatePlayerPriority = (influenceScore: number, badges: PlayerBadge[], 
     return 2000000;
   }
 
-  // Give highest priority to top players by playtime
-  if (playerUuid && TOP_PLAYERS_BY_PLAYTIME.includes(playerUuid)) {
-    const playtimeRank = TOP_PLAYERS_BY_PLAYTIME.indexOf(playerUuid);
-    priority = 1000000 - playtimeRank; // Higher rank = higher priority
-    return priority;
-  }
-
-  // Only give priority to players with significant influence (>= 200)
-  if (influenceScore >= 200) {
-    priority = influenceScore;
-  }
-
-  // Add badge priority
+  // Add badge priority FIRST (highest weight)
   if (badges && badges.length > 0) {
     const highestBadge = badges.reduce((highest, badge) => {
       const badgePriority = BADGE_PRIORITY[badge.badge_type as keyof typeof BADGE_PRIORITY] || 0;
@@ -293,13 +281,24 @@ const calculatePlayerPriority = (influenceScore: number, badges: PlayerBadge[], 
     });
 
     const badgePriority = BADGE_PRIORITY[highestBadge.badge_type as keyof typeof BADGE_PRIORITY] || 0;
-    priority += badgePriority * 1000; // Multiply by 1000 to ensure badges take precedence over influence score
+    priority += badgePriority * 100000; // Multiply by 100000 to ensure badges take precedence over everything
   }
 
-  // Add server role priority
+  // Add server role priority (second highest weight)
   if (serverRole) {
     const rolePriority = SERVER_ROLE_PRIORITY[serverRole.toLowerCase() as keyof typeof SERVER_ROLE_PRIORITY] || 0;
-    priority += rolePriority * 500; // Multiply by 500 to ensure roles are important but not as much as badges
+    priority += rolePriority * 10000; // Multiply by 10000 to ensure roles are important
+  }
+
+  // Give priority to top players by playtime (but below badges and roles)
+  if (playerUuid && TOP_PLAYERS_BY_PLAYTIME.includes(playerUuid)) {
+    const playtimeRank = TOP_PLAYERS_BY_PLAYTIME.indexOf(playerUuid);
+    priority += 1000 - playtimeRank; // Higher rank = higher priority, but lower weight
+  }
+
+  // Only give priority to players with significant influence (>= 200)
+  if (influenceScore >= 200) {
+    priority += influenceScore;
   }
 
   return priority;
@@ -342,7 +341,17 @@ const processPlayerProfileFromDb = (player: PlayerProfileFromDb, detailedStats: 
     displayName: player.name,
     avatar: `https://mc-heads.net/avatar/${player.uuid}/100`,
     joinDate: player.created_at,
-    lastSeen: new Date(player.last_seen * 1000).toISOString(),
+    lastSeen: player.last_seen ? (() => {
+      // Handle both epoch seconds and milliseconds
+      const timestamp = player.last_seen;
+      if (timestamp > 1000000000000) {
+        // Already in milliseconds
+        return new Date(timestamp).toISOString();
+      } else {
+        // In seconds, convert to milliseconds
+        return new Date(timestamp * 1000).toISOString();
+      }
+    })() : new Date().toISOString(),
     isOnline: false,
     isWebsiteUser: false,
     stats: validatedStats,
@@ -350,7 +359,7 @@ const processPlayerProfileFromDb = (player: PlayerProfileFromDb, detailedStats: 
     levelInfo: levelInfo,
     nation: '',
     town: '',
-    serverRole: primaryBadge?.badge_type || 'Member',
+    serverRole: primaryBadge?.badge_type || '',
     badges: badges || [], // Add badges to the profile
   };
 };

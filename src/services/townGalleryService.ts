@@ -40,6 +40,26 @@ export interface GalleryPermissions {
 
 export class TownGalleryService {
   /**
+   * Convert old custom domain URLs to Supabase URLs
+   */
+  private static convertToSupabaseUrl(oldUrl: string): string {
+    // If the URL contains the old custom domain, convert it to Supabase URL
+    if (oldUrl.includes('storage.nordics.world')) {
+      // Extract the path after the bucket name
+      const pathMatch = oldUrl.match(/\/nation-town-images\/(.+)$/);
+      if (pathMatch) {
+        const storagePath = pathMatch[1];
+        // Generate the Supabase URL
+        const { data } = supabase.storage
+          .from('nation-town-images')
+          .getPublicUrl(storagePath);
+        return data.publicUrl;
+      }
+    }
+    return oldUrl;
+  }
+
+  /**
    * Get all photos for a town
    */
   static async getTownPhotos(townName: string): Promise<TownPhoto[]> {
@@ -58,8 +78,14 @@ export class TownGalleryService {
         return [];
       }
 
-      console.log(`Found ${photos?.length || 0} photos for ${townName}`);
-      return photos || [];
+      // Convert old URLs to Supabase URLs
+      const convertedPhotos = photos?.map(photo => ({
+        ...photo,
+        file_url: this.convertToSupabaseUrl(photo.file_url)
+      })) || [];
+
+      console.log(`Found ${convertedPhotos.length} photos for ${townName}`);
+      return convertedPhotos;
     } catch (error) {
       console.error('Error in getTownPhotos:', error);
       return [];

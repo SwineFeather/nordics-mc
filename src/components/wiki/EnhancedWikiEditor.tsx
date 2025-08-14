@@ -397,7 +397,7 @@ const EnhancedWikiEditor: React.FC<EnhancedWikiEditorProps> = ({
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="Page Title"
-                  className="w-full text-2xl font-bold mb-2 px-3 py-2 border rounded-md focus:outline-none focus:ring"
+                  className="w-full text-2xl font-bold mb-2 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground placeholder:text-muted-foreground"
                 />
               </div>
               <Textarea

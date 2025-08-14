@@ -154,7 +154,7 @@ const processPlayerProfile = async (player: PlayerProfileFromDb): Promise<Player
     stats: validatedStats,
     achievements: achievements,
     levelInfo: levelInfo,
-    serverRole: 'Member',
+    serverRole: '',
     badges: badges, // Always include badges
   };
 };

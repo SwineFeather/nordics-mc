@@ -12,6 +12,7 @@ import NationImageUploadDialog from './NationImageUploadDialog';
 import { NationImageService } from '@/services/nationImageService';
 import { useAuth } from '@/hooks/useAuth';
 import { useNationImage } from '@/hooks/useDynamicImage';
+import EditNationModal from './EditNationModal';
 
 interface NationCardProps {
   nation: SupabaseNationData & { towns: SupabaseTownData[] };
@@ -87,6 +88,20 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
           </Button>
         )}
         
+        {/* Edit Nation Button - Only show for nation leaders */}
+        {profile && (profile.role === 'admin' || profile.role === 'moderator' || profile.full_name === nation.leader_name) && (
+          <div className="absolute left-8 top-1/2 -translate-y-1/2 translate-x-32">
+            <EditNationModal 
+              nation={nation}
+              onNationUpdated={(updatedNation) => {
+                // Update the nation object with the new data
+                Object.assign(nation, updatedNation);
+                // Force a re-render by updating a state variable
+                // This is a simple way to trigger re-render
+              }}
+            />
+          </div>
+        )}
 
       </div>
       
@@ -117,7 +132,6 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
             </Button>
           </div>
           <div className="mt-2">
-            <p className="text-muted-foreground italic text-sm leading-relaxed">"{nation.description}"</p>
             {nation.motto && (
               <p className="text-xs font-medium text-primary">{nation.motto}</p>
             )}
@@ -172,14 +186,11 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
         <details className="group">
           <summary className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
             <BookOpen className="w-4 h-4" />
-            Nation Lore & History
+            Lore
             <ChevronRight className="w-3 h-3 ml-1 group-open:rotate-90 transition-transform duration-200" />
           </summary>
           <div className="mt-2 pl-2 border-l-2 border-muted">
             <p className="text-sm text-muted-foreground leading-relaxed mb-2">{nation.lore}</p>
-            {nation.history && (
-              <p className="text-xs text-muted-foreground leading-relaxed">{nation.history}</p>
-            )}
           </div>
         </details>
         {/* Towns as Mini-Cards */}

@@ -19,7 +19,6 @@ import {
   Search,
   Filter,
   ExternalLink,
-  Eye,
   Clock,
   AlertCircle
 } from 'lucide-react';
@@ -208,26 +207,15 @@ const BusinessListings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-            🏢 Business Listings
-          </h1>
-          <p className="text-muted-foreground">
-            Discover established companies and their services
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          {user && (
-            <CreateCompanyModal 
-              onCompanyCreated={fetchCompanies}
-              isAdmin={profile?.role === 'admin' || profile?.role === 'moderator'}
-            />
-          )}
-        </div>
-      </div>
+             {/* Create Company Button */}
+       <div className="flex justify-center mb-6">
+         {user && (
+           <CreateCompanyModal 
+             onCompanyCreated={fetchCompanies}
+             isAdmin={profile?.role === 'admin' || profile?.role === 'moderator'}
+           />
+         )}
+       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(value: 'active' | 'pending') => setActiveTab(value)}>
@@ -334,7 +322,10 @@ const BusinessListings: React.FC = () => {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg truncate group-hover:text-primary transition-colors">
+                      <CardTitle 
+                        className="text-lg truncate group-hover:text-primary transition-colors cursor-pointer"
+                        onClick={() => navigate(`/company/${company.slug}`)}
+                      >
                         {company.name}
                       </CardTitle>
                       {company.tagline && (
@@ -424,18 +415,11 @@ const BusinessListings: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-2">
-                <Button 
-                  className="flex-1" 
-                  size="sm"
-                  onClick={() => navigate(`/company/${company.slug}`)}
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Company
-                </Button>
                 {company.website_url && (
                   <Button variant="outline" size="sm" asChild>
                     <a href={company.website_url} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4" />
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Website
                     </a>
                   </Button>
                 )}
