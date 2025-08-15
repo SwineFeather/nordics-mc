@@ -1,0 +1,2438 @@
+info:
+  namespace: litefish
+items:
+#latest_71944, use 43 down
+#cold_ocean
+  tempest_whirlfin:
+    enabled: true
+    display_name: "Tempest Whirlfin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71952
+      textures:
+        - items/tempest_whirlfin.png
+  seastormflounder:
+    enabled: true
+    display_name: "Seastorm Flounder"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 719658
+      textures:
+        - items/seastormflounder.png
+  frostscalecod:
+    enabled: true
+    display_name: "Frostscale Cod"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71959
+      textures:
+        - items/frostscalecod.png
+#desert
+  scorchedsunfish:
+    enabled: true
+    display_name: "Scorched Sunfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71967
+      textures:
+        - items/scorchedsunfish.png
+  dunefin:
+    enabled: true
+    display_name: "Dunefin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71963
+      textures:
+        - items/dunefin.png
+  cactuscatfish:
+    enabled: true
+    display_name: "Cactus Catfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71960
+      textures:
+        - items/cactuscatfish.png
+#mushroom
+  sporefin:
+    enabled: true
+    display_name: "Sporefin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71956
+      textures:
+        - items/sporefin.png
+  mossycatfish:
+    enabled: true
+    display_name: "Mossy Catfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71961
+      textures:
+        - items/mossycatfish.png
+  fungusflounder:
+    enabled: true
+    display_name: "Fungus Flounder"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71962
+      textures:
+        - items/fungusflounder.png
+#temperate
+  blossomtailsnapper:
+    enabled: true
+    display_name: "Blossomtail Snapper"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71957
+      textures:
+        - items/blossomtailsnapper.png
+  petalfinkoi:
+    enabled: true
+    display_name: "Petalfin Koi"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71964
+      textures:
+        - items/petalfinkoi.png
+  duskscaletetra:
+    enabled: true
+    display_name: "Duskscale Tetra"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71965
+      textures:
+        - items/duskscaletetra.png
+  everbloomcarp:
+    enabled: true
+    display_name: "Everbloom Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71966
+      textures:
+        - items/everbloomcarp.png
+  twilighttetra:
+    enabled: true
+    display_name: "Twilight Tetra"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71968
+      textures:
+        - items/twilighttetra.png
+  sapphirestreamer:
+    enabled: true
+    display_name: "Sapphire Streamer"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71969
+      textures:
+        - items/sapphirestreamer.png
+#warm_ocean
+  anthias:
+    enabled: true
+    display_name: "#ff9900Anthias"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71996
+      textures:
+        - items/anthias.png
+  bubblefish:
+    enabled: true
+    display_name: "&#3333ccBubblefish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71997
+      textures:
+        - items/bubblefish.png
+  crimson_bubblefish:
+    enabled: true
+    display_name: "&#d0003cCrimson Bubblefish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71998
+      textures:
+        - items/crimsonbubblefish.png
+  coralfishshiny:
+    enabled: true
+    display_name: "Coralfish Fish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71977
+      textures:
+        - items/coralfishshiny.png
+  anthiasshiny:
+    enabled: true
+    display_name: "Chromis Fish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71978
+      textures:
+        - items/anthiasshiny.png
+  chromisshiny:
+    enabled: true
+    display_name: "Chromis Fish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71979
+      textures:
+        - items/chromisshiny.png
+  chromis:
+    enabled: true
+    display_name: "&#01cda8Chromis Fish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71999
+      textures:
+        - items/chromis.png
+  coralfish:
+    enabled: true
+    display_name: "&#fe6496Coral Fish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71990
+      textures:
+        - items/coralfish.png
+  lavaanthias:
+    enabled: true
+    display_name: "&#d83700Lava Anthias"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71991
+      textures:
+        - items/lavaanthias.png
+  obsidianfish:
+    enabled: true
+    display_name: "&#9966ccMidnight Shardfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71995
+      textures:
+        - items/obsidianfish.png
+#swamp
+  ebon_koi:
+    enabled: true
+    display_name: "Ebon Koi"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71949
+      textures:
+        - items/ebon_koi.png
+  fairyfinstreamer:
+    enabled: true
+    display_name: "Fairyfin Streamer"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71972
+      textures:
+        - items/fairyfinstreamer.png
+  aquafae:
+    enabled: true
+    display_name: "Aquafae"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71973
+      textures:
+        - items/aquafae.png
+#jungle
+  verdant_seraph:
+    enabled: true
+    display_name: "Verdant Seraph"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71951
+      textures:
+        - items/verdant_seraph.png
+  emeralddart:
+    enabled: true
+    display_name: "Emerald Dart"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71970
+      textures:
+        - items/emeralddart.png
+  amazoniastreamer:
+    enabled: true
+    display_name: "Amazonia Streamer"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71971
+      textures:
+        - items/amazoniastreamer.png
+#snow
+  snowcrest_prowler:
+    enabled: true
+    display_name: "Snowcrest Prowler"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71950
+      textures:
+        - items/snowcrest_prowler.png
+  shadowfin:
+    enabled: true
+    display_name: "Shadowfin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71974
+      textures:
+        - items/shadowfin.png
+  icefish:
+    enabled: true
+    display_name: "Glacierfin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71976
+      textures:
+        - items/icefish.png
+#other_items
+  dolphinfin:
+    enabled: true
+    display_name: "Dolphin fin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71975
+      textures:
+        - items/dolphinfin.png
+#pearls
+  dull_pearl:
+    enabled: true
+    display_name: "&7Dull Pearl"
+    resource:
+      material: ECHO_SHARD
+      generate: true
+      model_id: 71944
+      textures:
+        - items/dull_pearl.png
+  lustrous_pearl:
+    enabled: true
+    display_name: "&7Lustrous Pearl"
+    resource:
+      material: ECHO_SHARD
+      generate: true
+      model_id: 71945
+      textures:
+        - items/lustrous_pearl.png
+  flawless_pearl:
+    enabled: true
+    display_name: "&7Flawless Pearl"
+    resource:
+      material: ECHO_SHARD
+      generate: true
+      model_id: 71946
+      textures:
+        - items/flawless_pearl.png
+  brilliant_pearl:
+    enabled: true
+    display_name: "&7Brilliant Pearl"
+    resource:
+      material: ECHO_SHARD
+      generate: true
+      model_id: 71947
+      textures:
+        - items/brilliant_pearl.png
+  pristine_pearl:
+    enabled: true
+    display_name: "&7Pristine Pearl"
+    resource:
+      material: ECHO_SHARD
+      generate: true
+      model_id: 71993
+      textures:
+        - items/pristine_pearl.png
+  mendingpearl:
+    enabled: true
+    display_name: "&aMending Pearl"
+    resource:
+      material: ECHO_SHARD
+      generate: true
+      model_id: 71994
+      textures:
+        - items/mendingpearl.png
+#oysters
+  oystersilk:
+    enabled: true
+    display_name: "&7Oyster"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71980
+      textures:
+        - items/lfish_10.png
+  oysterfortune:
+    enabled: true
+    display_name: "&7Oyster"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71981
+      textures:
+        - items/lfish_10.png
+  oystermending:
+    enabled: true
+    display_name: "&7Oyster"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71982
+      textures:
+        - items/lfish_10.png
+#scales
+  scaleswild:
+    enabled: true
+    display_name: "Wild Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71953
+      textures:
+        - items/scaleswild.png
+  scalesvital:
+    enabled: true
+    display_name: "Vital Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71954
+      textures:
+        - items/scalesvital.png
+  scalesfrost:
+    enabled: true
+    display_name: "Frost Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71955
+      textures:
+        - items/scalesfrost.png
+  scalesglacial:
+    enabled: true
+    display_name: "Glacial Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71983
+      textures:
+        - items/scalesglacial.png
+  scalesecho:
+    enabled: true
+    display_name: "Echo Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71984
+      textures:
+        - items/scalesecho.png
+  scalesvoid:
+    enabled: true
+    display_name: "Void Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71985
+      textures:
+        - items/scalesvoid.png
+  scalesheat:
+    enabled: true
+    display_name: "Heat Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71986
+      textures:
+        - items/scalesheat.png
+  scalesfungal:
+    enabled: true
+    display_name: "Fungal Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71987
+      textures:
+        - items/scalesfungal.png
+  scalestoxic:
+    enabled: true
+    display_name: "Toxic Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71988
+      textures:
+        - items/scalestoxic.png
+  scalessunlit:
+    enabled: true
+    display_name: "Sunlit Scales"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 71989
+      textures:
+        - items/scalessunlit.png
+#default_fishes
+  fish_4:
+    enabled: true
+    display_name: "&#EF4AAABlob fish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72000
+      textures:
+        - items/lfish_4.png
+  fish_5:
+    enabled: true
+    display_name: "&#62C4EBShark"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72001
+      textures:
+        - items/lfish_5.png
+  fish_6:
+    enabled: true
+    display_name: "{#F72024}Mushroom W-shark"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72003
+      textures:
+        - items/lfish_6.png
+  fish_7:
+    enabled: true
+    display_name: "{#F72024}Strawberry W-shark"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72002
+      textures:
+        - items/lfish_7.png
+  fish_8:
+    enabled: true
+    display_name: "{#47ECF5}W-shark"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72004
+      textures:
+        - items/lfish_8.png
+  fish_172:
+    enabled: true
+    display_name: "{#14D8FF}Deep Anglerfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72005
+      textures:
+        - items/lfish_172.png
+  fish_173:
+    enabled: true
+    display_name: "{#CC75EB}Distorted Anglerfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72006
+      textures:
+        - items/lfish_173.png
+  fish_174:
+    enabled: true
+    display_name: "{#D768CD}Holy Anglerfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72007
+      textures:
+        - items/lfish_174.png
+  fish_175:
+    enabled: true
+    display_name: "{#E5C786}Desert Anglerfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72008
+      textures:
+        - items/lfish_175.png
+  fish_176:
+    enabled: true
+    display_name: "{#FFA7D0}Meat Anglerfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72009
+      textures:
+        - items/lfish_176.png
+  fish_177:
+    enabled: true
+    display_name: "{#354FB9}Anglerfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72010
+      textures:
+        - items/lfish_177.png
+  fish_178:
+    enabled: true
+    display_name: "{#F2D9CF}Sand Lionfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72011
+      textures:
+        - items/lfish_178.png
+  fish_179:
+    enabled: true
+    display_name: "{#F2D9CF}Sand Lionfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72012
+      textures:
+        - items/lfish_179.png
+  fish_180:
+    enabled: true
+    display_name: "{#DC5B5C}Lionfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72013
+      textures:
+        - items/lfish_180.png
+  fish_181:
+    enabled: true
+    display_name: "{#DC5B5C}Lionfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72014
+      textures:
+        - items/lfish_181.png
+  fish_182:
+    enabled: true
+    display_name: "{#94B1DE}Tuna"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72015
+      textures:
+        - items/lfish_182.png
+  fish_183:
+    enabled: true
+    display_name: "{#94B1DE}Tuna"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72016
+      textures:
+        - items/lfish_183.png
+  fish_184:
+    enabled: true
+    display_name: "{#94B1DE}Tuna"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72017
+      textures:
+        - items/lfish_184.png
+  fish_185:
+    enabled: true
+    display_name: "{#A6A7B7}Trout"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72018
+      textures:
+        - items/lfish_185.png
+  fish_186:
+    enabled: true
+    display_name: "{#A6A7B7}Trout"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72019
+      textures:
+        - items/lfish_186.png
+  fish_187:
+    enabled: true
+    display_name: "{#A6A7B7}Trout"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72020
+      textures:
+        - items/lfish_187.png
+  fish_188:
+    enabled: true
+    display_name: "{#F84961}Mushroom Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72021
+      textures:
+        - items/lfish_188.png
+  fish_189:
+    enabled: true
+    display_name: "{#F84961}Mushroom Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72022
+      textures:
+        - items/lfish_189.png
+  fish_190:
+    enabled: true
+    display_name: "{#F84961}Mushroom Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72023
+      textures:
+        - items/lfish_190.png
+  fish_191:
+    enabled: true
+    display_name: "{#E9D3FD}Purple Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72024
+      textures:
+        - items/lfish_191.png
+  fish_192:
+    enabled: true
+    display_name: "{#E9D3FD}Purple Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72025
+      textures:
+        - items/lfish_192.png
+  fish_193:
+    enabled: true
+    display_name: "{#E9D3FD}Purple Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72026
+      textures:
+        - items/lfish_193.png
+  fish_194:
+    enabled: true
+    display_name: "{#7FDBD7}Prismarine Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72027
+      textures:
+        - items/lfish_194.png
+  fish_195:
+    enabled: true
+    display_name: "{#7FDBD7}Prismarine Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72028
+      textures:
+        - items/lfish_195.png
+  fish_196:
+    enabled: true
+    display_name: "{#7FDBD7}Prismarine Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72029
+      textures:
+        - items/lfish_196.png
+  fish_197:
+    enabled: true
+    display_name: "{#FF9967}Clownfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72030
+      textures:
+        - items/lfish_197.png
+  fish_198:
+    enabled: true
+    display_name: "{#FF9967}Clownfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72031
+      textures:
+        - items/lfish_198.png
+  fish_199:
+    enabled: true
+    display_name: "{#FF9967}Clownfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72032
+      textures:
+        - items/lfish_199.png
+  fish_200:
+    enabled: true
+    display_name: "{#C4343D}Piranha"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72033
+      textures:
+        - items/lfish_200.png
+  fish_201:
+    enabled: true
+    display_name: "{#C4343D}Piranha"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72034
+      textures:
+        - items/lfish_201.png
+  fish_202:
+    enabled: true
+    display_name: "{#C4343D}Piranha"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72035
+      textures:
+        - items/lfish_202.png
+  fish_203:
+    enabled: true
+    display_name: "{#A4A6B5}Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72036
+      textures:
+        - items/lfish_203.png
+  fish_204:
+    enabled: true
+    display_name: "{#A4A6B5}Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72037
+      textures:
+        - items/lfish_204.png
+  fish_205:
+    enabled: true
+    display_name: "{#A4A6B5}Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72038
+      textures:
+        - items/lfish_205.png
+  fish_206:
+    enabled: true
+    display_name: "{#8287C4}Lapis Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72039
+      textures:
+        - items/lfish_206.png
+  fish_207:
+    enabled: true
+    display_name: "{#8287C4}Lapis Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72040
+      textures:
+        - items/lfish_207.png
+  fish_208:
+    enabled: true
+    display_name: "{#8287C4}Lapis Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72041
+      textures:
+        - items/lfish_208.png
+  fish_209:
+    enabled: true
+    display_name: "{#C7E3FF}Diamond Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72042
+      textures:
+        - items/lfish_209.png
+  fish_210:
+    enabled: true
+    display_name: "{#C7E3FF}Diamond Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72043
+      textures:
+        - items/lfish_210.png
+  fish_211:
+    enabled: true
+    display_name: "{#C7E3FF}Diamond Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72044
+      textures:
+        - items/lfish_211.png
+  fish_212:
+    enabled: true
+    display_name: "{#FFC8B2}Desert Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72045
+      textures:
+        - items/lfish_212.png
+  fish_213:
+    enabled: true
+    display_name: "{#FFC8B2}Desert Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72046
+      textures:
+        - items/lfish_213.png
+  fish_214:
+    enabled: true
+    display_name: "{#FFC8B2}Desert Carp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72047
+      textures:
+        - items/lfish_214.png
+  fish_215:
+    enabled: true
+    display_name: "{#A6806A}Flounder"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72048
+      textures:
+        - items/lfish_215.png
+  fish_216:
+    enabled: true
+    display_name: "{#A6806A}Flounder"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72049
+      textures:
+        - items/lfish_216.png
+  fish_217:
+    enabled: true
+    display_name: "{#A6806A}Flounder"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72050
+      textures:
+        - items/lfish_217.png
+  fish_218:
+    enabled: true
+    display_name: "{#FF7349}Red Goldfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72051
+      textures:
+        - items/lfish_218.png
+  fish_219:
+    enabled: true
+    display_name: "{#FF7349}Red Goldfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72052
+      textures:
+        - items/lfish_219.png
+  fish_220:
+    enabled: true
+    display_name: "{#FF7349}Red Goldfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72053
+      textures:
+        - items/lfish_220.png
+  fish_221:
+    enabled: true
+    display_name: "{#FFF078}Goldfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72054
+      textures:
+        - items/lfish_221.png
+  fish_222:
+    enabled: true
+    display_name: "{#FFF078}Goldfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72055
+      textures:
+        - items/lfish_222.png
+  fish_223:
+    enabled: true
+    display_name: "{#FFF078}Goldfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72056
+      textures:
+        - items/lfish_223.png
+  fish_139:
+    enabled: true
+    display_name: "{#92A8FF}Stingray"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72057
+      textures:
+        - items/lfish_139.png
+  fish_140:
+    enabled: true
+    display_name: "{#4954AC}Stingray"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72058
+      textures:
+        - items/lfish_140.png
+  fish_141:
+    enabled: true
+    display_name: "{#A1A4AF}Rocky Stingray"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72059
+      textures:
+        - items/lfish_141.png
+  fish_142:
+    enabled: true
+    display_name: "{#C8C5FC}Manta Albino"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72060
+      textures:
+        - items/lfish_142.png
+  fish_143:
+    enabled: true
+    display_name: "{#FACECD}Desert Manta"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72061
+      textures:
+        - items/lfish_143.png
+  fish_144:
+    enabled: true
+    display_name: "{#FFDFF5}Pink Manta"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72062
+      textures:
+        - items/lfish_144.png
+  fish_145:
+    enabled: true
+    display_name: "{#BBD1FD}Manta"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72063
+      textures:
+        - items/lfish_145.png
+  fish_146:
+    enabled: true
+    display_name: "{#5461C7}Manta"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72064
+      textures:
+        - items/lfish_146.png
+  fish_147:
+    enabled: true
+    display_name: "{#DCDFE5}Rocky Manta"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72065
+      textures:
+        - items/lfish_147.png
+  fish_132:
+    enabled: true
+    display_name: "{#D351E5}Rainbow Shrimp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72066
+      textures:
+        - items/lfish_132.png
+  fish_133:
+    enabled: true
+    display_name: "{#D7D7E6}Shrimp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72067
+      textures:
+        - items/lfish_133.png
+  fish_134:
+    enabled: true
+    display_name: "{#FFC6D2}Pink Shrimp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72068
+      textures:
+        - items/lfish_134.png
+  fish_135:
+    enabled: true
+    display_name: "{#D6CDFF}Purple Shrimp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72069
+      textures:
+        - items/lfish_135.png
+  fish_136:
+    enabled: true
+    display_name: "{#B4E9F5}Diamond Shrimp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72070
+      textures:
+        - items/lfish_136.png
+  fish_137:
+    enabled: true
+    display_name: "{#A0EFBE}Emerald Shrimp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72071
+      textures:
+        - items/lfish_137.png
+  fish_138:
+    enabled: true
+    display_name: "{#E56348}Desert Shrimp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72072
+      textures:
+        - items/lfish_138.png
+  fish_33:
+    enabled: true
+    display_name: "{#CF334B}Mushroom Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72073
+      textures:
+        - items/lfish_33.png
+  fish_34:
+    enabled: true
+    display_name: "{#CF334B}Mushroom Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72074
+      textures:
+        - items/lfish_34.png
+  fish_35:
+    enabled: true
+    display_name: "{#CF334B}Mushroom Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72075
+      textures:
+        - items/lfish_35.png
+  fish_36:
+    enabled: true
+    display_name: "{#FFD8E5}Pink Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72076
+      textures:
+        - items/lfish_36.png
+  fish_37:
+    enabled: true
+    display_name: "{#FFD8E5}Pink Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72077
+      textures:
+        - items/lfish_37.png
+  fish_38:
+    enabled: true
+    display_name: "{#FFD8E5}Pink Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72078
+      textures:
+        - items/lfish_38.png
+  fish_39:
+    enabled: true
+    display_name: "{#AD84E3}Purple Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72079
+      textures:
+        - items/lfish_39.png
+  fish_40:
+    enabled: true
+    display_name: "{#AD84E3}Purple Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72080
+      textures:
+        - items/lfish_40.png
+  fish_41:
+    enabled: true
+    display_name: "{#AD84E3}Purple Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72081
+      textures:
+        - items/lfish_41.png
+  fish_42:
+    enabled: true
+    display_name: "{#FCB6D3}Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72082
+      textures:
+        - items/lfish_42.png
+  fish_43:
+    enabled: true
+    display_name: "{#FCB6D3}Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72083
+      textures:
+        - items/lfish_43.png
+  fish_44:
+    enabled: true
+    display_name: "{#FCB6D3}Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72084
+      textures:
+        - items/lfish_44.png
+  fish_45:
+    enabled: true
+    display_name: "{#48D391}Emerald Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72085
+      textures:
+        - items/lfish_45.png
+  fish_46:
+    enabled: true
+    display_name: "{#48D391}Emerald Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72086
+      textures:
+        - items/lfish_46.png
+  fish_47:
+    enabled: true
+    display_name: "{#48D391}Emerald Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72087
+      textures:
+        - items/lfish_47.png
+  fish_48:
+    enabled: true
+    display_name: "{#54E2F5}Diamond Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72088
+      textures:
+        - items/lfish_48.png
+  fish_49:
+    enabled: true
+    display_name: "{#54E2F5}Diamond Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72089
+      textures:
+        - items/lfish_49.png
+  fish_50:
+    enabled: true
+    display_name: "{#54E2F5}Diamond Jellyfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72090
+      textures:
+        - items/lfish_50.png
+  fish_15:
+    enabled: true
+    display_name: "{#CF334B}Mushroom Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72091
+      textures:
+        - items/lfish_15.png
+  fish_16:
+    enabled: true
+    display_name: "{#CF334B}Mushroom Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72092
+      textures:
+        - items/lfish_16.png
+  fish_17:
+    enabled: true
+    display_name: "{#CF334B}Mushroom Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72093
+      textures:
+        - items/lfish_17.png
+  fish_18:
+    enabled: true
+    display_name: "{#FEE7F3}Pink Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72094
+      textures:
+        - items/lfish_18.png
+  fish_19:
+    enabled: true
+    display_name: "{#FEE7F3}Pink Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72095
+      textures:
+        - items/lfish_19.png
+  fish_20:
+    enabled: true
+    display_name: "{#FEE7F3}Pink Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72096
+      textures:
+        - items/lfish_20.png
+  fish_21:
+    enabled: true
+    display_name: "{#F6A9CA}Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72097
+      textures:
+        - items/lfish_21.png
+  fish_22:
+    enabled: true
+    display_name: "{#F6A9CA}Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72098
+      textures:
+        - items/lfish_22.png
+  fish_23:
+    enabled: true
+    display_name: "{#F6A9CA}Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72099
+      textures:
+        - items/lfish_23.png
+  fish_24:
+    enabled: true
+    display_name: "{#B78BE9}Purple Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72100
+      textures:
+        - items/lfish_24.png
+  fish_25:
+    enabled: true
+    display_name: "{#B78BE9}Purple Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72101
+      textures:
+        - items/lfish_25.png
+  fish_26:
+    enabled: true
+    display_name: "{#B78BE9}Purple Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72102
+      textures:
+        - items/lfish_26.png
+  fish_27:
+    enabled: true
+    display_name: "{#82FDFF}Diamond Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72103
+      textures:
+        - items/lfish_27.png
+  fish_28:
+    enabled: true
+    display_name: "{#82FDFF}Diamond Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72104
+      textures:
+        - items/lfish_28.png
+  fish_29:
+    enabled: true
+    display_name: "{#82FDFF}Diamond Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72105
+      textures:
+        - items/lfish_29.png
+  fish_30:
+    enabled: true
+    display_name: "{#48D38D}Emerald Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72106
+      textures:
+        - items/lfish_30.png
+  fish_31:
+    enabled: true
+    display_name: "{#48D38D}Emerald Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72107
+      textures:
+        - items/lfish_31.png
+  fish_32:
+    enabled: true
+    display_name: "{#48D38D}Emerald Jellyoctopus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72108
+      textures:
+        - items/lfish_32.png
+  fish_1:
+    enabled: true
+    display_name: "{#FFBBDC}Starfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72109
+      textures:
+        - items/lfish_1.png
+  fish_2:
+    enabled: true
+    display_name: "{#FFD3A4}Starfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72110
+      textures:
+        - items/lfish_2.png
+  fish_3:
+    enabled: true
+    display_name: "{#E36F82}Starfish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72111
+      textures:
+        - items/lfish_3.png
+  fish_13:
+    enabled: true
+    display_name: "{#DD4772}Crab"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72112
+      textures:
+        - items/lfish_13.png
+  fish_14:
+    enabled: true
+    display_name: "{#DD4772}Crab"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72113
+      textures:
+        - items/lfish_14.png
+  fish_51:
+    enabled: true
+    display_name: "{#8AFF89}Emerald Seahorse"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72114
+      textures:
+        - items/lfish_51.png
+  fish_52:
+    enabled: true
+    display_name: "{#D351E5}Rainbow Seahorse"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72115
+      textures:
+        - items/lfish_52.png
+  fish_53:
+    enabled: true
+    display_name: "{#A9C8FF}Diamond Seahorse"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72116
+      textures:
+        - items/lfish_53.png
+  fish_54:
+    enabled: true
+    display_name: "{#FBF2AB}Seahorse"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72117
+      textures:
+        - items/lfish_54.png
+  fish_111:
+    enabled: true
+    display_name: "{#853694}Echinus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72118
+      textures:
+        - items/lfish_111.png
+  fish_113:
+    enabled: true
+    display_name: "{#853694}Echinus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72119
+      textures:
+        - items/lfish_113.png
+  fish_114:
+    enabled: true
+    display_name: "{#853694}Echinus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72120
+      textures:
+        - items/lfish_114.png
+  fish_112:
+    enabled: true
+    display_name: "{#2D7B8F}Deep Echinus"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72121
+      textures:
+        - items/lfish_112.png
+  fish_148:
+    enabled: true
+    display_name: "{#507CB3}Deep Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72122
+      textures:
+        - items/lfish_148.png
+  fish_154:
+    enabled: true
+    display_name: "{#507CB3}Deep Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72123
+      textures:
+        - items/lfish_154.png
+  fish_160:
+    enabled: true
+    display_name: "{#507CB3}Deep Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72124
+      textures:
+        - items/lfish_160.png
+  fish_166:
+    enabled: true
+    display_name: "{#507CB3}Deep Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72125
+      textures:
+        - items/lfish_166.png
+  fish_149:
+    enabled: true
+    display_name: "{#72BDED}Diamond Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72126
+      textures:
+        - items/lfish_149.png
+  fish_155:
+    enabled: true
+    display_name: "{#72BDED}Diamond Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72127
+      textures:
+        - items/lfish_155.png
+  fish_161:
+    enabled: true
+    display_name: "{#72BDED}Diamond Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72128
+      textures:
+        - items/lfish_161.png
+  fish_167:
+    enabled: true
+    display_name: "{#72BDED}Diamond Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72129
+      textures:
+        - items/lfish_167.png
+  fish_150:
+    enabled: true
+    display_name: "{#BD78FF}Purple Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72130
+      textures:
+        - items/lfish_150.png
+  fish_162:
+    enabled: true
+    display_name: "{#BD78FF}Purple Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72131
+      textures:
+        - items/lfish_162.png
+  fish_168:
+    enabled: true
+    display_name: "{#BD78FF}Purple Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72132
+      textures:
+        - items/lfish_168.png
+  fish_151:
+    enabled: true
+    display_name: "{#FFCFCB}Desert Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72133
+      textures:
+        - items/lfish_151.png
+  fish_157:
+    enabled: true
+    display_name: "{#FFCFCB}Desert Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72134
+      textures:
+        - items/lfish_157.png
+  fish_163:
+    enabled: true
+    display_name: "{#FFCFCB}Desert Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72135
+      textures:
+        - items/lfish_163.png
+  fish_169:
+    enabled: true
+    display_name: "{#FFCFCB}Desert Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72136
+      textures:
+        - items/lfish_169.png
+  fish_152:
+    enabled: true
+    display_name: "{#FFCBDE}Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72137
+      textures:
+        - items/lfish_152.png
+  fish_153:
+    enabled: true
+    display_name: "{#FFCBDE}Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72138
+      textures:
+        - items/lfish_153.png
+  fish_159:
+    enabled: true
+    display_name: "{#FFCBDE}Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72139
+      textures:
+        - items/lfish_159.png
+  fish_165:
+    enabled: true
+    display_name: "{#FFCBDE}Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72140
+      textures:
+        - items/lfish_165.png
+  fish_171:
+    enabled: true
+    display_name: "{#FFCBDE}Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72141
+      textures:
+        - items/lfish_171.png
+  fish_158:
+    enabled: true
+    display_name: "{#DDE0F5}Rocky Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72142
+      textures:
+        - items/lfish_158.png
+  fish_164:
+    enabled: true
+    display_name: "{#DDE0F5}Rocky Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72143
+      textures:
+        - items/lfish_164.png
+  fish_170:
+    enabled: true
+    display_name: "{#DDE0F5}Rocky Worm"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72144
+      textures:
+        - items/lfish_170.png
+  fish_55:
+    enabled: true
+    display_name: "{#D02D3F}Mushroom Shell"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72145
+      textures:
+        - items/lfish_55.png
+  fish_56:
+    enabled: true
+    display_name: "{#D02D3F}Mushroom Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72146
+      textures:
+        - items/lfish_56.png
+  fish_57:
+    enabled: true
+    display_name: "{#D02D3F}Mushroom Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72147
+      textures:
+        - items/lfish_57.png
+  fish_58:
+    enabled: true
+    display_name: "{#D02D3F}Mushroom Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72148
+      textures:
+        - items/lfish_58.png
+  fish_59:
+    enabled: true
+    display_name: "{#D02D3F}Two Headed Mushroom Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72149
+      textures:
+        - items/lfish_59.png
+  fish_60:
+    enabled: true
+    display_name: "{#D02D3F}Two Headed Mushroom Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72150
+      textures:
+        - items/lfish_60.png
+  fish_61:
+    enabled: true
+    display_name: "{#D02D3F}Two Headed Mushroom Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72151
+      textures:
+        - items/lfish_61.png
+  fish_62:
+    enabled: true
+    display_name: "{#C8C5FC}Albino Shell"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72152
+      textures:
+        - items/lfish_62.png
+  fish_63:
+    enabled: true
+    display_name: "{#C8C5FC}Albino Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72153
+      textures:
+        - items/lfish_63.png
+  fish_64:
+    enabled: true
+    display_name: "{#C8C5FC}Albino Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72154
+      textures:
+        - items/lfish_64.png
+  fish_65:
+    enabled: true
+    display_name: "{#C8C5FC}Albino Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72155
+      textures:
+        - items/lfish_65.png
+  fish_66:
+    enabled: true
+    display_name: "{#C8C5FC}Two Headed Albino Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72156
+      textures:
+        - items/lfish_66.png
+  fish_67:
+    enabled: true
+    display_name: "{#C8C5FC}Two Headed Albino Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72157
+      textures:
+        - items/lfish_67.png
+  fish_68:
+    enabled: true
+    display_name: "{#C8C5FC}Two Headed Albino Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72158
+      textures:
+        - items/lfish_68.png
+  fish_69:
+    enabled: true
+    display_name: "{#C3FCF8}Diamond Shell"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72159
+      textures:
+        - items/lfish_69.png
+  fish_70:
+    enabled: true
+    display_name: "{#C3FCF8}Diamond Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72160
+      textures:
+        - items/lfish_70.png
+  fish_71:
+    enabled: true
+    display_name: "{#C3FCF8}Diamond Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72161
+      textures:
+        - items/lfish_71.png
+  fish_72:
+    enabled: true
+    display_name: "{#C3FCF8}Diamond Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72162
+      textures:
+        - items/lfish_72.png
+  fish_73:
+    enabled: true
+    display_name: "{#C3FCF8}Two Headed Diamond Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72163
+      textures:
+        - items/lfish_73.png
+  fish_74:
+    enabled: true
+    display_name: "{#C3FCF8}Two Headed Diamond Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72164
+      textures:
+        - items/lfish_74.png
+  fish_75:
+    enabled: true
+    display_name: "{#C3FCF8}Two Headed Diamond Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72165
+      textures:
+        - items/lfish_75.png
+  fish_76:
+    enabled: true
+    display_name: "{#F8D8C8}Desert Shell"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72166
+      textures:
+        - items/lfish_76.png
+  fish_77:
+    enabled: true
+    display_name: "{#F8D8C8}Desert Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72167
+      textures:
+        - items/lfish_77.png
+  fish_78:
+    enabled: true
+    display_name: "{#F8D8C8}Desert Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72168
+      textures:
+        - items/lfish_78.png
+  fish_79:
+    enabled: true
+    display_name: "{#F8D8C8}Desert Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72169
+      textures:
+        - items/lfish_79.png
+  fish_80:
+    enabled: true
+    display_name: "{#F8D8C8}Two Headed Desert Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72170
+      textures:
+        - items/lfish_80.png
+  fish_81:
+    enabled: true
+    display_name: "{#F8D8C8}Two Headed Desert Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72171
+      textures:
+        - items/lfish_81.png
+  fish_82:
+    enabled: true
+    display_name: "{#F8D8C8}Two Headed Desert Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72172
+      textures:
+        - items/lfish_82.png
+  fish_90:
+    enabled: true
+    display_name: "{#FFA1C9}Pink Shell"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72173
+      textures:
+        - items/lfish_90.png
+  fish_91:
+    enabled: true
+    display_name: "{#FFA1C9}Pink Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72174
+      textures:
+        - items/lfish_91.png
+  fish_92:
+    enabled: true
+    display_name: "{#FFA1C9}Pink Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72175
+      textures:
+        - items/lfish_92.png
+  fish_93:
+    enabled: true
+    display_name: "{#FFA1C9}Pink Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72176
+      textures:
+        - items/lfish_93.png
+  fish_94:
+    enabled: true
+    display_name: "{#FFA1C9}Two Headed Pink Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72177
+      textures:
+        - items/lfish_94.png
+  fish_95:
+    enabled: true
+    display_name: "{#FFA1C9}Two Headed Pink Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72178
+      textures:
+        - items/lfish_95.png
+  fish_96:
+    enabled: true
+    display_name: "{#FFA1C9}Two Headed Pink Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72179
+      textures:
+        - items/lfish_96.png
+  fish_97:
+    enabled: true
+    display_name: "{#B19BFF}Purple Shell"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72180
+      textures:
+        - items/lfish_97.png
+  fish_98:
+    enabled: true
+    display_name: "{#B19BFF}Purple Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72181
+      textures:
+        - items/lfish_98.png
+  fish_99:
+    enabled: true
+    display_name: "{#B19BFF}Purple Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72182
+      textures:
+        - items/lfish_99.png
+  fish_100:
+    enabled: true
+    display_name: "{#B19BFF}Purple Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72183
+      textures:
+        - items/lfish_100.png
+  fish_101:
+    enabled: true
+    display_name: "{#B19BFF}Two Headed Purple Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72184
+      textures:
+        - items/lfish_101.png
+  fish_102:
+    enabled: true
+    display_name: "{#B19BFF}Two Headed Purple Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72185
+      textures:
+        - items/lfish_102.png
+  fish_103:
+    enabled: true
+    display_name: "{#B19BFF}Two Headed Purple Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72186
+      textures:
+        - items/lfish_103.png
+  fish_104:
+    enabled: true
+    display_name: "{#93E5C1}Turtle Shell"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72187
+      textures:
+        - items/lfish_104.png
+  fish_105:
+    enabled: true
+    display_name: "{#93E5C1}Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72188
+      textures:
+        - items/lfish_105.png
+  fish_106:
+    enabled: true
+    display_name: "{#93E5C1}Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72189
+      textures:
+        - items/lfish_106.png
+  fish_107:
+    enabled: true
+    display_name: "{#93E5C1}Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72190
+      textures:
+        - items/lfish_107.png
+  fish_108:
+    enabled: true
+    display_name: "{#93E5C1}Two Headed Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72191
+      textures:
+        - items/lfish_108.png
+  fish_109:
+    enabled: true
+    display_name: "{#93E5C1}Two Headed Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72192
+      textures:
+        - items/lfish_109.png
+  fish_110:
+    enabled: true
+    display_name: "{#93E5C1}Two Headed Turtle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72193
+      textures:
+        - items/lfish_110.png
+  fish_9:
+    enabled: true
+    display_name: "{#FFE1EC}Ancient Shell"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72194
+      textures:
+        - items/lfish_9.png
+  fish_10:
+    enabled: true
+    display_name: "&7Oyster"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72195
+      textures:
+        - items/lfish_10.png
+  fish_11:
+    enabled: true
+    display_name: "{#DED5FD}Oyster With Pearl"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72196
+      textures:
+        - items/lfish_11.png
+  fish_12:
+    enabled: true
+    display_name: "&7Pearl"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72197
+      textures:
+        - items/lfish_12.png
+  fish_115:
+    enabled: true
+    display_name: "{#DFA676}Snag"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72198
+      textures:
+        - items/lfish_115.png
+  fish_116:
+    enabled: true
+    display_name: "{#F6F2FA}Ancient Bone"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72199
+      textures:
+        - items/lfish_116.png
+  fish_117:
+    enabled: true
+    display_name: "{#F6F2FA}Scull"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72200
+      textures:
+        - items/lfish_117.png
+  fish_118:
+    enabled: true
+    display_name: "{#CDCDCD}Megalodon Tooth"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72201
+      textures:
+        - items/lfish_118.png
+  fish_119:
+    enabled: true
+    display_name: "{#62D1F9}Pirate Lamp"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72202
+      textures:
+        - items/lfish_119.png
+  fish_120:
+    enabled: true
+    display_name: "{#DF843B}Rudder"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72203
+      textures:
+        - items/lfish_120.png
+  fish_121:
+    enabled: true
+    display_name: "{#9CB8D1}Anchor"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72204
+      textures:
+        - items/lfish_121.png
+  fish_122:
+    enabled: true
+    display_name: "{#FFFFFF}Note In Bottle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72205
+      textures:
+        - items/lfish_122.png
+  fish_123:
+    enabled: true
+    display_name: "{#FFFFFF}Bottle With Fish"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72206
+      textures:
+        - items/lfish_123.png
+  fish_124:
+    enabled: true
+    display_name: "{#FFFFFF}Empty Bottle"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72207
+      textures:
+        - items/lfish_124.png
+  fish_125:
+    enabled: true
+    display_name: "{#FFFFFF}Scrap"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72208
+      textures:
+        - items/lfish_125.png
+  fish_126:
+    enabled: true
+    display_name: "{#EC6A3C}Copper Coin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72209
+      textures:
+        - items/lfish_126.png
+  fish_127:
+    enabled: true
+    display_name: "{#A6A6A6}Silver Coin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72210
+      textures:
+        - items/lfish_127.png
+  fish_128:
+    enabled: true
+    display_name: "{#F4E326}Gold Coin"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72211
+      textures:
+        - items/lfish_128.png
+  fish_129:
+    enabled: true
+    display_name: "{#D06023}Treasure Chest"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72212
+      textures:
+        - items/lfish_129.png
+  fish_130:
+    enabled: true
+    display_name: "{#D08464}Empty Chest"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72213
+      textures:
+        - items/lfish_130.png
+  fish_131:
+    enabled: true
+    display_name: "{#D06023}Chest"
+    resource:
+      material: TROPICAL_FISH
+      generate: true
+      model_id: 72214
+      textures:
+        - items/lfish_131.png

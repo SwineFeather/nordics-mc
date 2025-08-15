@@ -181,7 +181,7 @@ const TownPage = () => {
             <div className="flex items-center gap-4">
               <TownProfilePicture 
                 townName={townData.name}
-                className="h-64 w-64 object-cover"
+                className="h-64 w-64 object-contain"
                 imageUrl={(townData as any).image_url}
               />
               

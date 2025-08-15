@@ -47,7 +47,8 @@ import {
   getStockColor,
   formatCoordinates,
   getWorldDisplayName,
-  getItemDisplayName
+  getItemDisplayName,
+  matchesNormalizedSearch
 } from '@/utils/marketplaceUtils';
 import MinecraftItemImage from '@/components/ui/MinecraftItemImage';
 
@@ -75,8 +76,8 @@ const ModernMarketplace: React.FC = () => {
   const filteredAndSortedShops = useMemo(() => {
     let filtered = shops.filter(shop => {
       const matchesSearch = 
-        shop.item_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (shop.item_display_name && shop.item_display_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        matchesNormalizedSearch(searchTerm, shop.item_type) ||
+        (shop.item_display_name && matchesNormalizedSearch(searchTerm, shop.item_display_name)) ||
         shop.owner_uuid.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesType = filterType === 'all' || shop.type === filterType;

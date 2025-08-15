@@ -55,16 +55,16 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
   return (
     <Card className={`rounded-2xl shadow-lg border-2 ${borderColorClass} overflow-hidden group hover:shadow-xl transition-all duration-300 bg-card`}> 
       {/* Wide Banner/Flag */}
-      <div className="relative h-32 w-full bg-gradient-to-r from-primary/30 to-secondary/30 flex items-center justify-center">
+      <div className="relative h-32 w-full flex items-center justify-center">
         {isLoading ? (
-          <div className="h-24 w-24 rounded-full border-4 border-background shadow-lg absolute left-8 top-1/2 -translate-y-1/2 bg-background flex items-center justify-center">
+          <div className="h-24 w-24 absolute left-8 top-1/2 -translate-y-1/2 flex items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <img
             src={imageUrl}
             alt={nation.name + ' flag'}
-            className="h-24 w-24 object-cover rounded-full border-4 border-background shadow-lg absolute left-8 top-1/2 -translate-y-1/2 bg-background cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-24 w-24 object-cover absolute left-8 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-80 transition-opacity"
             onError={e => (e.currentTarget.style.display = 'none')}
             onClick={() => {
               if (imageUrl) {
@@ -108,12 +108,17 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
       <CardHeader className="pb-0 pt-8 relative">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 mb-1">
-            <Crown className="w-6 h-6 text-yellow-500" />
-            <CardTitle className={`text-2xl font-bold text-foreground truncate`}>{nation.name}</CardTitle>
-            <Badge variant="outline" className="border-current text-xs bg-background/90 text-foreground ml-2">
-              {nation.type}
-            </Badge>
+            <Crown className={`w-6 h-6 ${nation.theme_color || 'text-yellow-500'}`} />
+            <CardTitle className={`text-2xl font-bold text-foreground truncate`}>{nation.name.replace(/_/g, ' ')}</CardTitle>
           </div>
+          
+          {/* Nation Description/Bio */}
+          {nation.description && (
+            <div className="mb-2">
+              <p className="text-sm text-muted-foreground leading-relaxed">{nation.description}</p>
+            </div>
+          )}
+          
           <div className="flex items-center gap-3 flex-wrap text-sm text-muted-foreground mb-1">
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
@@ -144,7 +149,7 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
-              <Crown className="w-4 h-4 text-yellow-500" />
+              <Crown className={`w-4 h-4 ${nation.theme_color || 'text-yellow-500'}`} />
               <span className="font-semibold text-foreground">Leader:</span>
               <button
                 className="font-medium text-foreground hover:underline text-left"
@@ -178,6 +183,28 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
               <span className="font-semibold text-foreground">Government:</span>
               <span className="font-medium text-foreground">{nation.government}</span>
             </div>
+            {nation.ruling_entity && (
+              <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                <span className="font-semibold text-foreground">Ruling Entity:</span>
+                <span className="font-medium text-foreground">{nation.ruling_entity}</span>
+              </div>
+            )}
+            {nation.government_system && (
+              <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                <span className="font-semibold text-foreground">Government System:</span>
+                <span className="font-medium text-foreground">{nation.government_system}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-muted-foreground text-xs">
+              <span className="font-semibold text-foreground">Economic System:</span>
+              <span className="font-medium text-foreground">{nation.economic_system || 'Capitalist'}</span>
+            </div>
+            {nation.vassal_of && (
+              <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                <span className="font-semibold text-foreground">Subordinate to:</span>
+                <span className="font-medium text-foreground">{nation.vassal_of}</span>
+              </div>
+            )}
 
           </div>
         </div>
@@ -203,7 +230,12 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
               {nation.towns.map((town, index) => (
                 <div key={town.name} className="rounded-xl bg-muted/30 p-6 flex flex-col items-start shadow group hover:bg-muted/50 transition">
                   <div className="mb-3 w-full">
-                    <span className="font-semibold text-base truncate">{town.name}</span>
+                    <Link 
+                      to={`/town/${encodeURIComponent(town.name)}`}
+                      className="font-semibold text-base truncate hover:text-primary transition-colors cursor-pointer"
+                    >
+                      {town.name}
+                    </Link>
                   </div>
                   <div className="flex items-center gap-2 text-sm mb-4 w-full">
                     <Users className="w-5 h-5 text-primary" />
@@ -225,11 +257,6 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
                     >
                       <Eye className="w-4 h-4 mr-1" /> Quick View
                     </Button>
-                    <Link to={`/town/${encodeURIComponent(town.name)}`} className="w-full">
-                      <Button size="sm" variant="outline" className="text-sm px-2 py-1 h-8 w-full">
-                        <Link2 className="w-4 h-4 mr-1" /> Full Page
-                      </Button>
-                    </Link>
                   </div>
                 </div>
               ))}

@@ -12,6 +12,7 @@ const Index = lazy(() => import('./pages/Index'));
 const Home = lazy(() => import('./pages/Home'));
 const Nyrvalos = lazy(() => import('./pages/Nyrvalos'));
 const Community = lazy(() => import('./pages/Community'));
+const Markets = lazy(() => import('./pages/Markets'));
 const Forum = lazy(() => import('./pages/Forum'));
 const Towns = lazy(() => import('./pages/Towns'));
 const Town = lazy(() => import('./pages/Town'));
@@ -68,6 +69,13 @@ function App() {
                 <Route path="/home" element={<Layout><Home /></Layout>} />
                 <Route path="/nyrvalos" element={<Nyrvalos />} />
                 <Route path="/community" element={<Layout><Community /></Layout>} />
+                <Route path="/community/players" element={<Layout><Community /></Layout>} />
+                <Route path="/community/towns" element={<Layout><Community /></Layout>} />
+                <Route path="/community/nations" element={<Layout><Community /></Layout>} />
+                <Route path="/markets" element={<Layout><Markets /></Layout>} />
+                <Route path="/markets/shops" element={<Layout><Markets /></Layout>} />
+                <Route path="/markets/businesses" element={<Layout><Markets /></Layout>} />
+                <Route path="/markets/groups" element={<Layout><Markets /></Layout>} />
                 <Route path="/forum" element={<Layout><Forum /></Layout>} />
                 <Route path="/forum/category/:categoryId" element={<Layout><Forum /></Layout>} />
                 <Route path="/forum/post/:postId" element={<Layout><Forum /></Layout>} />

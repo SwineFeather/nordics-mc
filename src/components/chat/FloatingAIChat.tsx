@@ -147,7 +147,7 @@ export default function FloatingAIChat() {
   return (
     <>
       <style>{proseStyle}</style>
-      <div className="fixed bottom-4 left-4 z-50">
+      <div className="fixed bottom-4 left-4 z-50 hidden">
         {!isVisible ? (
           <Button
             onClick={() => setIsVisible(true)}

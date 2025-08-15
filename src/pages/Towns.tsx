@@ -4,29 +4,21 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NationsTab from '@/components/towns/NationsTab';
 import TownsTab from '@/components/towns/TownsTab';
-import GroupsTab from '@/components/towns/GroupsTab';
-import BusinessListingsTab from '@/components/towns/BusinessListingsTab';
-import ShopsTab from '@/components/towns/ShopsTab';
-import { useCompaniesData } from '@/hooks/useCompaniesData';
-import { useShopData } from '@/hooks/useShopData';
-import { useServerStatus } from '@/hooks/useServerStatus';
-import { Crown, Building2, MapPin, HelpCircle, Building, Store } from 'lucide-react';
+
+import { Crown, MapPin, HelpCircle } from 'lucide-react';
 
 interface TownsProps {
-  defaultTab?: 'nations' | 'markets';
+  defaultTab?: 'nations' | 'towns';
 }
 
 const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
-  const { companies } = useCompaniesData();
-  const { shops } = useShopData();
-  const { status: serverStatus } = useServerStatus();
   const navigate = useNavigate();
   const location = useLocation();
   
   // Determine active tab from URL or prop
   const getActiveTab = () => {
-    if (location.pathname === '/towns/nations' || location.pathname === '/towns/towns') return 'nations';
-    if (location.pathname === '/towns/groups' || location.pathname === '/towns/businesses' || location.pathname === '/towns/shops') return 'markets';
+    if (location.pathname === '/towns/nations') return 'nations';
+    if (location.pathname === '/towns/towns') return 'towns';
     return defaultTab;
   };
 
@@ -37,8 +29,8 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
       case 'nations':
         navigate('/towns/nations');
         break;
-      case 'markets':
-        navigate('/towns/groups');
+      case 'towns':
+        navigate('/towns/towns');
         break;
       default:
         navigate('/towns');
@@ -209,80 +201,6 @@ const NationsAndTownsTab: React.FC = () => {
   );
 };
 
-// New component for Markets with sub-navigation
-const MarketsTab: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  // Determine active sub-tab from URL
-  const getActiveSubTab = () => {
-    if (location.pathname === '/towns/groups') return 'groups';
-    if (location.pathname === '/towns/businesses') return 'businesses';
-    if (location.pathname === '/towns/shops') return 'shops';
-    return 'groups';
-  };
-  
-  const [activeSubTab, setActiveSubTab] = useState<'groups' | 'businesses' | 'shops'>(getActiveSubTab());
-  
-  const handleSubTabChange = (value: 'groups' | 'businesses' | 'shops') => {
-    setActiveSubTab(value);
-    switch (value) {
-      case 'groups':
-        navigate('/towns/groups');
-        break;
-      case 'businesses':
-        navigate('/towns/businesses');
-        break;
-      case 'shops':
-        navigate('/towns/shops');
-        break;
-    }
-  };
-  
-  return (
-    <div className="space-y-6">
-      {/* Sub-navigation for Markets */}
-      <div className="flex justify-center">
-        <Tabs value={activeSubTab} onValueChange={(value: 'groups' | 'businesses' | 'shops') => handleSubTabChange(value)} className="w-full">
-          <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-xl p-1 w-full max-w-2xl mx-auto border border-orange-200 dark:border-orange-800 shadow-lg">
-            <TabsTrigger 
-              value="groups" 
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
-            >
-              <Building className="w-4 h-4" />
-              Enterprises
-            </TabsTrigger>
-            <TabsTrigger 
-              value="businesses" 
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
-            >
-              <Building2 className="w-4 h-4" />
-              Business Listings
-            </TabsTrigger>
-            <TabsTrigger 
-              value="shops" 
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
-            >
-              <Store className="w-4 h-4" />
-              Shops
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="groups" className="mt-6">
-            <GroupsTab />
-          </TabsContent>
-          
-          <TabsContent value="businesses" className="mt-6">
-            <BusinessListingsTab />
-          </TabsContent>
-          
-          <TabsContent value="shops" className="mt-6">
-            <ShopsTab />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-};
+
 
 export default Towns;

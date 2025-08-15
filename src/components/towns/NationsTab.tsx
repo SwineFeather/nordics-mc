@@ -77,7 +77,7 @@ const NationsTab: React.FC = () => {
             <div className="h-10 w-10 bg-muted animate-pulse rounded" />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="h-96 bg-muted animate-pulse rounded-2xl" />
           ))}
@@ -176,7 +176,7 @@ const NationsTab: React.FC = () => {
         </div>
       ) : (
         <div className={viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+          ? "grid grid-cols-1 md:grid-cols-2 gap-6" 
           : "space-y-4"
         }>
           {filteredNations.map((nation) => (

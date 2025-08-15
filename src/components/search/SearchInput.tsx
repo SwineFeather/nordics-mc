@@ -11,6 +11,7 @@ interface SearchInputProps {
   onBlur?: () => void;
   placeholder?: string;
   className?: string;
+  showSearchButton?: boolean;
 }
 
 const SearchInput = ({ 
@@ -19,7 +20,8 @@ const SearchInput = ({
   onFocus, 
   onBlur, 
   placeholder = "Search players, towns, companies...",
-  className = ""
+  className = "",
+  showSearchButton = false
 }: SearchInputProps) => {
   const [internalValue, setInternalValue] = useState('');
   
@@ -63,6 +65,16 @@ const SearchInput = ({
           onClick={handleClear}
         >
           <X className="w-3 h-3" />
+        </Button>
+      )}
+      {showSearchButton && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute right-8 top-1/2 transform -translate-y-1/2 h-6 px-2 text-xs hover:bg-primary hover:text-primary-foreground rounded-full transition-all duration-200"
+          onClick={handleSearch}
+        >
+          Search
         </Button>
       )}
     </div>

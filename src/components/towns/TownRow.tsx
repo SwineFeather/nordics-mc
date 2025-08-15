@@ -63,9 +63,6 @@ const TownRow: React.FC<TownRowProps> = ({ town, nationName, nationColor, onView
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="text-xs">
-            {town.type}
-          </Badge>
           <Badge variant="outline" className={`text-xs ${nationColor} border-current`}>
             {town.status}
           </Badge>

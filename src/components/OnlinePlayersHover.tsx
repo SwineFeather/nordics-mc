@@ -154,16 +154,13 @@ const OnlinePlayersHover: React.FC<OnlinePlayersHoverProps> = ({
           onMouseEnter={show}
           onMouseLeave={hide}
         >
-          <div className={`w-auto max-w-md p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl select-text ${overlapClass}`}>
+          <div className={`w-auto max-w-2xl p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl select-text ${overlapClass}`}>
             <div className="space-y-3">
               <div className="text-center">
                 <h4 className="text-sm font-semibold">Players Online</h4>
-                <p className="text-xs text-muted-foreground">
-                  {players.length} player{players.length !== 1 ? 's' : ''} currently online
-                </p>
               </div>
-              <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
-                {players.slice(0, 18).map((player) => {
+              <div className="grid grid-cols-8 gap-3 max-h-40 overflow-y-auto">
+                {players.slice(0, 24).map((player) => {
                   const realTimePlayerData = realTimeData?.find(rtPlayer => rtPlayer.name === player.name);
                   return (
                     <PlayerAvatar 
@@ -175,9 +172,9 @@ const OnlinePlayersHover: React.FC<OnlinePlayersHoverProps> = ({
                   );
                 })}
               </div>
-              {players.length > 18 && (
+              {players.length > 24 && (
                 <p className="text-xs text-muted-foreground text-center">
-                  +{players.length - 18} more players
+                  +{players.length - 24} more players
                 </p>
               )}
             </div>

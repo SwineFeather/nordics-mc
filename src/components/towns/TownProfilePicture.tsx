@@ -39,6 +39,8 @@ export const TownProfilePicture: React.FC<TownProfilePictureProps> = ({
   
   const defaultStyle = hasCustomDimensions ? {
     ...style,
+    maxWidth: '80%',
+    maxHeight: '80%',
     width: 'auto',
     height: 'auto'
   } : {

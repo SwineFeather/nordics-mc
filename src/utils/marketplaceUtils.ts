@@ -319,3 +319,21 @@ export const getItemDisplayName = (itemType: string, displayName: string | null)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 }; 
+
+/**
+ * Normalizes a search term by replacing underscores with spaces
+ * This allows users to search for "end rod" instead of "end_rod"
+ */
+export const normalizeSearchTerm = (searchTerm: string): string => {
+  return searchTerm.replace(/_/g, ' ');
+};
+
+/**
+ * Checks if a normalized search term matches a target string
+ * Both the search term and target are normalized (underscores replaced with spaces)
+ */
+export const matchesNormalizedSearch = (searchTerm: string, target: string): boolean => {
+  const normalizedSearch = normalizeSearchTerm(searchTerm.toLowerCase());
+  const normalizedTarget = normalizeSearchTerm(target.toLowerCase());
+  return normalizedTarget.includes(normalizedSearch);
+}; 

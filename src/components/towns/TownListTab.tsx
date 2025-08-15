@@ -181,7 +181,6 @@ const TownListTab: React.FC<TownListTabProps> = ({ searchTerm }) => {
                     {town.name}
                   </CardTitle>
                   <div className="flex flex-wrap items-center gap-1 mt-1 min-w-0 overflow-hidden">
-                    <Badge className={`text-xs ${getTownTypeColor(town.type)}`}>{town.type}</Badge>
                     <Badge className={`text-xs ${getStatusColor(town.status)}`}>{town.status}</Badge>
                   </div>
                 </div>

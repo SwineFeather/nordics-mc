@@ -164,6 +164,11 @@ export interface SupabaseNationData {
   created_at: string;
   ally_count?: number;
   towns_count?: number;
+  economic_system?: string;
+  vassal_of?: string | null;
+  theme_color?: string;
+  ruling_entity?: string;
+  government_system?: string;
 }
 
 export class SupabaseTownService {
