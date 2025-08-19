@@ -35,6 +35,8 @@ const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Login = lazy(() => import('./pages/Login'));
 const LoginDebug = lazy(() => import('./pages/LoginDebug'));
+const Signup = lazy(() => import('./pages/Signup'));
+const TestUsernameCheck = lazy(() => import('./pages/TestUsernameCheck'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Notifications = lazy(() => import('./pages/Notifications'));
   const NSI = lazy(() => import('./pages/NSI'));
@@ -64,6 +66,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/test-username" element={<TestUsernameCheck />} />
                 <Route path="/login-debug" element={<LoginDebug />} />
                 <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
                 <Route path="/home" element={<Layout><Home /></Layout>} />

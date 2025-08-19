@@ -10,6 +10,7 @@ import { Edit, Save, Loader2, Info, ChevronDown, ChevronRight } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SupabaseNationData } from '@/services/supabaseTownService';
+import { useAuth } from '@/hooks/useAuth';
 
 // Ruling entities organized by categories
 const RULING_ENTITY_CATEGORIES = {
@@ -29,7 +30,13 @@ const RULING_ENTITY_CATEGORIES = {
     'Archduke': 'High-ranking noble ruler',
     'Archduchess': 'High-ranking female noble ruler',
     'Viceroy': 'Representative ruler for a monarch',
-    'Regent': 'Temporary ruler while monarch is unable to rule'
+    'Regent': 'Temporary ruler while monarch is unable to rule',
+    'Jarl': 'Norse noble ruler, equivalent to earl or duke',
+    'Hersir': 'Norse military leader and landowner',
+    'Lendmann': 'Norwegian royal official and landowner',
+    'Stallare': 'Swedish royal official and commander',
+    'Hirdmann': 'Member of Norwegian royal household',
+    'Skutilsvein': 'Norse royal servant and official'
   },
   'Elected Leaders': {
     'President': 'An elected head of state',
@@ -40,7 +47,12 @@ const RULING_ENTITY_CATEGORIES = {
     'Senator': 'Elected member of a senate',
     'Representative': 'Elected member of a legislative body',
     'Governor': 'Elected or appointed leader of a region',
-    'Mayor': 'Elected leader of a city'
+    'Mayor': 'Elected leader of a city',
+    'Storting Representative': 'Member of Norwegian parliament',
+    'Riksdag Member': 'Member of Swedish parliament',
+    'Folketing Member': 'Member of Danish parliament',
+    'Althing Member': 'Member of Icelandic parliament',
+    'Eduskunta Member': 'Member of Finnish parliament'
   },
   'Council & Assembly': {
     'Council': 'A group of people who rule together',
@@ -52,7 +64,18 @@ const RULING_ENTITY_CATEGORIES = {
     'Cortes': 'Parliament in Spanish-speaking countries',
     'Reichstag': 'German parliament or legislative body',
     'Duma': 'Russian legislative assembly',
-    'Knesset': 'Israeli parliament'
+    'Knesset': 'Israeli parliament',
+    'Thing': 'Ancient Norse assembly and court',
+    'Althing': 'Icelandic parliament, oldest in the world',
+    'Storting': 'Norwegian parliament',
+    'Riksdag': 'Swedish parliament',
+    'Folketing': 'Danish parliament',
+    'Eduskunta': 'Finnish parliament',
+    'Lagting': 'Norwegian upper house (1814-2009)',
+    'Odelsting': 'Norwegian lower house (1814-2009)',
+    'Landsting': 'Swedish upper house (1866-1970)',
+    'Andra Kammaren': 'Swedish lower house (1866-1970)',
+    'Första Kammaren': 'Swedish upper house (1866-1970)'
   },
   'Military Leaders': {
     'General': 'Military leader who rules',
@@ -64,7 +87,17 @@ const RULING_ENTITY_CATEGORIES = {
     'Marshal': 'High-ranking military officer who rules',
     'Strategos': 'Ancient Greek military leader who rules',
     'Shogun': 'Japanese military dictator',
-    'Caesar': 'Roman military and political leader'
+    'Caesar': 'Roman military and political leader',
+    'Hersir': 'Norse military leader and landowner',
+    'Stallare': 'Swedish royal official and commander',
+    'Hirdmann': 'Member of Norwegian royal household',
+    'Skutilsvein': 'Norse royal servant and official',
+    'Jarl': 'Norse noble ruler and military leader',
+    'Viking Captain': 'Norse sea captain and raider',
+    'Berserker Chief': 'Norse warrior leader',
+    'Shield Maiden': 'Norse female warrior leader',
+    'Valkyrie': 'Norse female warrior and chooser of the slain',
+    'Einherjar': 'Norse warrior chosen for Valhalla'
   },
   'Religious Leaders': {
     'Pope': 'Head of the Catholic Church who rules',
@@ -80,29 +113,13 @@ const RULING_ENTITY_CATEGORIES = {
     'Imam': 'Islamic religious leader who rules',
     'Rabbi': 'Jewish religious leader who rules',
     'Lama': 'Tibetan Buddhist leader who rules',
-    'Guru': 'Spiritual teacher who rules'
-  },
-  'Fantasy & Mythical': {
-    'Dragon': 'A powerful dragon who rules the land',
-    'Phoenix': 'A mythical bird who rules through rebirth',
-    'Unicorn': 'A magical unicorn who rules with purity',
-    'Griffin': 'A mythical creature who rules with strength',
-    'Kraken': 'A sea monster who rules the oceans',
-    'Titan': 'A giant being who rules with ancient power',
-    'Elemental': 'A being of pure elemental energy who rules',
-    'Spirit': 'A supernatural being who rules',
-    'Deity': 'A god or goddess who rules directly',
-    'Avatar': 'A divine incarnation who rules',
-    'Oracle': 'A mystical seer who rules through prophecy',
-    'Wizard': 'A powerful magic user who rules',
-    'Witch': 'A magical practitioner who rules',
-    'Sorcerer': 'A wielder of dark magic who rules',
-    'Necromancer': 'A master of death magic who rules',
-    'Druid': 'A nature priest who rules',
-    'Bard': 'A magical musician who rules through song',
-    'Paladin': 'A holy warrior who rules with divine authority',
-    'Ranger': 'A wilderness guardian who rules',
-    'Rogue': 'A cunning thief who rules through stealth'
+    'Guru': 'Spiritual teacher who rules',
+    'Gothi': 'Norse pagan priest and chieftain',
+    'Völva': 'Norse female seer and prophetess',
+    'Seiðkona': 'Norse female practitioner of magic',
+    'Runemaster': 'Norse master of runic magic',
+    'Thing Priest': 'Norse priest who presides over assemblies',
+    'Temple Guardian': 'Guardian of Norse temples and sacred sites'
   },
   'Special & Unique': {
     'Dictator': 'A single ruler with absolute power',
@@ -142,197 +159,25 @@ const RULING_ENTITY_CATEGORIES = {
     'Heretic': 'A religious rebel who rules',
     'Zealot': 'A religious fanatic who rules',
     'Martyr': 'A sacrificial figure who rules through death',
-    'Saint': 'A holy figure who rules through divine favor'
-  },
-  'Supernatural & Otherworldly': {
-    'Demon': 'A supernatural evil being who rules',
-    'Angel': 'A divine messenger who rules',
-    'Ghost': 'A spirit of the dead who rules',
-    'Vampire': 'An undead blood drinker who rules',
-    'Werewolf': 'A shape-shifting beast who rules',
-    'Zombie': 'An undead being who rules',
-    'Skeleton': 'An animated skeleton who rules',
-    'Golem': 'A magical construct who rules',
-    'Automaton': 'A mechanical being who rules',
-    'Cyborg': 'A part-human, part-machine who rules',
-    'Robot': 'A mechanical being who rules',
-    'AI': 'An artificial intelligence who rules',
-    'Hologram': 'A projected image who rules',
-    'Clone': 'A genetic copy who rules',
-    'Mutant': 'A genetically altered being who rules',
-    'Alien': 'A being from another world who rules',
-    'Time Traveler': 'A being from another time who rules',
-    'Dimension Walker': 'A being from another dimension who rules',
-    'Reality Bender': 'A being who can change reality who rules',
-    'Dream Walker': 'A being who rules through dreams',
-    'Mind Reader': 'A being who rules through mental powers',
-    'Telepath': 'A being who rules through thought',
-    'Psychic': 'A being with mental powers who rules',
-    'Empath': 'A being who feels others emotions who rules',
-    'Telekinetic': 'A being who moves objects with mind who rules',
-    'Shapeshifter': 'A being who changes form who rules',
-    'Invisible': 'A being who cannot be seen who rules',
-    'Flying': 'A being who can fly who rules',
-    'Underwater': 'A being who lives underwater who rules',
-    'Underground': 'A being who lives underground who rules',
-    'Space': 'A being from space who rules',
-    'Interdimensional': 'A being from another dimension who rules',
-    'Ethereal': 'A being of pure energy who rules',
-    'Corporeal': 'A being with a physical body who rules',
-    'Incorporeal': 'A being without a physical body who rules',
-    'Mortal': 'A being who can die who rules',
-    'Immortal': 'A being who cannot die who rules',
-    'Eternal': 'A being who exists forever who rules',
-    'Temporal': 'A being who exists in time who rules',
-    'Spatial': 'A being who exists in space who rules',
-    'Abstract': 'A being of pure concept who rules',
-    'Concrete': 'A being of physical reality who rules',
-    'Virtual': 'A being who exists in digital space who rules',
-    'Quantum': 'A being who exists in quantum states who rules',
-    'Chaos': 'A being of pure disorder who rules',
-    'Order': 'A being of pure structure who rules',
-    'Light': 'A being of pure light who rules',
-    'Darkness': 'A being of pure darkness who rules',
-    'Fire': 'A being of pure fire who rules',
-    'Water': 'A being of pure water who rules',
-    'Earth': 'A being of pure earth who rules',
-    'Air': 'A being of pure air who rules',
-    'Ice': 'A being of pure ice who rules',
-    'Lightning': 'A being of pure electricity who rules',
-    'Shadow': 'A being of pure shadow who rules',
-    'Crystal': 'A being of pure crystal who rules',
-    'Metal': 'A being of pure metal who rules',
-    'Wood': 'A being of pure wood who rules',
-    'Stone': 'A being of pure stone who rules',
-    'Glass': 'A being of pure glass who rules',
-    'Plastic': 'A being of pure plastic who rules',
-    'Fabric': 'A being of pure fabric who rules',
-    'Paper': 'A being of pure paper who rules',
-    'Ink': 'A being of pure ink who rules',
-    'Sound': 'A being of pure sound who rules',
-    'Silence': 'A being of pure silence who rules',
-    'Color': 'A being of pure color who rules',
-    'Grayscale': 'A being of pure grayscale who rules',
-    'Rainbow': 'A being of pure rainbow who rules',
-    'Monochrome': 'A being of pure monochrome who rules',
-    'Holographic': 'A being of pure hologram who rules',
-    'Neon': 'A being of pure neon who rules',
-    'Pastel': 'A being of pure pastel who rules',
-    'Metallic': 'A being of pure metal who rules',
-    'Matte': 'A being of pure matte who rules',
-    'Glossy': 'A being of pure gloss who rules',
-    'Transparent': 'A being of pure transparency who rules',
-    'Opaque': 'A being of pure opacity who rules',
-    'Reflective': 'A being of pure reflection who rules',
-    'Absorptive': 'A being of pure absorption who rules',
-    'Emissive': 'A being of pure emission who rules',
-    'Conductive': 'A being of pure conduction who rules',
-    'Insulative': 'A being of pure insulation who rules',
-    'Magnetic': 'A being of pure magnetism who rules',
-    'Electric': 'A being of pure electricity who rules',
-    'Nuclear': 'A being of pure nuclear energy who rules',
-    'Chemical': 'A being of pure chemistry who rules',
-    'Biological': 'A being of pure biology who rules',
-    'Mechanical': 'A being of pure mechanics who rules',
-    'Digital': 'A being of pure digital technology who rules',
-    'Analog': 'A being of pure analog technology who rules',
-    'Binary': 'A being of pure binary who rules',
-    'Hexadecimal': 'A being of pure hexadecimal who rules',
-    'Decimal': 'A being of pure decimal who rules',
-    'Octal': 'A being of pure octal who rules',
-    'Roman': 'A being of pure Roman numerals who rules',
-    'Greek': 'A being of pure Greek letters who rules',
-    'Cyrillic': 'A being of pure Cyrillic letters who rules',
-    'Arabic': 'A being of pure Arabic letters who rules',
-    'Chinese': 'A being of pure Chinese characters who rules',
-    'Japanese': 'A being of pure Japanese characters who rules',
-    'Korean': 'A being of pure Korean characters who rules',
-    'Hindi': 'A being of pure Hindi characters who rules',
-    'Hebrew': 'A being of pure Hebrew letters who rules',
-    'Latin': 'A being of pure Latin letters who rules',
-    'Sanskrit': 'A being of pure Sanskrit who rules',
-    'Hieroglyphic': 'A being of pure hieroglyphics who rules',
-    'Cuneiform': 'A being of pure cuneiform who rules',
-    'Runes': 'A being of pure runes who rules',
-    'Ogham': 'A being of pure Ogham who rules',
-    'Braille': 'A being of pure Braille who rules',
-    'Morse': 'A being of pure Morse code who rules',
-    'Semaphore': 'A being of pure semaphore who rules',
-    'Flag': 'A being of pure flag signals who rules',
-    'Smoke': 'A being of pure smoke signals who rules',
-    'Mirror': 'A being of pure mirror signals who rules',
-    'Laser': 'A being of pure laser who rules',
-    'Radio': 'A being of pure radio waves who rules',
-    'Microwave': 'A being of pure microwaves who rules',
-    'Infrared': 'A being of pure infrared who rules',
-    'Ultraviolet': 'A being of pure ultraviolet who rules',
-    'X-Ray': 'A being of pure X-rays who rules',
-    'Gamma': 'A being of pure gamma rays who rules',
-    'Cosmic': 'A being of pure cosmic rays who rules',
-    'Solar': 'A being of pure solar energy who rules',
-    'Lunar': 'A being of pure lunar energy who rules',
-    'Stellar': 'A being of pure stellar energy who rules',
-    'Planetary': 'A being of pure planetary energy who rules',
-    'Galactic': 'A being of pure galactic energy who rules',
-    'Universal': 'A being of pure universal energy who rules',
-    'Multiversal': 'A being of pure multiversal energy who rules',
-    'Omniversal': 'A being of pure omniversal energy who rules',
-    'Infinite': 'A being of pure infinity who rules',
-    'Finite': 'A being of pure finiteness who rules',
-    'Zero': 'A being of pure nothingness who rules',
-    'One': 'A being of pure oneness who rules',
-    'Pi': 'A being of pure mathematical pi who rules',
-    'E': 'A being of pure mathematical e who rules',
-    'Golden Ratio': 'A being of pure golden ratio who rules',
-    'Fibonacci': 'A being of pure Fibonacci sequence who rules',
-    'Prime': 'A being of pure prime numbers who rules',
-    'Perfect': 'A being of pure perfection who rules',
-    'Imperfect': 'A being of pure imperfection who rules',
-    'Random': 'A being of pure randomness who rules',
-    'Deterministic': 'A being of pure determinism who rules',
-    'Probabilistic': 'A being of pure probability who rules',
-    'Statistical': 'A being of pure statistics who rules',
-    'Analytical': 'A being of pure analysis who rules',
-    'Synthetic': 'A being of pure synthesis who rules',
-    'Organic': 'A being of pure organic matter who rules',
-    'Inorganic': 'A being of pure inorganic matter who rules',
-    'Living': 'A being of pure life who rules',
-    'Dead': 'A being of pure death who rules',
-    'Undead': 'A being between life and death who rules',
-    'Reborn': 'A being who has been reborn who rules',
-    'Reincarnated': 'A being who has been reincarnated who rules',
-    'Transformed': 'A being who has been transformed who rules',
-    'Evolved': 'A being who has evolved who rules',
-    'Devolved': 'A being who has devolved who rules',
-    'Ascended': 'A being who has ascended to higher power who rules',
-    'Descended': 'A being who has descended to lower power who rules',
-    'Transcended': 'A being who has transcended normal existence who rules',
-    'Immanent': 'A being who exists within creation who rules',
-    'Transcendent': 'A being who exists beyond creation who rules',
-    'Immanent-Transcendent': 'A being who exists both within and beyond creation who rules',
-    'Omnipresent': 'A being who exists everywhere who rules',
-    'Omniscient': 'A being who knows everything who rules',
-    'Omnipotent': 'A being who can do anything who rules',
-    'Omnibenevolent': 'A being who is purely good who rules',
-    'Omnimalevolent': 'A being who is purely evil who rules',
-    'Neutral': 'A being who is neither good nor evil who rules',
-    'Chaotic': 'A being who is purely chaotic who rules',
-    'Lawful': 'A being who is purely lawful who rules',
-    'True Neutral': 'A being who is perfectly balanced who rules',
-    'Chaotic Good': 'A being who is chaotically good who rules',
-    'Chaotic Evil': 'A being who is chaotically evil who rules',
-    'Lawful Good': 'A being who is lawfully good who rules',
-    'Lawful Evil': 'A being who is lawfully evil who rules',
-    'Neutral Good': 'A being who is neutrally good who rules',
-    'Neutral Evil': 'A being who is neutrally evil who rules',
-    'Chaotic Neutral': 'A being who is chaotically neutral who rules',
-    'Lawful Neutral': 'A being who is lawfully neutral who rules'
+    'Saint': 'A holy figure who rules through divine favor',
+    'Skald': 'Norse poet and storyteller who rules through words',
+    'Runemaster': 'Norse master of runic magic and divination',
+    'Völva': 'Norse female seer and prophetess',
+    'Gothi': 'Norse pagan priest and chieftain',
+    'Seiðkona': 'Norse female practitioner of magic',
+    'Berserker': 'Norse warrior who fights in a trance-like state',
+    'Valkyrie': 'Norse female warrior and chooser of the slain',
+    'Einherjar': 'Norse warrior chosen for Valhalla',
+    'Dís': 'Norse female spirit or goddess',
+    'Norn': 'Norse fate goddess who weaves destiny',
+    'Vættir': 'Norse nature spirits and guardians'
   }
 };
 
 interface EditNationModalProps {
   nation: SupabaseNationData;
   onNationUpdated: (updatedNation: SupabaseNationData) => void;
+}
 
 // Government systems organized by categories
 const GOVERNMENT_SYSTEM_CATEGORIES = {
@@ -354,10 +199,12 @@ const GOVERNMENT_SYSTEM_CATEGORIES = {
     'Byzantine Empire': 'Eastern Roman Empire with imperial structure',
     'Ottoman Empire': 'Islamic empire with sultanate system',
     'Austro-Hungarian Empire': 'Dual monarchy with complex federal structure',
-    'Russian Empire': 'Tsarist autocracy with imperial expansion',
-    'British Empire': 'Constitutional monarchy with colonial empire',
-    'French Empire': 'Napoleonic imperial system',
-    'German Empire': 'Federal monarchy with imperial structure'
+    'Kalmar Union': 'Medieval union of Denmark, Norway, and Sweden',
+    'Swedish Empire': 'Swedish imperial expansion in the Baltic',
+    'Danish Empire': 'Danish imperial expansion in the North Sea',
+    'Norwegian Empire': 'Norwegian imperial expansion in the Atlantic',
+    'Finnish Grand Duchy': 'Finnish autonomy under Russian rule',
+    'Icelandic Commonwealth': 'Medieval Icelandic republic and assembly'
   },
   'Democratic Systems': {
     'Democracy': 'Rule by the people through voting and participation',
@@ -389,7 +236,12 @@ const GOVERNMENT_SYSTEM_CATEGORIES = {
     'Cultural Democracy': 'Democracy in cultural and artistic matters',
     'Scientific Democracy': 'Democratic decision-making in science',
     'Technological Democracy': 'Democratic control of technology',
-    'Educational Democracy': 'Democratic governance of education'
+    'Educational Democracy': 'Democratic governance of education',
+    'Nordic Democracy': 'Democratic system based on Nordic welfare model',
+    'Scandinavian Democracy': 'Democratic system emphasizing social equality',
+    'Nordic Council Democracy': 'Democratic cooperation between Nordic countries',
+    'Baltic Democracy': 'Democratic system in Baltic Sea region',
+    'Arctic Democracy': 'Democratic governance in Arctic regions'
   },
   'Republican Systems': {
     'Republic': 'Rule by elected officials and representatives',
@@ -422,7 +274,12 @@ const GOVERNMENT_SYSTEM_CATEGORIES = {
     'Secular Republic': 'Republic with separation of church and state',
     'Multicultural Republic': 'Republic embracing cultural diversity',
     'Environmental Republic': 'Republic focused on environmental protection',
-    'Digital Republic': 'Republic using digital governance'
+    'Digital Republic': 'Republic using digital governance',
+    'Nordic Republic': 'Republican system based on Nordic values',
+    'Scandinavian Republic': 'Republican system emphasizing equality and welfare',
+    'Baltic Republic': 'Republican system in Baltic Sea region',
+    'Arctic Republic': 'Republican governance in Arctic regions',
+    'Nordic Union Republic': 'Republican system uniting Nordic countries'
   },
   'Federal & Union Systems': {
     'Federation': 'Power shared between central and regional governments',
@@ -444,7 +301,15 @@ const GOVERNMENT_SYSTEM_CATEGORIES = {
     'Customs Union': 'Countries that have the same trade rules',
     'Alliance': 'Countries that agree to help each other',
     'Defensive Alliance': 'Countries that agree to defend each other',
-    'Offensive Alliance': 'Countries that agree to attack together'
+    'Offensive Alliance': 'Countries that agree to attack together',
+    'Nordic Union': 'Union of Nordic countries with shared governance',
+    'Scandinavian Union': 'Union of Scandinavian countries',
+    'Baltic Union': 'Union of Baltic Sea countries',
+    'Arctic Union': 'Union of Arctic region countries',
+    'Kalmar Union': 'Historical union of Denmark, Norway, and Sweden',
+    'Nordic Council': 'Cooperation organization of Nordic countries',
+    'Baltic Assembly': 'Cooperation organization of Baltic countries',
+    'Arctic Council': 'Cooperation organization of Arctic countries'
   },
   'Regional & Special Systems': {
     'City-State': 'Independent city with its own government',
@@ -456,7 +321,15 @@ const GOVERNMENT_SYSTEM_CATEGORIES = {
     'Enclave': 'Territory completely surrounded by another state',
     'Exclave': 'Territory separated from main state',
     'Condominium': 'Territory jointly ruled by multiple states',
-    'Protectorate': 'State protected by another state'
+    'Protectorate': 'State protected by another state',
+    'Nordic City-State': 'Independent Nordic city with its own government',
+    'Scandinavian City-State': 'Independent Scandinavian city with its own government',
+    'Baltic City-State': 'Independent Baltic city with its own government',
+    'Arctic City-State': 'Independent Arctic city with its own government',
+    'Nordic Microstate': 'Very small independent Nordic state',
+    'Scandinavian Microstate': 'Very small independent Scandinavian state',
+    'Baltic Microstate': 'Very small independent Baltic state',
+    'Arctic Microstate': 'Very small independent Arctic state'
   },
   'Military & Security Systems': {
     'Military': 'Government controlled by military institutions',
@@ -469,7 +342,15 @@ const GOVERNMENT_SYSTEM_CATEGORIES = {
     'Praetorian State': 'The military controls politics',
     'Garrison State': 'The country is organized around military defense',
     'Barracks State': 'The military has a lot of influence everywhere',
-    'Security State': 'The government focuses on security and watching people'
+    'Security State': 'The government focuses on security and watching people',
+    'Nordic Defense Union': 'Military alliance of Nordic countries',
+    'Scandinavian Defense Union': 'Military alliance of Scandinavian countries',
+    'Baltic Defense Union': 'Military alliance of Baltic countries',
+    'Arctic Defense Union': 'Military alliance of Arctic countries',
+    'Nordic Security Council': 'Security cooperation of Nordic countries',
+    'Scandinavian Security Council': 'Security cooperation of Scandinavian countries',
+    'Baltic Security Council': 'Security cooperation of Baltic countries',
+    'Arctic Security Council': 'Security cooperation of Arctic countries'
   },
   'Authoritarian Systems': {
     'Dictatorship': 'Rule by a single leader with absolute power',
@@ -489,27 +370,15 @@ const GOVERNMENT_SYSTEM_CATEGORIES = {
     'Nepotocracy': 'Family members rule the country',
     'Bureaucracy': 'Government officials rule the country',
     'Meritocracy': 'People with the best skills rule the country',
-    'Technocracy': 'Technical experts rule the country'
-  },
-  'Economic & Modern Systems': {
-    'Socialist State': 'State with socialist economy',
-    'Communist State': 'State based on communist ideology',
-    'Capitalist State': 'State with capitalist economy',
-    'Mixed Economy': 'State combining different economic systems',
-    'Welfare State': 'State providing social welfare',
-    'Developmental State': 'State actively promoting development',
-    'Rentier State': 'State dependent on resource rents',
-    'Petrostate': 'State dependent on petroleum exports',
-    'Resource State': 'State dependent on natural resources',
-    'Trading State': 'State focused on trade and commerce',
-    'Corporate State': 'State controlled by corporations',
-    'Virtual State': 'State existing primarily online',
-    'Crypto State': 'State using cryptocurrency',
-    'AI State': 'State using artificial intelligence',
-    'Smart State': 'State using smart technology',
-    'Green State': 'State focused on environmental protection',
-    'Sustainable State': 'State emphasizing sustainability',
-    'Resilient State': 'State designed for resilience'
+    'Technocracy': 'Technical experts rule the country',
+    'Nordic Oligarchy': 'Small group of Nordic elites rule the country',
+    'Scandinavian Oligarchy': 'Small group of Scandinavian elites rule the country',
+    'Baltic Oligarchy': 'Small group of Baltic elites rule the country',
+    'Arctic Oligarchy': 'Small group of Arctic elites rule the country',
+    'Nordic Meritocracy': 'Nordic people with best skills rule the country',
+    'Scandinavian Meritocracy': 'Scandinavian people with best skills rule the country',
+    'Baltic Meritocracy': 'Baltic people with best skills rule the country',
+    'Arctic Meritocracy': 'Arctic people with best skills rule the country'
   },
   'Alternative & Minimal Systems': {
     'Anarchy': 'No government or authority at all',
@@ -531,192 +400,21 @@ const GOVERNMENT_SYSTEM_CATEGORIES = {
     'Guild System': 'A society organized by professional groups',
     'Commune': 'Government based on community cooperation',
     'Monastic State': 'A state ruled by a religious order',
-    'Utopian State': 'A state based on an ideal social model'
-  },
-  'Fantasy & Sci-Fi Systems': {
-    'Magical Monarchy': 'Monarchy with magical powers',
-    'Arcane Republic': 'Republic ruled by magic users',
-    'Dragon Empire': 'Empire ruled by dragons',
-    'Elemental Federation': 'Federation of elemental beings',
-    'Spirit Theocracy': 'Theocracy ruled by spirits',
-    'Crystal Oligarchy': 'Oligarchy of crystal beings',
-    'Shadow Democracy': 'Democracy in the realm of shadows',
-    'Light Republic': 'Republic of pure light beings',
-    'Chaos Confederation': 'Confederation of chaotic beings',
-    'Order Empire': 'Empire of pure order',
-    'Void State': 'State existing in the void',
-    'Dream Realm': 'Realm ruled through dreams',
-    'Nightmare Kingdom': 'Kingdom of nightmares',
-    'Fairy Court': 'Court of fairy beings',
-    'Goblin Horde': 'Horde of goblin tribes',
-    'Orc Warlords': 'Warlords of orc tribes',
-    'Elf Council': 'Council of elven elders',
-    'Dwarf Guild': 'Guild of dwarf craftsmen',
-    'Halfling Shire': 'Shire of halfling communities',
-    'Gnome Workshop': 'Workshop of gnome inventors',
-    'Troll Bridge': 'Bridge ruled by trolls',
-    'Giant Mountain': 'Mountain ruled by giants',
-    'Centaur Plains': 'Plains ruled by centaurs',
-    'Mermaid Kingdom': 'Underwater kingdom of mermaids',
-    'Siren Isle': 'Island ruled by sirens',
-    'Harpy Peak': 'Mountain peak ruled by harpies',
-    'Griffin Aerie': 'Aerie ruled by griffins',
-    'Phoenix Nest': 'Nest ruled by phoenixes',
-    'Unicorn Forest': 'Forest ruled by unicorns',
-    'Dragon Lair': 'Lair ruled by dragons',
-    'Kraken Deep': 'Deep sea ruled by krakens',
-    'Leviathan Ocean': 'Ocean ruled by leviathans',
-    'Behemoth Land': 'Land ruled by behemoths',
-    'Titan Peak': 'Mountain peak ruled by titans',
-    'God Realm': 'Realm ruled by gods',
-    'Demon Realm': 'Realm ruled by demons',
-    'Angel Heaven': 'Heaven ruled by angels',
-    'Devil Hell': 'Hell ruled by devils',
-    'Undead Kingdom': 'Kingdom of the undead',
-    'Vampire Court': 'Court of vampires',
-    'Werewolf Pack': 'Pack of werewolves',
-    'Zombie Horde': 'Horde of zombies',
-    'Skeleton Army': 'Army of skeletons',
-    'Ghost Realm': 'Realm of ghosts',
-    'Spirit World': 'World of spirits',
-    'Elemental Plane': 'Plane of elemental beings',
-    'Astral Plane': 'Plane of astral beings',
-    'Ethereal Plane': 'Plane of ethereal beings',
-    'Material Plane': 'Plane of material beings',
-    'Shadow Plane': 'Plane of shadows',
-    'Fey Realm': 'Realm of fey beings',
-    'Underdark': 'Underground realm of dark beings',
-    'Floating Islands': 'Islands floating in the sky',
-    'Underwater City': 'City under the sea',
-    'Underground Kingdom': 'Kingdom beneath the earth',
-    'Space Station': 'Station in space',
-    'Moon Base': 'Base on the moon',
-    'Mars Colony': 'Colony on Mars',
-    'Asteroid Mine': 'Mine on an asteroid',
-    'Comet Ship': 'Ship traveling on a comet',
-    'Black Hole': 'Realm near a black hole',
-    'Wormhole': 'Realm connected by wormholes',
-    'Parallel Universe': 'Universe parallel to our own',
-    'Mirror World': 'World that mirrors our own',
-    'Upside Down': 'World that is upside down',
-    'Inside Out': 'World where inside is outside',
-    'Backwards': 'World where time flows backwards',
-    'Sideways': 'World where gravity is sideways',
-    'Diagonal': 'World where everything is diagonal',
-    'Spiral': 'World that spirals through space',
-    'Fractal': 'World with infinite detail',
-    'Holographic': 'World that is a hologram',
-    'Neon': 'World of pure neon',
-    'Pastel': 'World of pure pastel',
-    'Metallic': 'World of pure metal',
-    'Matte': 'World of pure matte',
-    'Glossy': 'World of pure gloss',
-    'Transparent': 'World of pure transparency',
-    'Opaque': 'World of pure opacity',
-    'Reflective': 'World of pure reflection',
-    'Absorptive': 'World of pure absorption',
-    'Emissive': 'World of pure emission',
-    'Conductive': 'World of pure conduction',
-    'Insulative': 'World of pure insulation',
-    'Magnetic': 'World of pure magnetism',
-    'Electric': 'World of pure electricity',
-    'Nuclear': 'World of pure nuclear energy',
-    'Chemical': 'World of pure chemistry',
-    'Biological': 'World of pure biology',
-    'Mechanical': 'World of pure mechanics',
-    'Digital': 'World of pure digital technology',
-    'Analog': 'World of pure analog technology',
-    'Binary': 'World of pure binary',
-    'Hexadecimal': 'World of pure hexadecimal',
-    'Decimal': 'World of pure decimal',
-    'Octal': 'World of pure octal',
-    'Roman': 'World of pure Roman numerals',
-    'Greek': 'World of pure Greek letters',
-    'Cyrillic': 'World of pure Cyrillic letters',
-    'Arabic': 'World of pure Arabic letters',
-    'Chinese': 'World of pure Chinese characters',
-    'Japanese': 'World of pure Japanese characters',
-    'Korean': 'World of pure Korean characters',
-    'Hindi': 'World of pure Hindi characters',
-    'Hebrew': 'World of pure Hebrew letters',
-    'Latin': 'World of pure Latin letters',
-    'Sanskrit': 'World of pure Sanskrit',
-    'Hieroglyphic': 'World of pure hieroglyphics',
-    'Cuneiform': 'World of pure cuneiform',
-    'Runes': 'World of pure runes',
-    'Ogham': 'World of pure Ogham',
-    'Braille': 'World of pure Braille',
-    'Morse': 'World of pure Morse code',
-    'Semaphore': 'World of pure semaphore',
-    'Flag': 'World of pure flag signals',
-    'Smoke': 'World of pure smoke signals',
-    'Mirror': 'World of pure mirror signals',
-    'Laser': 'World of pure laser',
-    'Radio': 'World of pure radio waves',
-    'Microwave': 'World of pure microwaves',
-    'Infrared': 'World of pure infrared',
-    'Ultraviolet': 'World of pure ultraviolet',
-    'X-Ray': 'World of pure X-rays',
-    'Gamma': 'World of pure gamma rays',
-    'Cosmic': 'World of pure cosmic rays',
-    'Solar': 'World of pure solar energy',
-    'Lunar': 'World of pure lunar energy',
-    'Stellar': 'World of pure stellar energy',
-    'Planetary': 'World of pure planetary energy',
-    'Galactic': 'World of pure galactic energy',
-    'Universal': 'World of pure universal energy',
-    'Multiversal': 'World of pure multiversal energy',
-    'Omniversal': 'World of pure omniversal energy',
-    'Infinite': 'World of pure infinity',
-    'Finite': 'World of pure finiteness',
-    'Zero': 'World of pure nothingness',
-    'One': 'World of pure oneness',
-    'Pi': 'World of pure mathematical pi',
-    'E': 'World of pure mathematical e',
-    'Golden Ratio': 'World of pure golden ratio',
-    'Fibonacci': 'World of pure Fibonacci sequence',
-    'Prime': 'World of pure prime numbers',
-    'Perfect': 'World of pure perfection',
-    'Imperfect': 'World of pure imperfection',
-    'Random': 'World of pure randomness',
-    'Deterministic': 'World of pure determinism',
-    'Probabilistic': 'World of pure probability',
-    'Statistical': 'World of pure statistics',
-    'Analytical': 'World of pure analysis',
-    'Synthetic': 'World of pure synthesis',
-    'Organic': 'World of pure organic matter',
-    'Inorganic': 'World of pure inorganic matter',
-    'Living': 'World of pure life',
-    'Dead': 'World of pure death',
-    'Undead': 'World between life and death',
-    'Reborn': 'World that has been reborn',
-    'Reincarnated': 'World that has been reincarnated',
-    'Transformed': 'World that has been transformed',
-    'Evolved': 'World that has evolved',
-    'Devolved': 'World that has devolved',
-    'Ascended': 'World that has ascended to higher power',
-    'Descended': 'World that has descended to lower power',
-    'Transcended': 'World that has transcended normal existence',
-    'Immanent': 'World that exists within creation',
-    'Transcendent': 'World that exists beyond creation',
-    'Immanent-Transcendent': 'World that exists both within and beyond creation',
-    'Omnipresent': 'World that exists everywhere',
-    'Omniscient': 'World that knows everything',
-    'Omnipotent': 'World that can do anything',
-    'Omnibenevolent': 'World that is purely good',
-    'Omnimalevolent': 'World that is purely evil',
-    'Neutral': 'World that is neither good nor evil',
-    'Chaotic': 'World that is purely chaotic',
-    'Lawful': 'World that is purely lawful',
-    'True Neutral': 'World that is perfectly balanced',
-    'Chaotic Good': 'World that is chaotically good',
-    'Chaotic Evil': 'World that is chaotically evil',
-    'Lawful Good': 'World that is lawfully good',
-    'Lawful Evil': 'World that is lawfully evil',
-    'Neutral Good': 'World that is neutrally good',
-    'Neutral Evil': 'World that is neutrally evil',
-    'Chaotic Neutral': 'World that is chaotically neutral',
-    'Lawful Neutral': 'World that is lawfully neutral'
+    'Utopian State': 'A state based on an ideal social model',
+    'Thing System': 'Ancient Norse assembly-based governance',
+    'Althing System': 'Icelandic assembly-based governance',
+    'Storting System': 'Norwegian parliamentary governance',
+    'Riksdag System': 'Swedish parliamentary governance',
+    'Folketing System': 'Danish parliamentary governance',
+    'Eduskunta System': 'Finnish parliamentary governance',
+    'Nordic Tribal Confederation': 'Confederation of Nordic tribes',
+    'Scandinavian Tribal Confederation': 'Confederation of Scandinavian tribes',
+    'Baltic Tribal Confederation': 'Confederation of Baltic tribes',
+    'Arctic Tribal Confederation': 'Confederation of Arctic tribes',
+    'Nordic Guild System': 'Nordic society organized by professional groups',
+    'Scandinavian Guild System': 'Scandinavian society organized by professional groups',
+    'Baltic Guild System': 'Baltic society organized by professional groups',
+    'Arctic Guild System': 'Arctic society organized by professional groups'
   }
 };
 
@@ -736,27 +434,85 @@ const ECONOMIC_SYSTEMS = {
   'Tourism-Based': 'Makes money from visitors and travelers',
   'Fishing-Based': 'Makes money from fishing and sea resources',
   'Mining-Based': 'Makes money from digging up valuable minerals',
-  'Forestry-Based': 'Makes money from cutting down trees and wood products'
+      'Forestry-Based': 'Makes money from cutting down trees and wood products',
+    'Nordic Welfare': 'Nordic model with high taxes and social services',
+    'Scandinavian Welfare': 'Scandinavian model with comprehensive social safety net',
+    'Baltic Trade': 'Makes money from Baltic Sea trade and shipping',
+    'Arctic Resources': 'Makes money from Arctic natural resources',
+    'Nordic Fishing': 'Makes money from Nordic fishing and seafood',
+    'Scandinavian Mining': 'Makes money from Scandinavian mineral resources',
+    'Baltic Tourism': 'Makes money from Baltic Sea tourism',
+    'Arctic Tourism': 'Makes money from Arctic tourism and expeditions'
 };
 
 const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdated }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { profile } = useAuth();
 
   const [availableNations, setAvailableNations] = useState<string[]>([]);
   const [selectedRulingCategory, setSelectedRulingCategory] = useState<string>('');
   const [selectedGovernmentCategory, setSelectedGovernmentCategory] = useState<string>('');
+
+  // Initialize selected categories based on current values
+  useEffect(() => {
+    if (nation.ruling_entity) {
+      // Find which category contains the current ruling entity
+      for (const [category, entities] of Object.entries(RULING_ENTITY_CATEGORIES)) {
+        if (Object.keys(entities).includes(nation.ruling_entity)) {
+          setSelectedRulingCategory(category);
+          break;
+        }
+      }
+    }
+    
+    if (nation.government_system) {
+      // Find which category contains the current government system
+      for (const [category, systems] of Object.entries(GOVERNMENT_SYSTEM_CATEGORIES)) {
+        if (Object.keys(systems).includes(nation.government_system)) {
+          setSelectedGovernmentCategory(category);
+          break;
+        }
+      }
+    }
+  }, [nation.ruling_entity, nation.government_system]);
+
   const [formData, setFormData] = useState({
-    government: nation.government || 'Monarchy',
-    customGovernment: '',
-    rulingEntity: 'Monarch',
-    governmentSystem: 'Monarchy',
-    economicSystem: 'Capitalist',
+    rulingEntity: nation.ruling_entity || 'Monarch',
+    governmentSystem: nation.government_system || 'Monarchy',
+    economicSystem: nation.economic_system || 'Capitalist',
     vassalOf: nation.vassal_of || 'independent',
+    subordinateType: 'vassal',
     lore: nation.lore || '',
-    themeColor: nation.theme_color || 'text-blue-500'
+    themeColor: nation.theme_color || '#3b82f6',
+    bannerUrl: nation.banner_image_url || '',
+    bannerColor: nation.color || '#1e40af',
+    bannerText: nation.banner_text || '',
+    bannerTextColor: nation.banner_text_color || '#ffffff',
+    bannerTextSize: nation.banner_text_size || 16
   });
+
+  // Debug: Log form data changes
+  useEffect(() => {
+    console.log('Form data updated:', formData);
+  }, [formData]);
   const { toast } = useToast();
+
+  // Add debugging for authentication
+  useEffect(() => {
+    if (isOpen) {
+      console.log('EditNationModal opened for nation:', nation);
+      console.log('Current user profile:', profile);
+      console.log('Nation leader_name:', nation.leader_name);
+      console.log('User full_name:', profile?.full_name);
+      console.log('User role:', profile?.role);
+      console.log('Can user edit this nation?', 
+        profile?.role === 'admin' || 
+        profile?.role === 'moderator' || 
+        profile?.full_name === nation.leader_name
+      );
+    }
+  }, [isOpen, nation, profile]);
 
   // Fetch available nations for subordinate selection
   useEffect(() => {
@@ -795,70 +551,312 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
     setIsLoading(true);
 
     try {
-      const governmentValue = formData.government === 'Custom' 
-        ? formData.customGovernment 
-        : formData.government;
-
-      // Validate custom government input
-      if (formData.government === 'Custom' && !formData.customGovernment.trim()) {
+      // Test database connection first
+      console.log('Testing database connection...');
+      const { data: connectionTest, error: connectionError } = await supabase
+        .from('nations')
+        .select('count')
+        .limit(1);
+      
+      if (connectionError) {
+        console.error('Database connection failed:', connectionError);
         toast({
-          title: "Validation Error",
-          description: "Please enter a custom government type.",
+          title: "Database Connection Error",
+          description: `Cannot connect to database: ${connectionError.message}`,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('Database connection successful');
+
+      // Check if user has permission to edit this nation
+      const canEdit = profile?.role === 'admin' || 
+                     profile?.role === 'moderator' || 
+                     profile?.full_name === nation.leader_name;
+      
+      if (!canEdit) {
+        toast({
+          title: "Permission Denied",
+          description: "You do not have permission to edit this nation. Only nation leaders and staff can edit nation information.",
           variant: "destructive",
         });
         setIsLoading(false);
         return;
       }
 
+      // Check if user is authenticated
+      if (!profile) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to edit nation information.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('User authentication check passed:', {
+        userId: profile.id,
+        userRole: profile.role,
+        userFullName: profile.full_name,
+        nationLeaderName: nation.leader_name,
+        canEdit: canEdit
+      });
+
       console.log('Submitting form data:', {
-        government: governmentValue,
         ruling_entity: formData.rulingEntity,
         government_system: formData.governmentSystem,
         economic_system: formData.economicSystem,
         vassal_of: formData.vassalOf === 'independent' ? null : formData.vassalOf,
         lore: formData.lore,
-        theme_color: formData.themeColor
+        theme_color: formData.themeColor,
+        color: formData.bannerColor
       });
 
-      const { error } = await supabase
-        .from('nations')
-        .update({
-          government: governmentValue,
+      console.log('Attempting to update nation:', nation.name);
+      console.log('Update data:', {
+        ruling_entity: formData.rulingEntity,
+        government_system: formData.governmentSystem,
+        economic_system: formData.economicSystem,
+        vassal_of: formData.vassalOf === 'independent' ? null : formData.vassalOf,
+        lore: formData.lore,
+        theme_color: formData.themeColor,
+        updated_at: new Date().toISOString()
+      });
+
+      // Validate that required fields are set
+      if (!formData.rulingEntity || !formData.governmentSystem || !formData.economicSystem) {
+        console.error('Missing required fields:', {
+          rulingEntity: formData.rulingEntity,
+          governmentSystem: formData.governmentSystem,
+          economicSystem: formData.economicSystem
+        });
+        toast({
+          title: "Validation Error",
+          description: "Please select all required fields (Ruling Entity, Government System, Economic System).",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // All fields exist in the database, so we can update everything
+      const updateData = {
+        lore: formData.lore,
+        color: formData.bannerColor,
+        theme_color: formData.themeColor,
+        economic_system: formData.economicSystem,
+        vassal_of: formData.vassalOf === 'independent' ? null : formData.vassalOf,
+        ruling_entity: formData.rulingEntity,
+        government_system: formData.governmentSystem,
+        banner_image_url: formData.bannerUrl || null,
+        banner_style: 'solid',
+        banner_pattern: 'none',
+        banner_gradient: 'none',
+        banner_gradient_colors: [],
+        banner_opacity: 1.0,
+        banner_height: 128,
+        banner_text: formData.bannerText || null,
+        banner_text_color: formData.bannerTextColor || '#ffffff',
+        banner_text_size: formData.bannerTextSize || 16,
+        banner_text_position: 'center',
+        banner_text_style: 'normal',
+        last_updated: new Date().toISOString()
+      };
+
+      console.log('Final update data being sent to database:', updateData);
+      console.log('Form data values:', {
+        rulingEntity: formData.rulingEntity,
+        governmentSystem: formData.governmentSystem,
+        economicSystem: formData.economicSystem,
+        themeColor: formData.themeColor
+      });
+      console.log('Theme color being sent:', formData.themeColor);
+      console.log('Original nation theme color:', nation.theme_color);
+      console.log('Nation ID being used for update:', nation.id);
+      console.log('Parsed nation ID:', parseInt(nation.id));
+
+      // Use nation ID for the update query since that's the primary key
+      console.log('About to execute database update...');
+      
+      // First, let's check if the fields exist in the database
+      try {
+        const { data: testData, error: testError } = await supabase
+          .from('nations')
+          .select('id, name, ruling_entity, government_system, economic_system, theme_color, color, lore')
+          .eq('id', parseInt(nation.id))
+          .single();
+        
+        console.log('Test query result:', { testData, testError });
+        
+        if (testError) {
+          console.error('Test query failed:', testError);
+          toast({
+            title: "Database Error",
+            description: `Failed to verify database fields: ${testError.message}`,
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!testData) {
+          console.error('Nation not found in database');
+          toast({
+            title: "Database Error",
+            description: "Nation not found in database",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log('Current database values:', testData);
+        console.log('Fields being updated:', {
           ruling_entity: formData.rulingEntity,
           government_system: formData.governmentSystem,
           economic_system: formData.economicSystem,
-          vassal_of: formData.vassalOf === 'independent' ? null : formData.vassalOf,
-          lore: formData.lore,
           theme_color: formData.themeColor,
-          updated_at: new Date().toISOString()
-        } as any)
-        .eq('name', nation.name);
+          lore: formData.lore,
+          color: formData.bannerColor
+        });
+        
+        // Check if the fields actually exist in the database
+        console.log('Field existence check:', {
+          has_ruling_entity: 'ruling_entity' in testData,
+          has_government_system: 'government_system' in testData,
+          has_economic_system: 'economic_system' in testData,
+          has_theme_color: 'theme_color' in testData,
+          has_lore: 'lore' in testData
+        });
+      } catch (testError) {
+        console.error('Error during test query:', testError);
+        toast({
+          title: "Database Error",
+          description: `Error during database test: ${testError}`,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('nations')
+        .update(updateData as any)
+        .eq('id', parseInt(nation.id))
+        .select();
+
+      console.log('Supabase response:', { data, error });
+      console.log('Update query details:', {
+        table: 'nations',
+        id: parseInt(nation.id),
+        updateData: updateData
+      });
 
       if (error) {
         console.error('Supabase error:', error);
         throw error;
       }
 
-      // Update the local nation object
+      // Log what was actually returned from the database
+      if (data && data.length > 0) {
+        console.log('Database returned updated nation:', data[0]);
+        const updatedData = data[0] as any; // Type assertion since the fields are newly added
+        console.log('Updated fields in database:', {
+          ruling_entity: updatedData.ruling_entity,
+          government_system: updatedData.government_system,
+          economic_system: updatedData.economic_system,
+          theme_color: updatedData.theme_color,
+          lore: updatedData.lore,
+          color: updatedData.color
+        });
+        
+        // Check if the update actually changed the values
+        console.log('Update verification:', {
+          ruling_entity_changed: updatedData.ruling_entity === formData.rulingEntity,
+          government_system_changed: updatedData.government_system === formData.governmentSystem,
+          economic_system_changed: updatedData.economic_system === formData.economicSystem,
+          theme_color_changed: updatedData.theme_color === formData.themeColor,
+          lore_changed: updatedData.lore === formData.lore,
+          color_changed: updatedData.color === formData.bannerColor
+        });
+      } else {
+        console.error('No data returned from update query');
+      }
+
+      // Update the local nation object with all the new fields
       const updatedNation = {
         ...nation,
-        government: governmentValue,
-        ruling_entity: formData.rulingEntity,
-        government_system: formData.governmentSystem,
+        lore: formData.lore,
+        color: formData.bannerColor,
+        theme_color: formData.themeColor,
         economic_system: formData.economicSystem,
         vassal_of: formData.vassalOf === 'independent' ? null : formData.vassalOf,
-        lore: formData.lore,
-        theme_color: formData.themeColor
+        ruling_entity: formData.rulingEntity,
+        government_system: formData.governmentSystem,
+        banner_image_url: formData.bannerUrl || null,
+        banner_text: formData.bannerText || null,
+        banner_text_color: formData.bannerTextColor || '#ffffff',
+        banner_text_size: formData.bannerTextSize || 16
       };
 
       console.log('Updated nation object:', updatedNation);
+      console.log('Theme color in updated nation:', updatedNation.theme_color);
 
       onNationUpdated(updatedNation);
-      toast({
-        title: "Success",
-        description: "Nation information updated successfully!",
+      
+      // Don't close the modal immediately - let the user see the changes
+      // Only close if they explicitly want to
+      console.log('Update successful, keeping modal open to show changes');
+      
+      // Update the local nation object to reflect changes in the current form
+      Object.assign(nation, updatedNation);
+      
+      // Force a re-render of the form with the new values
+      setFormData({
+        rulingEntity: updatedNation.ruling_entity || 'Monarch',
+        governmentSystem: updatedNation.government_system || 'Monarchy',
+        economicSystem: updatedNation.economic_system || 'Capitalist',
+        vassalOf: updatedNation.vassal_of || 'independent',
+        subordinateType: 'vassal',
+        lore: updatedNation.lore || '',
+        themeColor: updatedNation.theme_color || '#3b82f6',
+        bannerUrl: updatedNation.banner_image_url || '',
+        bannerColor: updatedNation.color || '#1e40af',
+        bannerText: updatedNation.banner_text || '',
+        bannerTextColor: updatedNation.banner_text_color || '#ffffff',
+        bannerTextSize: updatedNation.banner_text_size || 16
       });
-      setIsOpen(false);
+      
+      // Update the selected categories to match the new values
+      if (updatedNation.ruling_entity) {
+        for (const [category, entities] of Object.entries(RULING_ENTITY_CATEGORIES)) {
+          if (Object.keys(entities).includes(updatedNation.ruling_entity)) {
+            setSelectedRulingCategory(category);
+            break;
+          }
+        }
+      }
+      
+      if (updatedNation.government_system) {
+        for (const [category, systems] of Object.entries(GOVERNMENT_SYSTEM_CATEGORIES)) {
+          if (Object.keys(systems).includes(updatedNation.government_system)) {
+            setSelectedGovernmentCategory(category);
+            break;
+          }
+        }
+      }
+      
+      // Don't close the modal - let user see the changes
+      // setIsOpen(false);
+      
+      // Show a success message in the form
+      toast({
+        title: "Success!",
+        description: "Your changes have been saved. The nation information has been updated successfully.",
+      });
     } catch (error) {
       console.error('Error updating nation:', error);
       toast({
@@ -876,14 +874,18 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
     if (!open) {
       // Reset form when closing
       setFormData({
-        government: nation.government || 'Monarchy',
-        customGovernment: '',
-        rulingEntity: 'Monarch',
-        governmentSystem: 'Monarchy',
-        economicSystem: 'Capitalist',
+        rulingEntity: nation.ruling_entity || 'Monarch',
+        governmentSystem: nation.government_system || 'Monarchy',
+        economicSystem: nation.economic_system || 'Capitalist',
         vassalOf: nation.vassal_of || 'independent',
+        subordinateType: 'vassal',
         lore: nation.lore || '',
-        themeColor: nation.theme_color || 'text-blue-500' // Reset theme color
+        themeColor: nation.theme_color || '#3b82f6',
+        bannerUrl: nation.banner_image_url || '',
+        bannerColor: nation.color || '#1e40af',
+        bannerText: nation.banner_text || '',
+        bannerTextColor: nation.banner_text_color || '#ffffff',
+        bannerTextSize: nation.banner_text_size || 16
       });
 
     }
@@ -906,7 +908,7 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
             Edit {nation.name}
           </DialogTitle>
           <DialogDescription>
-            Modify your nation's government type, economic system, vassal status, and lore. The description is automatically set by the game and cannot be edited.
+            Modify your nation's economic system, vassal status, and lore. The description is automatically set by the game and cannot be edited.
           </DialogDescription>
         </DialogHeader>
         
@@ -916,13 +918,14 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
             <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-800 dark:text-blue-200">
               <p className="font-medium mb-1">Note:</p>
-              <p>The nation description is automatically set by the game and cannot be edited. You can only modify the government type, economic system, vassal status, and lore.</p>
+              <p>The nation description is automatically set by the game and cannot be edited. You can only modify the economic system, vassal status, and lore.</p>
+              <p className="mt-2 text-orange-600 dark:text-orange-400"><strong>Required Fields:</strong> Ruling Entity, Government System, and Economic System must be selected.</p>
             </div>
           </div>
 
           {/* Ruling Entity Selection */}
           <div className="space-y-2">
-            <Label htmlFor="rulingEntity">Ruling Entity</Label>
+            <Label htmlFor="rulingEntity">Ruling Entity *</Label>
             
             {/* Category Selection */}
             <Select 
@@ -965,7 +968,7 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
                                 <Info className="w-3 h-3 text-muted-foreground cursor-help" />
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs">
+                            <TooltipContent side="right" align="start" className="max-w-xs">
                               <p className="text-sm">{description}</p>
                             </TooltipContent>
                           </Tooltip>
@@ -976,11 +979,14 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
                 </SelectContent>
               </Select>
             )}
+            <p className="text-sm text-muted-foreground">
+              Current: {nation.ruling_entity || 'Not set'}
+            </p>
           </div>
 
           {/* Government System Selection */}
           <div className="space-y-2">
-            <Label htmlFor="governmentSystem">Government System</Label>
+            <Label htmlFor="governmentSystem">Government System *</Label>
             
             {/* Category Selection */}
             <Select 
@@ -1023,7 +1029,7 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
                                 <Info className="w-3 h-3 text-muted-foreground cursor-help" />
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs">
+                            <TooltipContent side="right" align="start" className="max-w-xs">
                               <p className="text-sm">{description}</p>
                             </TooltipContent>
                           </Tooltip>
@@ -1034,11 +1040,14 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
                 </SelectContent>
               </Select>
             )}
+            <p className="text-sm text-muted-foreground">
+              Current: {nation.government_system || 'Not set'}
+            </p>
           </div>
 
           {/* Economic System Selection */}
           <div className="space-y-2">
-            <Label htmlFor="economicSystem">Economic System</Label>
+            <Label htmlFor="economicSystem">Economic System *</Label>
             <Select 
               value={formData.economicSystem} 
               onValueChange={(value) => setFormData(prev => ({ ...prev, economicSystem: value }))}
@@ -1058,9 +1067,9 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
                               <Info className="w-3 h-3 text-muted-foreground cursor-help" />
                             </span>
                           </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs">
-                            <p className="text-sm">{description}</p>
-                          </TooltipContent>
+                                                      <TooltipContent side="right" align="start" className="max-w-xs">
+                              <p className="text-sm">{description}</p>
+                            </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
@@ -1068,48 +1077,268 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-sm text-muted-foreground">
+              Current: {nation.economic_system || 'Not set'}
+            </p>
           </div>
 
           {/* Theme Color Selection */}
           <div className="space-y-2">
             <Label htmlFor="themeColor">Theme Color</Label>
-            <div className="grid grid-cols-8 gap-2">
-              {[
-                { name: 'Red', value: 'text-red-500', border: 'border-red-500' },
-                { name: 'Orange', value: 'text-orange-500', border: 'border-orange-500' },
-                { name: 'Yellow', value: 'text-yellow-500', border: 'border-yellow-500' },
-                { name: 'Green', value: 'text-green-500', border: 'border-green-500' },
-                { name: 'Blue', value: 'text-blue-500', border: 'border-blue-500' },
-                { name: 'Purple', value: 'text-purple-500', border: 'border-purple-500' },
-                { name: 'Pink', value: 'text-pink-500', border: 'border-pink-500' },
-                { name: 'Gray', value: 'text-gray-500', border: 'border-gray-500' },
-                { name: 'Indigo', value: 'text-indigo-500', border: 'border-indigo-500' },
-                { name: 'Teal', value: 'text-teal-500', border: 'border-teal-500' },
-                { name: 'Emerald', value: 'text-emerald-500', border: 'border-emerald-500' },
-                { name: 'Rose', value: 'text-rose-500', border: 'border-rose-500' },
-                { name: 'Amber', value: 'text-amber-500', border: 'border-amber-500' },
-                { name: 'Lime', value: 'text-lime-500', border: 'border-lime-500' },
-                { name: 'Cyan', value: 'text-cyan-500', border: 'border-cyan-500' },
-                { name: 'Violet', value: 'text-violet-500', border: 'border-violet-500' }
-              ].map((color) => (
-                <button
-                  key={color.value}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, themeColor: color.value }))}
-                  className={`w-8 h-8 rounded-full ${color.border} border-2 flex items-center justify-center transition-all ${
-                    formData.themeColor === color.value 
-                      ? 'scale-110 shadow-lg' 
-                      : 'hover:scale-105'
-                  }`}
-                  title={color.name}
+            <div className="flex items-center gap-3">
+              <Input
+                id="themeColor"
+                type="color"
+                value={formData.themeColor}
+                onChange={(e) => setFormData(prev => ({ ...prev, themeColor: e.target.value }))}
+                className="w-16 h-12 p-1 border-2 border-border rounded-lg cursor-pointer"
+                title="Click to open color picker"
+              />
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  value={formData.themeColor}
+                  onChange={(e) => setFormData(prev => ({ ...prev, themeColor: e.target.value }))}
+                  placeholder="#3b82f6"
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Choose any color from the full spectrum. This will be used for crown icons and decorative elements.
+                </p>
+              </div>
+            </div>
+            {/* Color Preview */}
+            <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-6 h-6 rounded-full border-2 border-border" 
+                  style={{ backgroundColor: formData.themeColor }}
+                />
+                <span className="text-sm font-medium">Crown Icon Preview:</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-6 h-6 rounded-full border-2 border-border flex items-center justify-center"
+                  style={{ backgroundColor: formData.themeColor }}
                 >
-                  <div className={`w-4 h-4 rounded-full ${color.value.replace('text-', 'bg-')}`}></div>
-                </button>
-              ))}
+                  <span className="text-white text-xs">👑</span>
+                </div>
+                <span className="text-sm text-muted-foreground">This is how your crown will look</span>
+              </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Choose a theme color for your nation. This will be used for the crown icon and other decorative elements.
+              Current theme color: <span className="font-mono">{nation.theme_color || 'Not set'}</span>
             </p>
+          </div>
+
+          {/* Banner Customization */}
+          <div className="space-y-4">
+            <Label htmlFor="bannerColor">Banner Color</Label>
+            <div className="flex items-center gap-3">
+              <Input
+                id="bannerColor"
+                type="color"
+                value={formData.bannerColor}
+                onChange={(e) => setFormData(prev => ({ ...prev, bannerColor: e.target.value }))}
+                className="w-16 h-12 p-1 border-2 border-border rounded-lg cursor-pointer"
+                title="Click to open color picker"
+              />
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  value={formData.bannerColor}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bannerColor: e.target.value }))}
+                  placeholder="#1e40af"
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Choose any color from the full spectrum. This will be used as the background color for the banner area.
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Current banner color: <span className="font-mono">{nation.color || 'Not set'}</span>
+            </p>
+            {/* Banner Color Preview */}
+            <div className="p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div 
+                  className="w-4 h-4 rounded border border-border" 
+                  style={{ backgroundColor: formData.bannerColor }}
+                />
+                <span className="text-sm font-medium">Banner Preview:</span>
+              </div>
+              <div 
+                className="w-full h-16 rounded-lg border-2 border-border flex items-center justify-center text-white font-medium"
+                style={{ backgroundColor: formData.bannerColor }}
+              >
+                {formData.bannerText || 'Your Nation Banner'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                This shows how your banner will look with the selected color
+              </p>
+            </div>
+          </div>
+
+          {/* Banner Image URL */}
+          <div className="space-y-2">
+            <Label htmlFor="bannerUrl">Banner Image URL (Optional)</Label>
+            <Input
+              id="bannerUrl"
+              type="url"
+              placeholder="https://example.com/banner.jpg"
+              value={formData.bannerUrl}
+              onChange={(e) => setFormData(prev => ({ ...prev, bannerUrl: e.target.value }))}
+            />
+            <p className="text-sm text-muted-foreground">
+              Provide a URL to a banner image for your nation. This will be displayed above the nation information on your nation card.
+            </p>
+            
+            {/* Banner Preview */}
+            {formData.bannerUrl && (
+              <div className="mt-3 p-3 border rounded-lg bg-muted">
+                <Label className="text-sm font-medium mb-2 block">Banner Preview:</Label>
+                <div 
+                  className="w-full h-20 rounded-lg flex items-center justify-center text-white font-medium text-sm"
+                  style={{ 
+                    backgroundColor: formData.bannerColor,
+                    backgroundImage: `url(${formData.bannerUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                >
+                  {!formData.bannerUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                    <span className="text-center">Invalid image URL</span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Banner Text Customization */}
+          <div className="space-y-4">
+            <Label htmlFor="bannerText">Banner Text (Optional)</Label>
+            <Input
+              id="bannerText"
+              type="text"
+              placeholder="Enter text to display on your banner"
+              value={formData.bannerText}
+              onChange={(e) => setFormData(prev => ({ ...prev, bannerText: e.target.value }))}
+            />
+            <p className="text-sm text-muted-foreground">
+              Add custom text to display on your nation banner. This will appear overlaid on the banner image or color.
+            </p>
+            
+            {/* Banner Text Color */}
+            <div className="space-y-2">
+              <Label htmlFor="bannerTextColor">Banner Text Color</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  id="bannerTextColor"
+                  type="color"
+                  value={formData.bannerTextColor}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bannerTextColor: e.target.value }))}
+                  className="w-16 h-12 p-1 border-2 border-border rounded-lg cursor-pointer"
+                  title="Click to open color picker"
+                />
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    value={formData.bannerTextColor}
+                    onChange={(e) => setFormData(prev => ({ ...prev, bannerTextColor: e.target.value }))}
+                    placeholder="#ffffff"
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Choose any color for your banner text. Make sure it contrasts well with your banner color.
+                  </p>
+                </div>
+              </div>
+              {/* Text Color Preview */}
+              <div className="p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <div 
+                    className="w-4 h-4 rounded border border-border" 
+                    style={{ backgroundColor: formData.bannerTextColor }}
+                  />
+                  <span className="text-sm font-medium">Text Preview:</span>
+                </div>
+                <div 
+                  className="w-full h-12 rounded-lg border-2 border-border flex items-center justify-center font-medium"
+                  style={{ 
+                    backgroundColor: formData.bannerColor,
+                    color: formData.bannerTextColor
+                  }}
+                >
+                  {formData.bannerText || 'Sample Text'}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  This shows how your text will look on the banner
+                </p>
+              </div>
+            </div>
+            
+            {/* Banner Text Size */}
+            <div className="space-y-2">
+              <Label htmlFor="bannerTextSize">Banner Text Size</Label>
+              <Select 
+                value={formData.bannerTextSize.toString()} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, bannerTextSize: parseInt(value) }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select text size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="12">Small (12px)</SelectItem>
+                  <SelectItem value="14">Medium (14px)</SelectItem>
+                  <SelectItem value="16">Large (16px)</SelectItem>
+                  <SelectItem value="18">Extra Large (18px)</SelectItem>
+                  <SelectItem value="20">Huge (20px)</SelectItem>
+                  <SelectItem value="24">Giant (24px)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Current Values Display */}
+          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+            <h3 className="font-medium text-sm">Current Nation Settings</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-muted-foreground">Ruling Entity:</span>
+                <span className="ml-2 text-foreground">{nation.ruling_entity || 'Not set'}</span>
+              </div>
+              <div>
+                <span className="font-medium text-muted-foreground">Government System:</span>
+                <span className="ml-2 text-foreground">{nation.government_system || 'Not set'}</span>
+              </div>
+              <div>
+                <span className="font-medium text-muted-foreground">Economic System:</span>
+                <span className="ml-2 text-foreground">{nation.economic_system || 'Not set'}</span>
+              </div>
+              <div>
+                <span className="font-medium text-muted-foreground">Vassal Status:</span>
+                <span className="ml-2 text-foreground">{nation.vassal_of ? `Vassal of ${nation.vassal_of}` : 'Independent'}</span>
+              </div>
+              <div>
+                <span className="font-medium text-muted-foreground">Theme Color:</span>
+                <span className="ml-2 text-foreground">{nation.theme_color || 'Not set'}</span>
+              </div>
+              <div>
+                <span className="font-medium text-muted-foreground">Banner Color:</span>
+                <span className="ml-2 text-foreground">{nation.color || 'Not set'}</span>
+              </div>
+              <div>
+                <span className="font-medium text-muted-foreground">Nation Emblem:</span>
+                <span className="ml-2 text-foreground">{nation.image_url ? 'Set' : 'Not set'}</span>
+              </div>
+              <div>
+                <span className="font-medium text-muted-foreground">Banner Image:</span>
+                <span className="ml-2 text-foreground">{nation.banner_image_url ? 'Set' : 'Not set'}</span>
+              </div>
+            </div>
+            
+
           </div>
 
           {/* Subordinate Status Selection */}
@@ -1131,6 +1360,37 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
                 ))}
               </SelectContent>
             </Select>
+            
+            {/* Subordinate Type Selection - Only show when subordinate */}
+            {formData.vassalOf !== 'independent' && (
+              <div className="space-y-2">
+                <Label htmlFor="subordinateType">Subordinate Type</Label>
+                <Select 
+                  value={formData.subordinateType} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, subordinateType: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select subordinate type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vassal">Vassal - Semi-independent under protection</SelectItem>
+                    <SelectItem value="puppet">Puppet - Controlled by superior nation</SelectItem>
+                    <SelectItem value="protectorate">Protectorate - Protected by superior nation</SelectItem>
+                    <SelectItem value="union">Union - Part of a larger political union</SelectItem>
+                    <SelectItem value="confederation">Confederation - Loose alliance with superior</SelectItem>
+                    <SelectItem value="tributary">Tributary - Pays tribute to superior nation</SelectItem>
+                    <SelectItem value="satellite">Satellite - Politically dependent on superior</SelectItem>
+                    <SelectItem value="client">Client State - Economically dependent on superior</SelectItem>
+                    <SelectItem value="march">March - Border territory under protection</SelectItem>
+                    <SelectItem value="fief">Fief - Territory granted by superior nation</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Define the nature of your subordinate relationship with {formData.vassalOf}.
+                </p>
+              </div>
+            )}
+            
             <p className="text-sm text-muted-foreground">
               A subordinate nation is under the influence or control of a larger nation, while maintaining some independence.
             </p>
@@ -1159,7 +1419,7 @@ const EditNationModal: React.FC<EditNationModalProps> = ({ nation, onNationUpdat
               onClick={() => setIsOpen(false)}
               disabled={isLoading}
             >
-              Cancel
+              Close
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (

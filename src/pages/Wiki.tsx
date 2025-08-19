@@ -15,9 +15,9 @@ import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { 
-  Search, Plus, BookOpen, Users, Calendar, Edit3, FolderOpen, FileText, RefreshCw, AlertCircle, Save, X,
-  MessageSquare, History, Upload, Settings, GitMerge, CheckCircle, Clock, User, MoreHorizontal, ChevronDown, ChevronRight, Menu
-} from 'lucide-react';
+   Search, Plus, BookOpen, Users, Calendar, Edit3, FolderOpen, FileText, AlertCircle, Save, X,
+   MessageSquare, History, Upload, GitMerge, CheckCircle, Clock, User, MoreHorizontal, ChevronDown, ChevronRight, Menu
+ } from 'lucide-react';
 import PageSettings from '../components/wiki/PageSettings';
 import { formatDistanceToNow } from 'date-fns';
 import { WikiPage, UserRole, getRolePermissions } from '../types/wiki';
@@ -49,6 +49,7 @@ const Wiki: React.FC = () => {
     loading, 
     error, 
     refreshData,
+    forceRefresh,
     getPageByPath,
     searchPages,
     getFileContent,
@@ -75,11 +76,9 @@ const Wiki: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAddPageModal, setShowAddPageModal] = useState(false);
   const [showSuggestEditModal, setShowSuggestEditModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('content');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [tocCollapsed, setTocCollapsed] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [tocOpen, setTocOpen] = useState(false);
+     const [activeTab, setActiveTab] = useState('content');
+   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -212,7 +211,7 @@ const Wiki: React.FC = () => {
   
   const allCategories = getAllCategories(categories);
   
-  console.log('📋 All available pages:', allPages.map(p => ({ id: p.id, slug: p.slug, title: p.title, category: p.categoryName })));
+  
 
   // Filter pages based on search query
   const filteredPages = allPages.filter(page =>
@@ -229,6 +228,19 @@ const Wiki: React.FC = () => {
     } catch (error) {
       console.error('Failed to refresh wiki data:', error);
       toast.error('Failed to refresh wiki data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleForceRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await forceRefresh();
+      toast.success('Wiki data force refreshed successfully!');
+    } catch (error) {
+      console.error('Failed to force refresh wiki data:', error);
+      toast.error('Failed to force refresh wiki data');
     } finally {
       setIsRefreshing(false);
     }
@@ -335,7 +347,7 @@ const Wiki: React.FC = () => {
       const fileName = formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       const pagePath = `${selectedCategory.id}/${fileName}.md`;
       
-      console.log('📝 Creating new page:', pagePath);
+      
       
       // Create initial content with title and description
       const initialContent = `# ${formData.title}
@@ -432,19 +444,11 @@ ${formData.description ? `> ${formData.description}` : ''}
     try {
       setIsSaving(true);
       
-      console.log('🔍 Debug save - selectedPage:', {
-        id: selectedPage.id,
-        githubPath: selectedPage.githubPath,
-        title: selectedPage.title
-      });
-      
-      // Get the file path from the selected page
-      const filePath = selectedPage.id || selectedPage.githubPath;
-      if (!filePath) {
-        throw new Error('No file path found for the selected page');
-      }
-      
-      console.log('🔍 Debug save - filePath:', filePath);
+             // Get the file path from the selected page
+       const filePath = selectedPage.id || selectedPage.githubPath;
+       if (!filePath) {
+         throw new Error('No file path found for the selected page');
+       }
       
       // Save to Supabase storage bucket
       await SupabaseWikiService.savePage(
@@ -474,8 +478,9 @@ ${formData.description ? `> ${formData.description}` : ''}
       
       setSelectedPage(updatedPage);
       
-      // Refresh the data to update the sidebar
-      await refreshData();
+             // Force refresh the data to update the sidebar immediately
+       toast.info('🔄 Refreshing wiki data to show your changes...');
+       await forceRefresh();
       
       toast.success('Page saved successfully!');
     } catch (error) {
@@ -504,42 +509,37 @@ ${formData.description ? `> ${formData.description}` : ''}
     }
   };
 
-  // Handle navigation from sidebar
-  const handleNavigate = (pageId: string) => {
-    console.log('🔍 Navigating to page ID:', pageId);
-    
-    // Try to find page by ID first (for nested pages)
-    let page = allPages.find(p => p.id === pageId);
-    
-    // If not found by ID, try to find by slug (for backward compatibility)
-    if (!page) {
-      page = allPages.find(p => p.slug === pageId);
-    }
-    
-    // If still not found, try to find by path ending
-    if (!page) {
-      page = allPages.find(p => p.id.endsWith(`/${pageId}.md`));
-    }
-    
-    if (page) {
-      console.log('✅ Found page:', page.title, 'with ID:', page.id);
-      handlePageSelect(page);
-    } else {
-      console.warn(`❌ Page not found for ID: ${pageId}`);
-      console.log('🔍 Available pages:', allPages.map(p => ({ id: p.id, slug: p.slug, title: p.title })));
-    }
-  };
+     // Handle navigation from sidebar
+   const handleNavigate = (pageId: string) => {
+     // Try to find page by ID first (for nested pages)
+     let page = allPages.find(p => p.id === pageId);
+     
+     // If not found by ID, try to find by slug (for backward compatibility)
+     if (!page) {
+       page = allPages.find(p => p.slug === pageId);
+     }
+     
+     // If still not found, try to find by path ending
+     if (!page) {
+       page = allPages.find(p => p.id.endsWith(`/${pageId}.md`));
+     }
+     
+     if (page) {
+       handlePageSelect(page);
+     } else {
+       console.warn(`Page not found for ID: ${pageId}`);
+     }
+   };
 
   // Handle search change
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
   };
 
-  const handleWikiBranchChange = (branch: string) => {
-    setCurrentWikiBranch(branch);
-    // In the future, this could load different wiki content based on the branch
-    console.log('🔄 Switching to wiki branch:', branch);
-  };
+     const handleWikiBranchChange = (branch: string) => {
+     setCurrentWikiBranch(branch);
+     // In the future, this could load different wiki content based on the branch
+   };
 
   // Page Settings Handlers
   const handleDeletePage = async (pageId: string) => {
@@ -777,6 +777,7 @@ ${formData.description ? `> ${formData.description}` : ''}
                 setSidebarOpen(false); // Close sidebar on mobile after navigation
               }}
               onRefreshData={handleRefresh}
+              onForceRefreshData={handleForceRefresh}
               onWikiBranchChange={handleWikiBranchChange}
               loading={loading || false}
               searchQuery={searchQuery || ''}
@@ -837,34 +838,34 @@ ${formData.description ? `> ${formData.description}` : ''}
                 </Button>
               )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSettings(true)}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+              
             </div>
           </div>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-hidden">
-          {selectedPage ? (
-            <div className="h-full flex">
-              {/* Main Content */}
-              <div className="flex-1 flex flex-col overflow-hidden px-4 lg:px-12 mr-4">
-                {/* Mobile TOC Toggle */}
-                <div className="flex justify-end mb-2 lg:hidden">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setTocOpen(!tocOpen)}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    TOC
-                  </Button>
-                </div>
+                 {/* Content Area */}
+         <div className="flex-1 overflow-hidden">
+           {/* Work in Progress Notice */}
+           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+             <div className="flex">
+               <div className="flex-shrink-0">
+                 <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                 </svg>
+               </div>
+               <div className="ml-3">
+                 <p className="text-sm text-yellow-700">
+                   <strong>Work in Progress:</strong> This wiki is currently under development and may not be fully functional. Some features may be incomplete or unavailable.
+                 </p>
+               </div>
+             </div>
+           </div>
+
+           {selectedPage ? (
+             <div className="h-full flex">
+               {/* Main Content */}
+               <div className="flex-1 flex flex-col overflow-hidden px-4 lg:px-12 mr-4">
+                 
                 {/* Page Header */}
                 <div className="border-b p-3 bg-background/40 backdrop-blur-sm">
                   <div className="flex items-center justify-between">
@@ -1044,35 +1045,7 @@ ${formData.description ? `> ${formData.description}` : ''}
                 </div>
               </div>
 
-              {/* Mobile TOC Overlay */}
-              {tocOpen && (
-                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setTocOpen(false)} />
-              )}
               
-              {/* Table of Contents Sidebar */}
-              <div className={`
-                w-64 bg-background/60 backdrop-blur-sm rounded-lg p-4 overflow-y-auto
-                fixed lg:relative z-50 lg:z-auto right-0 top-0 h-full
-                ${tocOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
-                transition-transform duration-300
-              `}>
-              
-
-                <div className="flex items-center justify-between mb-4 lg:hidden">
-                  <h3 className="font-medium text-sm">Table of Contents</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setTocOpen(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <h3 className="font-medium mb-4 text-sm hidden lg:block">Table of Contents</h3>
-                <div className="text-xs text-muted-foreground">
-                  Auto-generated TOC coming soon
-                </div>
-              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center h-full">

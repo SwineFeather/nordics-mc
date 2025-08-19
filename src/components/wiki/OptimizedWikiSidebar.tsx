@@ -13,6 +13,7 @@ interface OptimizedWikiSidebarProps {
   selectedSlug?: string;
   onNavigate?: (pageId: string) => void;
   onRefreshData?: () => void;
+  onForceRefreshData?: () => void;
   onWikiBranchChange?: (branch: string) => void;
   loading?: boolean;
   searchQuery: string;
@@ -26,6 +27,7 @@ const OptimizedWikiSidebar: React.FC<OptimizedWikiSidebarProps> = ({
   selectedSlug,
   onNavigate = () => {},
   onRefreshData = () => {},
+  onForceRefreshData = () => {},
   onWikiBranchChange = () => {},
   loading = false,
   searchQuery,
@@ -54,12 +56,29 @@ const OptimizedWikiSidebar: React.FC<OptimizedWikiSidebarProps> = ({
       await onRefreshData();
       toast({
         title: "Wiki refreshed",
-        description: "Latest content loaded from GitHub",
+        description: "Latest content loaded from storage",
       });
     } catch (error) {
       toast({
         title: "Refresh failed",
         description: "Could not load latest content",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle force refresh
+  const handleForceRefresh = async () => {
+    try {
+      await onForceRefreshData();
+      toast({
+        title: "Wiki force refreshed",
+        description: "All caches cleared and content reloaded",
+      });
+    } catch (error) {
+      toast({
+        title: "Force refresh failed",
+        description: "Could not force reload content",
         variant: "destructive",
       });
     }
@@ -253,6 +272,14 @@ const OptimizedWikiSidebar: React.FC<OptimizedWikiSidebarProps> = ({
             title="Refresh wiki content"
           >
             {loading ? 'Refreshing...' : 'Refresh'}
+          </button>
+          <button
+            className="p-1 hover:bg-muted/50 rounded transition-colors text-orange-600"
+            onClick={handleForceRefresh}
+            disabled={loading}
+            title="Force refresh wiki content (clear all caches)"
+          >
+            {loading ? 'Refreshing...' : '🔄'}
           </button>
           <span className="text-xs text-muted-foreground">
             {categories.reduce((total, cat) => total + (cat && cat.pages ? cat.pages.length : 0), 0)} pages

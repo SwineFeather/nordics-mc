@@ -173,30 +173,54 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Account Upgrade Alert for TokenLink users */}
-        {isTokenLinkUser && (
-          <Alert className="mb-6 border-blue-200 bg-blue-50">
-            <ArrowUp className="h-4 w-4 text-blue-600" />
-            <AlertDescription>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-blue-800">Upgrade Your Account</p>
-                  <p className="text-blue-700">
-                    Add email and password authentication for enhanced security and full website access.
-                  </p>
+        {/* Account Setup Section for TokenLink Users */}
+        {needsEmailSetup && (
+          <div className="mb-8">
+            <Card className="border-orange-200 bg-orange-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-orange-800">
+                  <Shield className="w-5 h-5" />
+                  Complete Your Account Setup
+                </CardTitle>
+                <CardDescription className="text-orange-700">
+                  You're currently logged in via TokenLink authentication from Minecraft
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                    <span className="text-orange-800">Limited access from other devices</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                    <span className="text-orange-800">Can't reset password if lost</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                    <span className="text-orange-800">No email notifications</span>
+                  </div>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleOpenSettings('upgrade')}
-                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                >
-                  <ArrowUp className="w-4 h-4 mr-2" />
-                  Upgrade Now
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => handleOpenSettings('upgrade')}
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Setup Email & Password
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/home')}
+                    className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Continue to Website
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* Account Setup Alert */}
@@ -316,16 +340,7 @@ const Dashboard = () => {
                   <Settings className="w-4 h-4 mr-2" />
                   Preferences
                 </Button>
-                {isTokenLinkUser && (
-                  <Button 
-                    variant="default" 
-                    className="w-full justify-start bg-blue-600 hover:bg-blue-700"
-                    onClick={() => handleOpenSettings('upgrade')}
-                  >
-                    <ArrowUp className="w-4 h-4 mr-2" />
-                    Upgrade Account
-                  </Button>
-                )}
+
               </CardContent>
             </Card>
 
@@ -367,6 +382,27 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Continue to Website Section */}
+        <div className="mt-12 text-center">
+          <Card className="max-w-md mx-auto border-green-200 bg-green-50">
+            <CardContent className="pt-6">
+              <h3 className="text-lg font-semibold text-green-800 mb-2">
+                Ready to explore?
+              </h3>
+              <p className="text-green-700 text-sm mb-4">
+                Continue to the main website to access all features
+              </p>
+              <Button 
+                onClick={() => navigate('/home')}
+                className="bg-green-600 hover:bg-green-700 text-white w-full"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Continue to Website
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </main>
 

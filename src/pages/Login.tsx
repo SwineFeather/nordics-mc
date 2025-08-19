@@ -54,7 +54,13 @@ const Login = () => {
         
         // Request session creation along with token validation
         const response = await fetch(
-          `https://erdconvorgecupvavlwv.supabase.co/functions/v1/validate-token?token=${token}&create_session=true`
+          `https://erdconvorgecupvavlwv.supabase.co/functions/v1/validate-token?token=${token}&create_session=true`,
+          {
+            headers: {
+              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZGNvbnZvcmdlY3VwdmF2bHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1ODM4ODcsImV4cCI6MjA2NTE1OTg4N30.1JAp47oJDpiNmnKjpYB_tS9__0Sytk18o8dL-Dfnrdg`,
+              'Content-Type': 'application/json'
+            }
+          }
         );
         
         if (!response.ok) {
@@ -206,6 +212,16 @@ const Login = () => {
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Return to Homepage
                 </Button>
+                
+                <div className="text-center text-sm text-muted-foreground">
+                  Don't have a Minecraft account?{' '}
+                  <a 
+                    href="/signup" 
+                    className="text-blue-500 hover:text-blue-400 font-medium underline"
+                  >
+                    Create a website account
+                  </a>
+                </div>
               </div>
             </div>
           )}

@@ -123,8 +123,11 @@ CREATE POLICY "Users can view account merges" ON public.account_merges FOR SELEC
 CREATE POLICY "System can manage account merges" ON public.account_merges FOR ALL USING (true);
 
 -- Fix login tokens table (missing policies)
-CREATE POLICY "Users can view their login tokens" ON public.login_tokens FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "System can manage login tokens" ON public.login_tokens FOR ALL USING (true);
+-- Allow public access for TokenLink authentication
+CREATE POLICY "Allow public access to login tokens" ON public.login_tokens FOR SELECT USING (true);
+CREATE POLICY "Allow public access to login tokens" ON public.login_tokens FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public access to login tokens" ON public.login_tokens FOR UPDATE USING (true);
+CREATE POLICY "Allow public access to login tokens" ON public.login_tokens FOR DELETE USING (true);
 
 -- Fix level definitions table (missing policies)
 CREATE POLICY "Users can view level definitions" ON public.level_definitions FOR SELECT USING (true);

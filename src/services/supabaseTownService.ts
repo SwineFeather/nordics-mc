@@ -156,7 +156,6 @@ export interface SupabaseNationData {
   daily_upkeep: string;
   founded: string;
   lore: string;
-  government: string;
   motto: string;
   specialties: string[];
   history?: string;
@@ -169,6 +168,19 @@ export interface SupabaseNationData {
   theme_color?: string;
   ruling_entity?: string;
   government_system?: string;
+  // Banner customization fields
+  banner_image_url?: string | null;
+  banner_style?: string;
+  banner_pattern?: string;
+  banner_gradient?: string;
+  banner_gradient_colors?: string[];
+  banner_opacity?: number;
+  banner_height?: number;
+  banner_text?: string | null;
+  banner_text_color?: string;
+  banner_text_size?: string | number;
+  banner_text_position?: string;
+  banner_text_style?: string;
 }
 
 export class SupabaseTownService {
@@ -357,14 +369,33 @@ export class SupabaseTownService {
       daily_upkeep: nation.daily_upkeep || nation.taxes?.toString() || '0',
       founded: nation.founded || (nation.created_at ? new Date(nation.created_at).toISOString().split('T')[0] : 'Unknown'),
       lore: nation.lore || nation.board || '',
-      government: nation.government || 'Monarchy', // Default government type
+
       motto: nation.motto || nation.tag || '',
       specialties: nation.specialties || [], // Default empty specialties
       history: nation.history || nation.board || '',
       image_url: nation.image_url || null, // Will be populated from the new nations table
       created_at: nation.created_at || new Date().toISOString(),
       ally_count: nation.ally_count || 0,
-      towns_count: nation.towns_count || 0
+      towns_count: nation.towns_count || 0,
+      // Add the new fields that were added by migrations
+      economic_system: nation.economic_system || 'Capitalist',
+      vassal_of: nation.vassal_of || null,
+      theme_color: nation.theme_color || 'text-blue-500',
+      ruling_entity: nation.ruling_entity || 'Monarch',
+      government_system: nation.government_system || 'Monarchy',
+      // Banner customization fields
+      banner_image_url: nation.banner_image_url || null,
+      banner_style: nation.banner_style || 'solid',
+      banner_pattern: nation.banner_pattern || 'none',
+      banner_gradient: nation.banner_gradient || 'none',
+      banner_gradient_colors: nation.banner_gradient_colors || [],
+      banner_opacity: nation.banner_opacity || 1.0,
+      banner_height: nation.banner_height || 128,
+      banner_text: nation.banner_text || null,
+      banner_text_color: nation.banner_text_color || '#ffffff',
+      banner_text_size: nation.banner_text_size || 16,
+      banner_text_position: nation.banner_text_position || 'center',
+      banner_text_style: nation.banner_text_style || 'normal'
     };
   }
 
@@ -608,7 +639,7 @@ export class SupabaseTownService {
         daily_upkeep: dbNation.taxes?.toString() || '0',
         founded: dbNation.created_at ? new Date(dbNation.created_at).toISOString().split('T')[0] : 'Unknown',
         lore: dbNation.board || '',
-        government: 'Monarchy',
+
         motto: dbNation.tag || '',
         specialties: [],
         history: dbNation.board || '',

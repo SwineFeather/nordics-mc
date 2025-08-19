@@ -1,0 +1,1 @@
+import{u as e,r as s}from"./index-BDwxLbfg.js";const o=()=>{const t=e();return s.useEffect(()=>{if(window.location.hostname.startsWith("nsi.")){t("/nsi",{replace:!0});return}t("/home",{replace:!0})},[t]),null};export{o as default};

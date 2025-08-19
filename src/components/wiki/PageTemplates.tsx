@@ -73,7 +73,7 @@ Answer 2
 - **Capital:** [Capital City]
 - **Founded:** [Date]
 - **Population:** [Number]
-- **Government Type:** [Type]
+- **Government System:** [System]
 
 ## Description
 Brief description of the nation and its characteristics.

@@ -9,6 +9,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
+  username?: string | null;
   role: UserRole;
   avatar_url: string | null;
   bio?: string | null;
@@ -257,6 +258,7 @@ export const useAuth = () => {
           id: result.data.id,
           email: result.data.email,
           full_name: result.data.full_name,
+          username: result.data.username || null,
           role: result.data.role as UserRole,
           avatar_url: result.data.avatar_url || null,
           bio: result.data.bio || null,
@@ -282,6 +284,41 @@ export const useAuth = () => {
     return { data, error };
   };
 
+  const refreshProfile = async () => {
+    if (tokenLinkAuth.isTokenLinkUser && tokenLinkAuth.profile) {
+      // For TokenLink users, refresh from TokenLink auth
+      const result = await tokenLinkAuth.refreshProfile?.();
+      if (!result?.error && result?.data) {
+        setProfile({
+          id: result.data.id,
+          email: result.data.email,
+          full_name: result.data.full_name,
+          username: result.data.username || null,
+          role: result.data.role as UserRole,
+          avatar_url: result.data.avatar_url || null,
+          bio: result.data.bio || null,
+          minecraft_username: result.data.minecraft_username || null,
+        });
+      }
+      return result;
+    }
+
+    if (!user) return { error: new Error('Not authenticated') };
+    
+    // For regular Supabase users, refresh from database
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (!error && data) {
+      setProfile(data);
+    }
+    
+    return { data, error };
+  };
+
   return {
     user,
     profile,
@@ -290,6 +327,7 @@ export const useAuth = () => {
     signUp,
     signOut,
     updateProfile,
+    refreshProfile,
     isAuthenticated: !!user || tokenLinkAuth.isTokenLinkUser,
     userRole: profile?.role || 'member' as UserRole,
     isTokenLinkUser: tokenLinkAuth.isTokenLinkUser,

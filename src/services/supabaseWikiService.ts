@@ -1954,5 +1954,145 @@ updated_at: "${new Date().toISOString()}"
     }
   }
 
+  /**
+   * Clear all town wiki pages content
+   * This will set the content of all town-related pages to empty strings
+   */
+  static async clearTownWikiPages(): Promise<{ success: boolean; clearedCount: number; error?: string }> {
+    try {
+      console.log('🗑️ Clearing all town wiki pages content...');
+      
+      // First, let's identify the towns category
+      const { data: townsCategory, error: categoryError } = await supabase
+        .from('wiki_categories')
+        .select('id')
+        .eq('slug', 'towns')
+        .single();
+
+      if (categoryError && categoryError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('❌ Error finding towns category:', categoryError);
+        return { success: false, clearedCount: 0, error: `Failed to find towns category: ${categoryError.message}` };
+      }
+
+      let clearedCount = 0;
+
+      // Clear pages in towns category
+      if (townsCategory) {
+        const { data: townsPages, error: townsError } = await supabase
+          .from('wiki_pages')
+          .update({ 
+            content: '',
+            last_edited_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('category_id', townsCategory.id)
+          .select('id');
+
+        if (townsError) {
+          console.error('❌ Error clearing towns category pages:', townsError);
+          return { success: false, clearedCount: 0, error: `Failed to clear towns category pages: ${townsError.message}` };
+        }
+
+        clearedCount += townsPages?.length || 0;
+        console.log(`✅ Cleared ${townsPages?.length || 0} pages in towns category`);
+      }
+
+      // Clear pages with town-related slugs
+      const { data: slugPages, error: slugError } = await supabase
+        .from('wiki_pages')
+        .update({ 
+          content: '',
+          last_edited_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .or('slug.like.town-%,slug.like.%-town')
+        .select('id');
+
+      if (slugError) {
+        console.error('❌ Error clearing slug-based town pages:', slugError);
+        return { success: false, clearedCount: 0, error: `Failed to clear slug-based town pages: ${slugError.message}` };
+      }
+
+      clearedCount += slugPages?.length || 0;
+      console.log(`✅ Cleared ${slugPages?.length || 0} pages with town-related slugs`);
+
+      // Clear pages that might be town pages based on title patterns
+      // Get all town names from the towns table
+      const { data: towns, error: townsError } = await supabase
+        .from('towns')
+        .select('name');
+
+      if (townsError) {
+        console.error('❌ Error fetching town names:', townsError);
+        return { success: false, clearedCount: 0, error: `Failed to fetch town names: ${townsError.message}` };
+      }
+
+      if (towns && towns.length > 0) {
+        const townNames = towns.map(t => t.name);
+        
+        const { data: titlePages, error: titleError } = await supabase
+          .from('wiki_pages')
+          .update({ 
+            content: '',
+            last_edited_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .in('title', townNames)
+          .select('id');
+
+        if (titleError) {
+          console.error('❌ Error clearing title-based town pages:', titleError);
+          return { success: false, clearedCount: 0, error: `Failed to clear title-based town pages: ${titleError.message}` };
+        }
+
+        clearedCount += titlePages?.length || 0;
+        console.log(`✅ Cleared ${titlePages?.length || 0} pages with town names as titles`);
+      }
+
+      // Also clear any pages that might be in Towns subcategories
+      const { data: townsSubcategories, error: subcatError } = await supabase
+        .from('wiki_categories')
+        .select('id')
+        .or('title.ilike.%town%,slug.ilike.%town%');
+
+      if (subcatError) {
+        console.error('❌ Error finding town subcategories:', subcatError);
+        return { success: false, clearedCount: 0, error: `Failed to find town subcategories: ${subcatError.message}` };
+      }
+
+      if (townsSubcategories && townsSubcategories.length > 0) {
+        const subcategoryIds = townsSubcategories.map(cat => cat.id);
+        
+        const { data: subcatPages, error: subcatPagesError } = await supabase
+          .from('wiki_pages')
+          .update({ 
+            content: '',
+            last_edited_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .in('category_id', subcategoryIds)
+          .select('id');
+
+        if (subcatPagesError) {
+          console.error('❌ Error clearing town subcategory pages:', subcatPagesError);
+          return { success: false, clearedCount: 0, error: `Failed to clear town subcategory pages: ${subcatPagesError.message}` };
+        }
+
+        clearedCount += subcatPages?.length || 0;
+        console.log(`✅ Cleared ${subcatPages?.length || 0} pages in town subcategories`);
+      }
+
+      console.log(`✅ Successfully cleared content for ${clearedCount} town wiki pages`);
+      return { success: true, clearedCount };
+
+    } catch (error) {
+      console.error('❌ Error clearing town wiki pages:', error);
+      return { 
+        success: false, 
+        clearedCount: 0, 
+        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+      };
+    }
+  }
 
 }

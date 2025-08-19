@@ -1,8 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Book, BookOpen, Info, Users, ShoppingBag, Building, Building2, Store, Crown, MapPin, Menu, X, Search, Settings, LogOut, User, ChevronDown, TrendingUp, Clock, Star } from 'lucide-react';
+import { Book, BookOpen, Info, Users, ShoppingBag, Building, Building2, Store, Crown, MapPin, Menu, X, Search, Settings, LogOut, User, ChevronDown } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -19,7 +19,6 @@ import NotificationBell from './NotificationBell';
 import PlayerStatsDetail from './community/PlayerStatsDetail';
 import SettingsModal from './SettingsModal';
 import { SearchDialog } from './search/SearchDialog';
-import { SearchSuggestionsService } from '@/services/searchSuggestionsService';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { usePlayerProfileByUsername } from '@/hooks/usePlayerProfileByUsername';
@@ -30,8 +29,6 @@ const Navigation = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [showQuickSearch, setShowQuickSearch] = useState(false);
-  const [trendingSearches, setTrendingSearches] = useState<any[]>([]);
   const location = useLocation();
   const { user, profile } = useAuth();
   
@@ -39,22 +36,6 @@ const Navigation = () => {
   const { profile: playerProfile, loading: playerProfileLoading } = usePlayerProfileByUsername(
     profile?.minecraft_username ? profile.minecraft_username : ''
   );
-
-  // Fetch trending searches for quick search preview
-  useEffect(() => {
-    const fetchTrendingSearches = async () => {
-      try {
-        const trending = await SearchSuggestionsService.getTrendingSearches();
-        setTrendingSearches(trending.slice(0, 3));
-      } catch (error) {
-        console.error('Error fetching trending searches:', error);
-      }
-    };
-
-    if (showQuickSearch) {
-      fetchTrendingSearches();
-    }
-  }, [showQuickSearch]);
 
   // --- New Navigation Structure ---
   const isActive = (href: string) => {
@@ -201,78 +182,15 @@ const Navigation = () => {
 
           {/* Right side items */}
           <div className="flex items-center space-x-4">
-            {/* Search Button with Quick Search Preview */}
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSearchOpen(true)}
-                onMouseEnter={() => setShowQuickSearch(true)}
-                onMouseLeave={() => setShowQuickSearch(false)}
-                className="hidden md:flex"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-              
-              {/* Quick Search Preview */}
-              {showQuickSearch && (
-                <div className="absolute top-full right-0 mt-2 w-80 bg-card border border-border rounded-lg shadow-lg z-50 p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-foreground">Quick Search</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSearchOpen(true)}
-                      className="h-6 px-2 text-xs"
-                    >
-                      Open Full Search
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {trendingSearches.map((trending, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setSearchOpen(true);
-                          // The search dialog will handle the search term
-                        }}
-                        className="w-full text-left p-2 rounded-md hover:bg-muted/50 transition-colors flex items-center gap-3"
-                      >
-                        <TrendingUp className="w-4 h-4 text-green-600" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">{trending.term}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {trending.count} searches • {trending.category}
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {trending.trend === 'up' ? '↗' : trending.trend === 'down' ? '↘' : '→'}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <div className="text-xs text-muted-foreground mb-2">Popular Searches</div>
-                    <div className="flex flex-wrap gap-1">
-                      {['nations', 'towns', 'companies', 'wiki'].map((term) => (
-                        <button
-                          key={term}
-                          onClick={() => {
-                            setSearchOpen(true);
-                            // The search dialog will handle the search term
-                          }}
-                          className="px-2 py-1 text-xs bg-muted hover:bg-muted/80 rounded-md transition-colors capitalize"
-                        >
-                          {term}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Search Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchOpen(true)}
+              className="hidden md:flex"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
 
             <ThemeToggle />
             {user && <NotificationBell />}
@@ -313,9 +231,14 @@ const Navigation = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => setAuthOpen(true)} variant="default" size="sm">
-                Sign In
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button onClick={() => setAuthOpen(true)} variant="outline" size="sm">
+                  Sign In
+                </Button>
+                <Button asChild variant="default" size="sm">
+                  <Link to="/signup">Sign Up</Link>
+                </Button>
+              </div>
             )}
             
             {/* Mobile menu button */}
@@ -456,15 +379,22 @@ const Navigation = () => {
               </div>
               {/* Mobile Auth */}
               {!user && (
-                <Button 
-                  onClick={() => {
-                    setAuthOpen(true);
-                    setIsOpen(false);
-                  }} 
-                  className="w-full mt-2"
-                >
-                  Sign In
-                </Button>
+                <div className="space-y-2 mt-2">
+                  <Button 
+                    onClick={() => {
+                      setAuthOpen(true);
+                      setIsOpen(false);
+                    }} 
+                    className="w-full"
+                  >
+                    Sign In
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/signup" onClick={() => setIsOpen(false)}>
+                      Sign Up
+                    </Link>
+                  </Button>
+                </div>
               )}
             </div>
           </div>

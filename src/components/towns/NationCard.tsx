@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,14 +19,31 @@ interface NationCardProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onViewTown: (town: SupabaseTownData & { nation: string; nationColor: string }) => void;
+  onNationUpdated?: (updatedNation: SupabaseNationData) => void;
   loading?: boolean;
 }
 
-const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExpand, onViewTown, loading }) => {
+const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExpand, onViewTown, onNationUpdated, loading }) => {
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [canUpdateImage, setCanUpdateImage] = useState(false);
   const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
+  const [currentThemeColor, setCurrentThemeColor] = useState(nation.theme_color || '#eab308');
   const { profile } = useAuth();
+
+  // Update current theme color when nation changes
+  useEffect(() => {
+    setCurrentThemeColor(nation.theme_color || '#eab308');
+    console.log('NationCard: Nation data updated:', {
+      name: nation.name,
+      theme_color: nation.theme_color,
+      ruling_entity: nation.ruling_entity,
+      government_system: nation.government_system,
+      economic_system: nation.economic_system,
+
+      lore: nation.lore
+    });
+  }, [nation.theme_color, nation.ruling_entity, nation.government_system, nation.economic_system, nation.lore, forceUpdate]);
 
   // Use dynamic image service with fallback logic
   const { imageUrl, isLoading, error } = useNationImage(nation.name, nation.image_url);
@@ -55,16 +72,34 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
   return (
     <Card className={`rounded-2xl shadow-lg border-2 ${borderColorClass} overflow-hidden group hover:shadow-xl transition-all duration-300 bg-card`}> 
       {/* Wide Banner/Flag */}
-      <div className="relative h-32 w-full flex items-center justify-center">
+      <div 
+        className="relative h-32 w-full flex items-center justify-center overflow-hidden"
+        style={{
+          backgroundColor: nation.color || '#1e40af',
+          backgroundImage: nation.banner_image_url ? `url(${nation.banner_image_url})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Banner Overlay for better text visibility */}
+        {nation.banner_image_url && (
+          <div 
+            className="absolute inset-0 bg-black/20"
+            style={{ backgroundColor: `${nation.color || '#1e40af'}80` }}
+          />
+        )}
+        
+        {/* Nation Flag/Image */}
         {isLoading ? (
-          <div className="h-24 w-24 absolute left-8 top-1/2 -translate-y-1/2 flex items-center justify-center">
+          <div className="h-24 w-24 absolute left-8 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg p-2">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <img
             src={imageUrl}
             alt={nation.name + ' flag'}
-            className="h-24 w-24 object-cover absolute left-8 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-24 w-24 object-cover absolute left-8 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-80 transition-opacity rounded-lg p-1"
             onError={e => (e.currentTarget.style.display = 'none')}
             onClick={() => {
               if (imageUrl) {
@@ -75,12 +110,30 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
           />
         )}
         
+        {/* Banner Text */}
+        {nation.banner_text && (
+          <div 
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-center"
+            style={{
+              color: nation.banner_text_color || '#ffffff',
+              fontSize: `${nation.banner_text_size || 16}px`,
+              fontWeight: nation.banner_text_style === 'bold' ? 'bold' : 'normal',
+              fontStyle: nation.banner_text_style === 'italic' ? 'italic' : 'normal',
+              textDecoration: nation.banner_text_style === 'underline' ? 'underline' : 'none'
+            }}
+          >
+            <div className="bg-black/40 px-3 py-1 rounded-lg backdrop-blur-sm">
+              {nation.banner_text}
+            </div>
+          </div>
+        )}
+        
         {/* Image Upload Button - Only show for nation leaders */}
         {profile && (profile.role === 'admin' || profile.role === 'moderator' || profile.full_name === nation.leader_name) && (
           <Button
             size="icon"
             variant="outline"
-            className="absolute left-8 top-1/2 -translate-y-1/2 translate-x-16 bg-background/90 hover:bg-background"
+            className="absolute left-8 top-1/2 -translate-y-1/2 translate-x-16 bg-background/90 hover:bg-background z-10"
             onClick={() => setShowImageUpload(true)}
             title="Upload nation image"
           >
@@ -90,25 +143,57 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
         
         {/* Edit Nation Button - Only show for nation leaders */}
         {profile && (profile.role === 'admin' || profile.role === 'moderator' || profile.full_name === nation.leader_name) && (
-          <div className="absolute left-8 top-1/2 -translate-y-1/2 translate-x-32">
+          <div className="absolute left-8 top-1/2 -translate-y-1/2 translate-x-32 z-10">
             <EditNationModal 
               nation={nation}
               onNationUpdated={(updatedNation) => {
-                // Update the nation object with the new data
+                // Immediately update the local nation object with the new data
+                // This ensures the UI updates immediately without waiting for the parent refresh
                 Object.assign(nation, updatedNation);
-                // Force a re-render by updating a state variable
-                // This is a simple way to trigger re-render
+                
+                // Update the current theme color state
+                setCurrentThemeColor(updatedNation.theme_color || '#eab308');
+                
+                // Call the parent's onNationUpdated callback if provided
+                if (onNationUpdated) {
+                  onNationUpdated(updatedNation);
+                }
+                
+                // Force a local re-render for immediate UI update
+                setForceUpdate(prev => prev + 1);
+                
+                console.log('NationCard: Nation updated locally:', {
+                  oldThemeColor: nation.theme_color,
+                  newThemeColor: updatedNation.theme_color,
+                  oldRulingEntity: nation.ruling_entity,
+                  newRulingEntity: updatedNation.ruling_entity
+                });
               }}
             />
           </div>
         )}
-
       </div>
       
       <CardHeader className="pb-0 pt-8 relative">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 mb-1">
-            <Crown className={`w-6 h-6 ${nation.theme_color || 'text-yellow-500'}`} />
+            <Crown 
+              className="w-6 h-6" 
+              style={{ 
+                color: currentThemeColor,
+                fill: currentThemeColor
+              }}
+              key={`crown-${currentThemeColor}-${forceUpdate}`}
+            />
+            {/* Vassal Icon */}
+            {nation.vassal_of && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                <Link2 className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                <span className="text-xs font-medium text-orange-700 dark:text-orange-300">
+                  Vassal of {nation.vassal_of}
+                </span>
+              </div>
+            )}
             <CardTitle className={`text-2xl font-bold text-foreground truncate`}>{nation.name.replace(/_/g, ' ')}</CardTitle>
           </div>
           
@@ -131,11 +216,7 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
             <span className="text-xs">Founded: {nation.founded}</span>
           </div>
           
-          <div className="flex flex-wrap gap-2 mt-2">
-            <Button size="sm" variant="outline" className="flex items-center gap-1" title="Message Leader">
-              <MessageCircle className="w-4 h-4" /> Message Leader
-            </Button>
-          </div>
+
           <div className="mt-2">
             {nation.motto && (
               <p className="text-xs font-medium text-primary">{nation.motto}</p>
@@ -149,7 +230,14 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
-              <Crown className={`w-4 h-4 ${nation.theme_color || 'text-yellow-500'}`} />
+              <Crown 
+                className="w-4 h-4" 
+                style={{ 
+                  color: currentThemeColor,
+                  fill: currentThemeColor
+                }}
+                key={`crown-leader-${currentThemeColor}-${forceUpdate}`}
+              />
               <span className="font-semibold text-foreground">Leader:</span>
               <button
                 className="font-medium text-foreground hover:underline text-left"
@@ -166,6 +254,14 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
               <span className="font-semibold text-foreground">Capital:</span>
               <span className="font-medium text-foreground">{nation.capital}</span>
             </div>
+            {/* Vassal Status */}
+            {nation.vassal_of && (
+              <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                <Link2 className="w-4 h-4 text-orange-500" />
+                <span className="font-semibold text-foreground">Vassal of:</span>
+                <span className="font-medium text-foreground">{nation.vassal_of}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <Banknote className="w-4 h-4 text-green-500" />
               <span className="font-semibold text-foreground">Treasury:</span>
@@ -180,32 +276,18 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
               <span className="font-medium text-foreground">{nation.population} citizens</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
-              <span className="font-semibold text-foreground">Government:</span>
-              <span className="font-medium text-foreground">{nation.government}</span>
+              <span className="font-semibold text-foreground">Ruling Entity:</span>
+              <span className="font-medium text-foreground">{nation.ruling_entity || 'Monarch'}</span>
             </div>
-            {nation.ruling_entity && (
-              <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                <span className="font-semibold text-foreground">Ruling Entity:</span>
-                <span className="font-medium text-foreground">{nation.ruling_entity}</span>
-              </div>
-            )}
-            {nation.government_system && (
-              <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                <span className="font-semibold text-foreground">Government System:</span>
-                <span className="font-medium text-foreground">{nation.government_system}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2 text-muted-foreground text-xs">
+              <span className="font-semibold text-foreground">Government System:</span>
+              <span className="font-medium text-foreground">{nation.government_system || 'Monarchy'}</span>
+            </div>
+
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <span className="font-semibold text-foreground">Economic System:</span>
               <span className="font-medium text-foreground">{nation.economic_system || 'Capitalist'}</span>
             </div>
-            {nation.vassal_of && (
-              <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                <span className="font-semibold text-foreground">Subordinate to:</span>
-                <span className="font-medium text-foreground">{nation.vassal_of}</span>
-              </div>
-            )}
-
           </div>
         </div>
         <hr className="my-4 border-border/40" />

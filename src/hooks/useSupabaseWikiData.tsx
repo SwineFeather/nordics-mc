@@ -9,6 +9,7 @@ interface SupabaseWikiData {
   error: string | null;
   lastUpdated: Date | null;
   refreshData: () => Promise<void>;
+  forceRefresh: () => Promise<void>;
   getPageByPath: (path: string) => Promise<WikiPage | null>;
   searchPages: (query: string) => Promise<WikiPage[]>;
   getFileContent: (path: string) => Promise<string>;
@@ -24,9 +25,10 @@ export const useSupabaseWikiData = (): SupabaseWikiData => {
   const [fileStructure, setFileStructure] = useState<WikiFileStructure[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [lastUpdated, setDate] = useState<Date | null>(null);
   
   const abortControllerRef = useRef<AbortController | null>(null);
+  const lastRefreshRef = useRef<number>(0);
 
   // Load data from Supabase storage
   const loadData = useCallback(async (forceRefresh = false) => {
@@ -40,19 +42,28 @@ export const useSupabaseWikiData = (): SupabaseWikiData => {
       setLoading(true);
       setError(null);
 
-      // Get the file structure from storage
-      const structure = await SupabaseWikiService.getFileStructure();
-      
-      if (abortControllerRef.current.signal.aborted) return;
+      // Add a small delay to ensure storage updates are propagated
+      if (forceRefresh) {
+        const timeSinceLastRefresh = Date.now() - lastRefreshRef.current;
+        if (timeSinceLastRefresh < 1000) { // If refreshed less than 1 second ago
+          await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
+        }
+        lastRefreshRef.current = Date.now();
+      }
 
-      // Convert to wiki categories and pages
-      const wikiCategories = await SupabaseWikiService.convertToWikiData(structure);
-      
-      if (abortControllerRef.current.signal.aborted) return;
+             // Get the file structure from storage
+       const structure = await SupabaseWikiService.getFileStructure();
+       
+       if (abortControllerRef.current.signal.aborted) return;
 
-      setFileStructure(structure);
-      setCategories(wikiCategories);
-      setLastUpdated(new Date());
+       // Convert to wiki categories and pages
+       const wikiCategories = await SupabaseWikiService.convertToWikiData(structure);
+       
+       if (abortControllerRef.current.signal.aborted) return;
+
+       setFileStructure(structure);
+       setCategories(wikiCategories);
+       setDate(new Date());
 
     } catch (err) {
       if (abortControllerRef.current.signal.aborted) return;
@@ -66,10 +77,48 @@ export const useSupabaseWikiData = (): SupabaseWikiData => {
     }
   }, []);
 
-  // Refresh data
-  const refreshData = useCallback(async () => {
-    await loadData(true);
-  }, [loadData]);
+     // Refresh data with cache invalidation
+   const refreshData = useCallback(async () => {
+     // Clear any potential browser caching
+     if ('caches' in window) {
+       try {
+         const cacheNames = await caches.keys();
+         for (const cacheName of cacheNames) {
+           if (cacheName.includes('wiki') || cacheName.includes('supabase')) {
+             await caches.delete(cacheName);
+           }
+         }
+       } catch (cacheError) {
+         console.warn('Failed to clear browser caches:', cacheError);
+       }
+     }
+     
+     // Force refresh from storage
+     await loadData(true);
+   }, [loadData]);
+
+     // Force immediate refresh without any caching
+   const forceRefresh = useCallback(async () => {
+     // Clear any potential browser caching
+     if ('caches' in window) {
+       try {
+         const cacheNames = await caches.keys();
+         for (const cacheName of cacheNames) {
+           if (cacheName.includes('wiki') || cacheName.includes('supabase')) {
+             await caches.delete(cacheName);
+           }
+         }
+       } catch (cacheError) {
+         console.warn('Failed to clear browser caches:', cacheError);
+       }
+     }
+     
+     // Add a longer delay to ensure storage is fully updated
+     await new Promise(resolve => setTimeout(resolve, 1000));
+     
+     // Force refresh from storage
+     await loadData(true);
+   }, [loadData]);
 
   // Get page by path
   const getPageByPath = useCallback(async (path: string): Promise<WikiPage | null> => {
@@ -180,6 +229,7 @@ export const useSupabaseWikiData = (): SupabaseWikiData => {
     error,
     lastUpdated,
     refreshData,
+    forceRefresh,
     getPageByPath,
     searchPages,
     getFileContent,

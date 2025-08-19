@@ -10,3 +10,5 @@ COMMENT ON COLUMN public.nations.theme_color IS 'Theme color for the nation (e.g
 
 -- Create an index for better performance when querying by theme color
 CREATE INDEX IF NOT EXISTS idx_nations_theme_color ON public.nations(theme_color);
+
+

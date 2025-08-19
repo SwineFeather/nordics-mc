@@ -34,7 +34,10 @@ const Store = () => {
       color: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-200 dark:border-orange-800',
       icon: <Star className="w-6 h-6 text-orange-500" />,
       features: [
-        'Invisible item frames (/itf toggle)',
+        '/hat (block in hand will appear as an hat)',
+        'Access to turn Item Frames invisible (/itf toggle)',
+        '/nick: Allows you to change your in-game name with a ~ prefix.',
+        '/me: Broadcast a narrative message about yourself in purple text for added style.',
         <TreasureChestInfo key="kala-chest" discount="15%" />,
         'Pets: Piggy, Cow',
         'Particle Effects: Snow footprints',
@@ -51,7 +54,8 @@ const Store = () => {
       color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-orange-800',
       icon: <Crown className="w-6 h-6 text-red-500" />,
       features: [
-        'All Kala benefits',
+        'All benefits of Kala.',
+        'Rename items with /itemname and change item lore with /itemlore.',
         <TreasureChestInfo key="fancy-chest" discount="20%" />,
         'Pets: Frog',
         'Particle Effects: Spring footprints, Rain Cloud, Notes',

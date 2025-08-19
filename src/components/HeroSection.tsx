@@ -317,8 +317,6 @@ const HeroSection = () => {
             Build a thriving town. Start companies, make money, and grow. Form alliances, face rivals, and shape the world.
           </p>
 
-          
-
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in pointer-events-none" style={{
             animationDelay: '0.4s'

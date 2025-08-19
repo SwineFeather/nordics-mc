@@ -37,7 +37,10 @@ import {
   Droplets,
   Apple,
   BookOpen,
-  Smile
+  Smile,
+  Landmark,
+  Globe,
+  Map
 } from 'lucide-react';
 
 interface GuideProps {
@@ -57,6 +60,7 @@ const Guide: React.FC<GuideProps> = ({ defaultTab = 'cultivation' }) => {
     if (location.pathname.startsWith('/guide/company')) return 'company';
     if (location.pathname.startsWith('/guide/war')) return 'war';
     if (location.pathname.startsWith('/guide/economy')) return 'economy';
+    if (location.pathname.startsWith('/guide/politics')) return 'politics';
     return defaultTab;
   };
   
@@ -74,84 +78,97 @@ const Guide: React.FC<GuideProps> = ({ defaultTab = 'cultivation' }) => {
       {/* Main Navigation Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="flex flex-wrap justify-center items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-xl p-3 w-full max-w-6xl mx-auto border border-green-200 dark:border-green-800 shadow-lg min-h-[60px]">
-            <TabsTrigger 
-              value="cultivation" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold h-10 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-green-100 dark:hover:bg-green-900/20 hover:scale-105"
-            >
-              <Sprout className="w-4 h-4" />
-              Cultivation
-            </TabsTrigger>
-            <TabsTrigger 
-              value="fishing" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold h-10 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:scale-105"
-            >
-              <Fish className="w-4 h-4" />
-              Fishing
-            </TabsTrigger>
-            <TabsTrigger 
-              value="cosmetics" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold h-10 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-pink-100 dark:hover:bg-pink-900/20 hover:scale-105"
-            >
-              <Palette className="w-4 h-4" />
-              Cosmetics
-            </TabsTrigger>
-            <TabsTrigger 
-              value="towny" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold h-10 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
-            >
-              <Building2 className="w-4 h-4" />
-              Towny
-            </TabsTrigger>
-            <TabsTrigger 
-              value="company" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold h-10 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-purple-100 dark:hover:bg-purple-900/20 hover:scale-105"
-            >
-              <Building className="w-4 h-4" />
-              Company
-            </TabsTrigger>
-            <TabsTrigger 
-              value="war" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold h-10 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-red-100 dark:hover:bg-red-900/20 hover:scale-105"
-            >
-              <Sword className="w-4 h-4" />
-              War
-            </TabsTrigger>
-            <TabsTrigger 
-              value="economy" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold h-10 data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 hover:scale-105"
-            >
-              <Coins className="w-4 h-4" />
-              Economy
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center mb-8">
+            <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-xl p-1 w-full max-w-6xl mx-auto border border-green-200 dark:border-green-800 shadow-lg">
+              <TabsTrigger 
+                value="cultivation" 
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-green-100 dark:hover:bg-green-900/20 hover:scale-105"
+              >
+                <Sprout className="w-4 h-4" />
+                Cultivation
+              </TabsTrigger>
+              <TabsTrigger 
+                value="fishing" 
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:scale-105"
+              >
+                <Fish className="w-4 h-4" />
+                Fishing
+              </TabsTrigger>
+              <TabsTrigger 
+                value="cosmetics" 
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-pink-100 dark:hover:bg-pink-900/20 hover:scale-105"
+              >
+                <Palette className="w-4 h-4" />
+                Cosmetics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="towny" 
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:scale-105"
+              >
+                <Building2 className="w-4 h-4" />
+                Towny
+              </TabsTrigger>
+              <TabsTrigger 
+                value="company" 
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-purple-100 dark:hover:bg-purple-900/20 hover:scale-105"
+              >
+                <Building className="w-4 h-4" />
+                Company
+              </TabsTrigger>
+              <TabsTrigger 
+                value="war" 
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-red-100 dark:hover:bg-red-900/20 hover:scale-105"
+              >
+                <Sword className="w-4 h-4" />
+                War
+              </TabsTrigger>
+              <TabsTrigger 
+                value="economy" 
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 hover:scale-105"
+              >
+                <Coins className="w-4 h-4" />
+                Economy
+              </TabsTrigger>
+              <TabsTrigger 
+                value="politics" 
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 hover:scale-105"
+              >
+                <Landmark className="w-4 h-4" />
+                Politics
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
-          <TabsContent value="cultivation" className="mt-8">
+          <TabsContent value="cultivation" className="mt-6">
             <CultivationTab />
           </TabsContent>
           
-          <TabsContent value="fishing" className="mt-8">
+          <TabsContent value="fishing" className="mt-6">
             <FishingTab />
           </TabsContent>
           
-          <TabsContent value="cosmetics" className="mt-8">
+          <TabsContent value="cosmetics" className="mt-6">
             <CosmeticsTab />
           </TabsContent>
           
-          <TabsContent value="towny" className="mt-8">
+          <TabsContent value="towny" className="mt-6">
             <TownyTab />
           </TabsContent>
           
-          <TabsContent value="company" className="mt-8">
+          <TabsContent value="company" className="mt-6">
             <CompanyTab />
           </TabsContent>
           
-          <TabsContent value="war" className="mt-8">
+          <TabsContent value="war" className="mt-6">
             <WarTab />
           </TabsContent>
           
-          <TabsContent value="economy" className="mt-8">
+          <TabsContent value="economy" className="mt-6">
             <EconomyTab />
+          </TabsContent>
+          
+          <TabsContent value="politics" className="mt-6">
+            <PoliticsTab />
           </TabsContent>
         </Tabs>
       </div>
@@ -172,12 +189,8 @@ const CultivationTab: React.FC = () => {
         />
       </div>
 
-      {/* Basic Farming Techniques */}
+      {/* Cultivation Guide Content */}
       <div className="space-y-6">
-        <h3 className="text-2xl font-bold text-center text-foreground mb-6">
-          Basic Farming Techniques
-        </h3>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="shadow-sm">
             <CardHeader>
@@ -239,17 +252,17 @@ const FishingTab: React.FC = () => {
     <div className="space-y-6">
       {/* Sub-navigation */}
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
-        <TabsList className="flex justify-center items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-xl p-3 w-full max-w-2xl mx-auto border border-blue-200 dark:border-blue-800 shadow-lg min-h-[56px]">
+        <TabsList className="flex justify-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-xl p-1 w-full max-w-2xl mx-auto border border-blue-200 dark:border-blue-800 shadow-lg">
           <TabsTrigger 
             value="overview" 
-            className="flex items-center gap-2 px-6 py-2 rounded-lg text-base font-semibold text-foreground h-12 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:scale-105"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:scale-105"
           >
             <Info className="w-4 h-4" />
             Overview
           </TabsTrigger>
           <TabsTrigger 
             value="fishdex" 
-            className="flex items-center gap-2 px-6 py-2 rounded-lg text-base font-semibold text-foreground h-12 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:scale-105"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:scale-105"
           >
             <Fish className="w-4 h-4" />
             FishDex
@@ -770,90 +783,7 @@ const NationSection: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Shield className="w-5 h-5 text-orange-600" />
-              Government Types
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Government types are set through the Edit Nation interface, not through in-game commands. Leaders can customize their nation's government structure using a hierarchical selection system.
-              </p>
-              <div className="text-sm">
-                <strong>Government Structure:</strong>
-                <ul className="mt-2 space-y-1 text-muted-foreground">
-                  <li>• <strong>Ruling Entity:</strong> Who/what actually rules (Monarch, President, Council, etc.)</li>
-                  <li>• <strong>Government System:</strong> How the government is organized (Monarchy, Democracy, Republic, etc.)</li>
-                  <li>• <strong>Economic System:</strong> How resources and wealth are distributed</li>
-                </ul>
-              </div>
-              <div className="text-sm mt-3">
-                <strong>Available Categories:</strong>
-                <ul className="mt-2 space-y-1 text-muted-foreground">
-                  <li>• <strong>Traditional Nobility:</strong> Monarch, Emperor, King, Queen, Duke, etc.</li>
-                  <li>• <strong>Elected Leaders:</strong> President, Prime Minister, Chancellor, etc.</li>
-                  <li>• <strong>Council & Assembly:</strong> Parliament, Senate, Congress, etc.</li>
-                  <li>• <strong>Military Leaders:</strong> General, Admiral, Warlord, etc.</li>
-                  <li>• <strong>Fantasy & Mythical:</strong> Dragon, Phoenix, Wizard, etc.</li>
-                  <li>• <strong>And many more specialized categories</strong></li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Coins className="w-5 h-5 text-orange-600" />
-              Economic Systems
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Economic systems are set through the Edit Nation interface. Nations can have different economic systems that determine how resources and wealth are distributed.
-              </p>
-              <div className="text-sm">
-                <strong>Common Systems:</strong>
-                <ul className="mt-2 space-y-1 text-muted-foreground">
-                  <li>• Capitalist - Free market economy</li>
-                  <li>• Socialist - Government helps share resources</li>
-                  <li>• Mixed Economy - Combination of both</li>
-                  <li>• Resource-Based - Focus on natural resources</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Users className="w-5 h-5 text-orange-600" />
-              Vassals & Subnations
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Vassal status is set through the Edit Nation interface. A vassal nation is under the protection and influence of a larger nation while maintaining some independence.
-              </p>
-              <div className="text-sm">
-                <strong>Benefits:</strong>
-                <ul className="mt-2 space-y-1 text-muted-foreground">
-                  <li>• Military protection from larger nation</li>
-                  <li>• Economic benefits and trade agreements</li>
-                  <li>• Diplomatic support in international relations</li>
-                  <li>• Shared resources and infrastructure</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
@@ -1044,6 +974,277 @@ const EconomyTab: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+};
+
+// Politics Tab Component
+const PoliticsTab: React.FC = () => {
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-foreground mb-4 flex items-center justify-center gap-3">
+          <Landmark className="w-10 h-10 text-indigo-600" />
+          Politics & Political Map Guide
+        </h1>
+                  <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            Learn how to customize your nation's government structure, manage vassals, and understand how politics shape the political map you can see in <a href="/map" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 underline font-medium">/map</a>.
+          </p>
+      </div>
+
+      {/* Political Map Explanation */}
+      <Card className="shadow-lg border-indigo-200 dark:border-indigo-800">
+        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20">
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Map className="w-6 h-6 text-indigo-600" />
+            Political Map & Nation Customization
+          </CardTitle>
+          <CardDescription>
+            Understanding how your nation's political structure affects the map display
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              Important Note
+            </h4>
+                         <p className="text-blue-800 dark:text-blue-200 text-sm">
+               To see your nation's political structure on the map, you need to customize your nation through the Edit Nation interface. 
+               The political map at <a href="/map" className="text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 underline font-medium">/map</a> will display your government system, 
+               vassal relationships, and economic system once properly configured.
+             </p>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            If you want your nation to have kingdoms or vassals within it, you need to create new nations and set them as vassals in the nation settings. 
+            This creates a hierarchical political structure that will be visible on the political map.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Government Systems */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Crown className="w-6 h-6 text-yellow-600" />
+            Government Systems
+          </CardTitle>
+          <CardDescription>
+            Government systems are set through the Edit Nation interface, not through in-game commands
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-600" />
+                Ruling Entity
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Who/what actually rules (Monarch, President, Council, etc.)
+              </p>
+            </div>
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
+                <Landmark className="w-4 h-4 text-green-600" />
+                Government System
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                How the government is organized (Monarchy, Democracy, Republic, etc.)
+              </p>
+            </div>
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-purple-600" />
+                Economic System
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                How resources and wealth are distributed
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="font-semibold text-foreground">Available Categories:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <Badge variant="outline" className="bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800">
+                Traditional Nobility
+              </Badge>
+              <Badge variant="outline" className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200 border-blue-200 dark:border-blue-800">
+                Elected Leaders
+              </Badge>
+              <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200 border-green-200 dark:border-green-800">
+                Council & Assembly
+              </Badge>
+              <Badge variant="outline" className="bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-200 border-red-200 dark:border-red-800">
+                Military Leaders
+              </Badge>
+              <Badge variant="outline" className="bg-purple-50 text-purple-800 dark:bg-purple-900/20 dark:text-purple-200 border-purple-200 dark:border-purple-800">
+                Fantasy & Mythical
+              </Badge>
+              <Badge variant="outline" className="bg-indigo-50 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800">
+                Specialized Categories
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Examples: Monarch, Emperor, King, Queen, Duke, President, Prime Minister, Chancellor, Parliament, Senate, Congress, General, Admiral, Warlord, Dragon, Phoenix, Wizard, and many more.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Vassals & Subnations */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Shield className="w-6 h-6 text-blue-600" />
+            Vassals & Subnations
+          </CardTitle>
+          <CardDescription>
+            Vassal status is set through the Edit Nation interface
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground mb-4">
+            A vassal nation is under the protection and influence of a larger nation while maintaining some independence.
+          </p>
+          
+          <h4 className="font-semibold text-foreground">Benefits:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div>
+                <h5 className="font-medium text-foreground">Military Protection</h5>
+                <p className="text-sm text-muted-foreground">Protection from larger nation</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div>
+                <h5 className="font-medium text-foreground">Economic Benefits</h5>
+                <p className="text-sm text-muted-foreground">Trade agreements and shared resources</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div>
+                <h5 className="font-medium text-foreground">Diplomatic Support</h5>
+                <p className="text-sm text-muted-foreground">Support in international relations</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div>
+                <h5 className="font-medium text-foreground">Shared Infrastructure</h5>
+                <p className="text-sm text-muted-foreground">Access to shared resources and infrastructure</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Economic Systems */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <TrendingUp className="w-6 h-6 text-green-600" />
+            Economic Systems
+          </CardTitle>
+          <CardDescription>
+            Economic systems are set through the Edit Nation interface
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground mb-4">
+            Nations can have different economic systems that determine how resources and wealth are distributed.
+          </p>
+          
+          <h4 className="font-semibold text-foreground">Common Systems:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+              <h5 className="font-semibold text-green-800 dark:text-green-200 mb-2">Capitalist</h5>
+              <p className="text-sm text-green-700 dark:text-green-300">Free market economy with minimal government intervention</p>
+            </div>
+            <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+              <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Socialist</h5>
+              <p className="text-sm text-blue-700 dark:text-blue-300">Government helps share resources and wealth</p>
+            </div>
+            <div className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
+              <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Mixed Economy</h5>
+              <p className="text-sm text-purple-700 dark:text-purple-300">Combination of capitalist and socialist elements</p>
+            </div>
+            <div className="border rounded-lg p-4 bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
+              <h5 className="font-semibold text-orange-800 dark:text-orange-200 mb-2">Resource-Based</h5>
+              <p className="text-sm text-orange-700 dark:text-orange-300">Focus on natural resources and extraction</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* How to Set Up */}
+      <Card className="shadow-lg border-amber-200 dark:border-amber-800">
+        <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20">
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <BookOpen className="w-6 h-6 text-amber-600" />
+            How to Set Up Your Nation's Politics
+          </CardTitle>
+          <CardDescription>
+            Step-by-step guide to configuring your nation's political structure
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center text-amber-700 dark:text-amber-300 font-bold text-sm">
+                1
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground mb-2">Access Edit Nation Interface</h4>
+                <p className="text-sm text-muted-foreground">
+                  Use the Edit Nation interface to customize your nation's political structure.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center text-amber-700 dark:text-amber-300 font-bold text-sm">
+                2
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground mb-2">Choose Government Type</h4>
+                <p className="text-sm text-muted-foreground">
+                  Select your ruling entity, government system, and economic system from the available options.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center text-amber-700 dark:text-amber-300 font-bold text-sm">
+                3
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground mb-2">Create Vassals (Optional)</h4>
+                <p className="text-sm text-muted-foreground">
+                  If you want subnations, create new nations and set them as vassals in the nation settings.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center text-amber-700 dark:text-amber-300 font-bold text-sm">
+                4
+              </div>
+              <div>
+                                 <h4 className="font-semibold text-foreground mb-2">View on Political Map</h4>
+                 <p className="text-sm text-muted-foreground">
+                   Check <a href="/map" className="text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 underline font-medium">/map</a> to see your nation's political structure displayed.
+                 </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

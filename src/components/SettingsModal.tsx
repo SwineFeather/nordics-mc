@@ -54,15 +54,6 @@ const SettingsModal = ({ open, onClose, defaultTab = 'profile' }: SettingsModalP
     confirmation: ''
   });
 
-  // Privacy form states
-  const [privacySettings, setPrivacySettings] = useState({
-    profileVisible: !profile?.anonymous_mode,
-    showOnlineStatus: true,
-    allowDirectMessages: true,
-    showStats: true,
-    customUrl: profile?.minecraft_username || ''
-  });
-
   // Update activeTab when defaultTab changes
   useEffect(() => {
     setActiveTab(defaultTab);
@@ -79,11 +70,6 @@ const SettingsModal = ({ open, onClose, defaultTab = 'profile' }: SettingsModalP
         anonymous_mode: (profile as any)?.anonymous_mode || false,
         silent_join_leave: (profile as any)?.silent_join_leave || false,
       });
-      setPrivacySettings(prev => ({
-        ...prev,
-        profileVisible: !profile.anonymous_mode,
-        customUrl: profile.minecraft_username || ''
-      }));
     }
   }, [profile, open]);
 
@@ -100,24 +86,6 @@ const SettingsModal = ({ open, onClose, defaultTab = 'profile' }: SettingsModalP
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update settings');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSavePrivacy = async () => {
-    setLoading(true);
-    try {
-      const { error } = await updateProfile({
-        anonymous_mode: !privacySettings.profileVisible
-      });
-
-      if (error) throw error;
-
-      toast.success('Privacy settings updated successfully!');
-    } catch (error) {
-      console.error('Error updating privacy settings:', error);
-      toast.error('Failed to update privacy settings');
     } finally {
       setLoading(false);
     }
@@ -302,100 +270,6 @@ const SettingsModal = ({ open, onClose, defaultTab = 'profile' }: SettingsModalP
                     </p>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Privacy Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Privacy Settings
-                </CardTitle>
-                <CardDescription>
-                  Control who can see your profile and information
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Profile Visibility</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Allow others to view your profile via URL
-                      </p>
-                    </div>
-                    <Switch
-                      checked={privacySettings.profileVisible}
-                      onCheckedChange={(checked) => 
-                        setPrivacySettings(prev => ({ ...prev, profileVisible: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Show Online Status</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Let others see when you're online
-                      </p>
-                    </div>
-                    <Switch
-                      checked={privacySettings.showOnlineStatus}
-                      onCheckedChange={(checked) => 
-                        setPrivacySettings(prev => ({ ...prev, showOnlineStatus: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Allow Direct Messages</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Allow other users to send you messages
-                      </p>
-                    </div>
-                    <Switch
-                      checked={privacySettings.allowDirectMessages}
-                      onCheckedChange={(checked) => 
-                        setPrivacySettings(prev => ({ ...prev, allowDirectMessages: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Show Statistics</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Display your game statistics on your profile
-                      </p>
-                    </div>
-                    <Switch
-                      checked={privacySettings.showStats}
-                      onCheckedChange={(checked) => 
-                        setPrivacySettings(prev => ({ ...prev, showStats: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Silent Join/Leave</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Don't notify others when you join or leave chat
-                      </p>
-                    </div>
-                    <Switch 
-                      checked={formData.silent_join_leave}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, silent_join_leave: checked }))}
-                    />
-                  </div>
-                </div>
-
-                <Button onClick={handleSavePrivacy} disabled={loading} className="w-full">
-                  <Shield className="w-4 h-4 mr-2" />
-                  {loading ? 'Saving...' : 'Save Privacy Settings'}
-                </Button>
               </CardContent>
             </Card>
 

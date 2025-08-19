@@ -20,23 +20,30 @@ const NationsTab: React.FC = () => {
   const [selectedTown, setSelectedTown] = useState<SupabaseTownData & { nation: string; nationColor: string } | null>(null);
   const [showTownModal, setShowTownModal] = useState(false);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const nationsData = await SupabaseTownService.getNationsWithTowns();
+      setNations(nationsData);
+    } catch (err) {
+      console.error('Error fetching nations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch nations');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const nationsData = await SupabaseTownService.getNationsWithTowns();
-        setNations(nationsData);
-      } catch (err) {
-        console.error('Error fetching nations:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch nations');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchData();
   }, []);
+
+  // Function to handle nation updates - this will refresh the entire nations list
+  const handleNationUpdated = async (updatedNation: SupabaseNationData) => {
+    console.log('Nation updated, refreshing nations list:', updatedNation);
+    // Refresh the entire nations list to get the latest data
+    await fetchData();
+  };
 
   const toggleNationExpansion = (nationId: string) => {
     setExpandedNations(prev => {
@@ -186,6 +193,7 @@ const NationsTab: React.FC = () => {
               isExpanded={expandedNations.has(nation.id)}
               onToggleExpand={() => toggleNationExpansion(nation.id)}
               onViewTown={handleViewTown}
+              onNationUpdated={handleNationUpdated}
             />
           ))}
         </div>

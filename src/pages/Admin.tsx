@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AIKnowledgeService } from '@/services/aiKnowledgeService';
 import ThorMinecraftPanel from '@/components/admin/ThorMinecraftPanel';
 import AutoWikiManager from '@/components/admin/AutoWikiManager';
+import { TownWikiClearButton } from '@/components/admin/TownWikiClearButton';
 
 const Admin = () => {
   const { profile, loading, user, isAuthenticated } = useAuth();
@@ -524,6 +525,11 @@ const Admin = () => {
         {/* Auto Wiki Manager Panel */}
         <Card className="md:col-span-2 lg:col-span-3">
           <AutoWikiManager />
+        </Card>
+
+        {/* Town Wiki Clear Button Panel */}
+        <Card className="md:col-span-2 lg:col-span-3">
+          <TownWikiClearButton />
         </Card>
       </div>
     </div>

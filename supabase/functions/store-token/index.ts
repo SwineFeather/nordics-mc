@@ -10,7 +10,7 @@ const corsHeaders = {
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_ANON_KEY")!
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
 serve(async (req) => {
@@ -73,7 +73,7 @@ serve(async (req) => {
     // Check if player exists in our players table
     const { data: existingPlayer, error: playerCheckError } = await supabase
       .from("players")
-      .select("uuid, username")
+      .select("uuid, name")
       .eq("uuid", player_uuid)
       .single();
 
@@ -87,15 +87,17 @@ serve(async (req) => {
 
     if (!existingPlayer) {
       console.log('Creating new player entry for:', player_name);
-      // Create new player entry
+      // Create new player entry in players table
       const { error: playerCreateError } = await supabase
         .from("players")
         .insert({ 
-          uuid: player_uuid, 
-          username: player_name,
-          first_joined: new Date().toISOString(),
-          last_seen: new Date().toISOString(),
-          is_online: true
+          uuid: player_uuid,
+          name: player_name,
+          level: 1,
+          total_xp: 0,
+          last_seen: Math.floor(Date.now() / 1000),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
 
       if (playerCreateError) {
@@ -107,13 +109,13 @@ serve(async (req) => {
       }
     } else {
       console.log('Updating existing player:', player_name);
-      // Update existing player's last seen and online status
+      // Update existing player's last seen info
       const { error: updateError } = await supabase
         .from("players")
         .update({ 
-          last_seen: new Date().toISOString(),
-          username: player_name, // Update name in case it changed
-          is_online: true
+          name: player_name, // Update name in case it changed
+          last_seen: Math.floor(Date.now() / 1000),
+          updated_at: new Date().toISOString()
         })
         .eq("uuid", player_uuid);
 
@@ -127,7 +129,12 @@ serve(async (req) => {
     // Store the login token
     const { error: tokenError } = await supabase
       .from("login_tokens")
-      .insert({ player_uuid, player_name, token, expires_at });
+      .insert({ 
+        player_uuid, 
+        player_name, 
+        token, 
+        expires_at: parseInt(expires_at.toString()) // Ensure it's a number
+      });
 
     if (tokenError) {
       console.error("Error storing token:", tokenError);

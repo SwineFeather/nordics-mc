@@ -97,6 +97,20 @@ const ServerIPModal: React.FC<ServerIPModalProps> = ({ isOpen, onClose }) => {
             </Button>
           </div>
 
+          {/* Rules Notice */}
+          <div className="text-center p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800/30">
+            <p className="text-sm text-orange-800 dark:text-orange-200 mb-2">
+              <strong>Important:</strong> Please read our{' '}
+              <button 
+                onClick={() => window.open('/rules', '_blank')}
+                className="text-orange-600 dark:text-orange-300 underline underline-offset-2 hover:no-underline transition-all duration-200 font-medium"
+              >
+                server rules
+              </button>
+              {' '}before joining to ensure a great experience for everyone.
+            </p>
+          </div>
+
           {/* Instructions */}
           <div className="text-sm text-muted-foreground space-y-2">
             <p className="text-center">

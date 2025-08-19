@@ -17,7 +17,6 @@ interface Nation {
   daily_upkeep: string;
   founded: string;
   lore: string;
-  government: string;
   motto: string;
   specialties: string[];
   history?: string;

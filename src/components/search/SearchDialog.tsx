@@ -4,13 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useSupabaseWikiData } from '@/hooks/useSupabaseWikiData';
 import { useCompaniesData } from '@/hooks/useCompaniesData';
-import { useSearchAnalytics } from '@/hooks/useSearchAnalytics';
 import { SupabaseTownService, SupabaseNationData, SupabaseTownData } from '@/services/supabaseTownService';
-import { SearchSuggestionsService, SearchSuggestion, TrendingSearch } from '@/services/searchSuggestionsService';
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command"
-import { User, Building2, MapPin, FileText, Crown, TrendingUp, Clock, Star, Search as SearchIcon, TrendingDown, Minus, BarChart3 } from 'lucide-react';
+import { User, Building2, MapPin, FileText, Crown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 
 interface SearchResult {
   id: string;
@@ -27,36 +24,15 @@ interface SearchDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface RecommendedSearch {
-  id: string;
-  title: string;
-  description: string;
-  type: 'trending' | 'recent' | 'popular' | 'suggestion' | 'personalized';
-  icon: React.ReactNode;
-  onClick: () => void;
-  category?: string;
-  trend?: 'up' | 'down' | 'stable';
-  reason?: string;
-}
-
 export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [nations, setNations] = useState<(SupabaseNationData & { towns: SupabaseTownData[] })[]>([]);
   const [towns, setTowns] = useState<SupabaseTownData[]>([]);
-  const [trendingSearches, setTrendingSearches] = useState<TrendingSearch[]>([]);
-  const [popularSearches, setPopularSearches] = useState<SearchSuggestion[]>([]);
-  const [contextualSuggestions, setContextualSuggestions] = useState<SearchSuggestion[]>([]);
   const navigate = useNavigate();
 
   const { profiles } = useProfiles({ fetchAll: true });
   const { categories: wikiCategories, fileStructure: wikiFileStructure } = useSupabaseWikiData();
   const { companies } = useCompaniesData();
-  const { 
-    analytics, 
-    recordSearch, 
-    getPersonalizedRecommendations, 
-    getSearchInsights 
-  } = useSearchAnalytics();
 
   // Recursive function to flatten all wiki pages from nested categories and subcategories
   const flattenAllWikiPages = useCallback((categories: any[]): any[] => {
@@ -194,216 +170,6 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     
     fetchData();
   }, []);
-
-  // Fetch search suggestions
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      try {
-        // Use wiki file structure if available, otherwise fall back to categories or fallback data
-        let effectiveWikiCategories;
-        if (wikiFileStructure && wikiFileStructure.length > 0) {
-          // Convert file structure to categories for suggestions
-          const allFiles = flattenAllWikiFiles(wikiFileStructure);
-          const categoriesByFolder = new Map();
-          
-          allFiles.forEach(file => {
-            const categoryName = file.categoryTitle || 'Root';
-            if (!categoriesByFolder.has(categoryName)) {
-              categoriesByFolder.set(categoryName, {
-                id: categoryName.toLowerCase().replace(/\s+/g, '-'),
-                title: categoryName,
-                slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
-                description: `Files in ${categoryName}`,
-                pages: []
-              });
-            }
-            categoriesByFolder.get(categoryName).pages.push(file);
-          });
-          
-          effectiveWikiCategories = Array.from(categoriesByFolder.values());
-        } else if (wikiCategories && wikiCategories.length > 0) {
-          effectiveWikiCategories = wikiCategories;
-        } else {
-          effectiveWikiCategories = createFallbackWikiData();
-        }
-        
-        const [trending, popular, contextual] = await Promise.all([
-          SearchSuggestionsService.getTrendingSearches(),
-          SearchSuggestionsService.getPopularSearches(),
-          SearchSuggestionsService.getContextualSuggestions(profiles, nations, companies, effectiveWikiCategories)
-        ]);
-        
-        setTrendingSearches(trending);
-        setPopularSearches(popular);
-        setContextualSuggestions(contextual);
-      } catch (error) {
-        console.error('Error fetching search suggestions:', error);
-      }
-    };
-
-    if (open) {
-      fetchSuggestions();
-    }
-  }, [open, profiles, nations, companies, wikiFileStructure, wikiCategories, createFallbackWikiData, flattenAllWikiFiles]);
-
-  // Debug wiki data structure
-  useEffect(() => {
-    if (wikiFileStructure && wikiFileStructure.length > 0) {
-      console.log('🔍 Wiki File Structure loaded:', wikiFileStructure.length);
-      console.log('📁 Wiki File Structure:', wikiFileStructure);
-      
-      // Count total files
-      const totalFiles = wikiFileStructure.reduce((total, item) => {
-        const countFiles = (item: any): number => {
-          let count = 0;
-          if (item.type === 'file' && item.name.endsWith('.md')) {
-            count = 1;
-          }
-          if (item.children && item.children.length > 0) {
-            count += item.children.reduce((subTotal: number, child: any) => subTotal + countFiles(child), 0);
-          }
-          return count;
-        };
-        return total + countFiles(item);
-      }, 0);
-      
-      console.log(`📄 Total wiki files found: ${totalFiles}`);
-      
-      // Log first few items for debugging
-      wikiFileStructure.slice(0, 3).forEach((item, index) => {
-        console.log(`📁 Item ${index + 1}:`, {
-          type: item.type,
-          name: item.name,
-          path: item.path,
-          children: item.children?.length || 0
-        });
-        
-        // Log first few children in this item
-        if (item.children && item.children.length > 0) {
-          item.children.slice(0, 2).forEach((child: any, childIndex: number) => {
-            console.log(`  📄 Child ${childIndex + 1}:`, {
-              type: child.type,
-              name: child.name,
-              path: child.path,
-              isPage: child.isPage
-            });
-          });
-        }
-      });
-    } else if (wikiCategories && wikiCategories.length > 0) {
-      console.log('🔍 Wiki Categories loaded:', wikiCategories.length);
-      console.log('📁 Wiki Categories structure:', wikiCategories);
-      
-      // Count total pages
-      const totalPages = wikiCategories.reduce((total, cat) => {
-        const categoryPages = cat.pages?.length || 0;
-        const subcategoryPages = cat.children?.reduce((subTotal, subCat) => 
-          subTotal + (subCat.pages?.length || 0), 0) || 0;
-        return total + categoryPages + subcategoryPages;
-      }, 0);
-      
-      console.log(`📄 Total wiki pages found: ${totalPages}`);
-      
-      // Log first few categories for debugging
-      wikiCategories.slice(0, 3).forEach((cat, index) => {
-        console.log(`📁 Category ${index + 1}:`, {
-          title: cat.title,
-          slug: cat.slug,
-          pages: cat.pages?.length || 0,
-          children: cat.children?.length || 0
-        });
-        
-        // Log first few pages in this category
-        if (cat.pages && cat.pages.length > 0) {
-          cat.pages.slice(0, 2).forEach((page: any, pageIndex: number) => {
-            console.log(`  📄 Page ${pageIndex + 1}:`, {
-              id: page.id,
-              title: page.title,
-              slug: page.slug,
-              content: page.content?.substring(0, 50) + '...',
-              description: page.description,
-              tags: page.tags
-            });
-          });
-        }
-      });
-    } else {
-      console.log('⚠️ No wiki data loaded');
-    }
-  }, [wikiFileStructure, wikiCategories]);
-
-  // Generate recommended searches
-  const recommendedSearches = useMemo((): RecommendedSearch[] => {
-    const recommendations: RecommendedSearch[] = [];
-
-    // Add trending searches
-    trendingSearches.slice(0, 2).forEach(trending => {
-      recommendations.push({
-        id: `trending-${trending.term}`,
-        title: trending.term,
-        description: 'Trending search',
-        type: 'trending',
-        icon: trending.trend === 'up' ? <TrendingUp className="w-4 h-4 text-green-600" /> :
-               trending.trend === 'down' ? <TrendingDown className="w-4 h-4 text-red-600" /> :
-               <Minus className="w-4 h-4 text-gray-600" />,
-        onClick: () => setSearchTerm(trending.term),
-        category: trending.category,
-        trend: trending.trend
-      });
-    });
-
-    // Add popular searches (excluding "popular players")
-    popularSearches
-      .filter(popular => popular.searchTerm !== 'players')
-      .slice(0, 1)
-      .forEach(popular => {
-        recommendations.push({
-          id: `popular-${popular.id}`,
-          title: popular.title,
-          description: popular.description,
-          type: 'popular',
-          icon: <Star className="w-4 h-4 text-yellow-600" />,
-          onClick: () => navigate(popular.searchTerm === 'nations' ? '/towns/nations' :
-                                 popular.searchTerm === 'towns' ? '/towns/towns' :
-                                 popular.searchTerm === 'companies' ? '/towns/businesses' :
-                                 popular.searchTerm === 'wiki' ? '/wiki' : '/community'),
-          category: popular.category
-        });
-      });
-
-    // Add contextual suggestions
-    contextualSuggestions.slice(0, 1).forEach(suggestion => {
-      recommendations.push({
-        id: `context-${suggestion.id}`,
-        title: suggestion.title,
-        description: suggestion.description,
-        type: 'suggestion',
-        icon: <SearchIcon className="w-4 h-4 text-blue-600" />,
-        onClick: () => navigate(suggestion.searchTerm === 'nations' ? '/towns/nations' :
-                               suggestion.searchTerm === 'businesses' ? '/towns/businesses' :
-                               suggestion.searchTerm === 'wiki' ? '/wiki' : '/community'),
-        category: suggestion.category
-      });
-    });
-
-    // Add personalized recommendations
-    const personalized = getPersonalizedRecommendations();
-    personalized.forEach(rec => {
-      rec.items.slice(0, 2).forEach(item => {
-        recommendations.push({
-          id: `personalized-${item.term}`,
-          title: item.term,
-          description: item.reason,
-          type: 'personalized',
-          icon: <BarChart3 className="w-4 h-4 text-purple-600" />,
-          onClick: () => setSearchTerm(item.term),
-          reason: item.reason
-        });
-      });
-    });
-
-    return recommendations;
-  }, [trendingSearches, popularSearches, contextualSuggestions, navigate, getPersonalizedRecommendations]);
 
   const results = useMemo(() => {
     if (!searchTerm.trim()) return [];
@@ -622,29 +388,8 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   }, [searchTerm, profiles, nations, companies, wikiFileStructure, wikiCategories, navigate, flattenAllWikiFiles, createFallbackWikiData]);
 
   const handleSelect = (callback: () => void) => {
-    // Record what was actually clicked on, not what was typed
-    if (searchTerm.trim()) {
-      // saveSearchHistory(searchTerm.trim()); // This line is removed
-      // Record the actual click action for analytics
-      recordSearch(searchTerm.trim(), 'clicked', true);
-    }
     callback();
     onOpenChange(false);
-  };
-
-  const handleRecommendedClick = (recommendation: RecommendedSearch) => {
-    if (recommendation.type === 'recent' || recommendation.type === 'trending' || recommendation.type === 'personalized') {
-      setSearchTerm(recommendation.title);
-      if (recommendation.type === 'trending') {
-        // Record the click on trending item
-        SearchSuggestionsService.recordSearchClick(recommendation.title, recommendation.category || 'general');
-      }
-    } else {
-      // Record the click on recommendation
-      SearchSuggestionsService.recordSearchClick(recommendation.title, recommendation.category || 'general');
-      recommendation.onClick();
-      onOpenChange(false);
-    }
   };
 
   const getIcon = (type: string) => {
@@ -669,28 +414,6 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     }
   };
 
-  const getTrendColor = (trend?: 'up' | 'down' | 'stable') => {
-    switch (trend) {
-      case 'up': return 'text-green-600';
-      case 'down': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getTypeColorForRecommendation = (type: string) => {
-    switch (type) {
-      case 'trending': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-      case 'recent': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'popular': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'suggestion': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      case 'personalized': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  };
-
-  // Get search insights
-  const searchInsights = getSearchInsights();
-
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput 
@@ -700,64 +423,10 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
       />
       <CommandList>
         {!searchTerm.trim() ? (
-          // Show recommended searches when no search term
-          <>
-            {/* Search Insights */}
-            {searchInsights.length > 0 && (
-              <CommandGroup heading="Search Insights">
-                {searchInsights.map((insight, index) => (
-                  <div key={index} className="px-3 py-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        insight.type === 'success' ? 'bg-green-500' :
-                        insight.type === 'warning' ? 'bg-yellow-500' :
-                        'bg-blue-500'
-                      }`} />
-                      <span className="text-muted-foreground">{insight.message}</span>
-                      <Badge variant="outline" className="ml-auto text-xs">
-                        {insight.value}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </CommandGroup>
-            )}
-
-            <CommandGroup heading="Recommended Searches">
-              {recommendedSearches.map((recommendation) => (
-                <CommandItem 
-                  key={recommendation.id} 
-                  onSelect={() => handleRecommendedClick(recommendation)}
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3 w-full">
-                    <div className="p-2 rounded-lg bg-muted/50 transition-colors duration-200">
-                      {recommendation.icon}
-                    </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <div className="font-medium truncate">{recommendation.title}</div>
-                      <div className="text-sm text-muted-foreground truncate mt-1">
-                        {recommendation.description}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {recommendation.trend && (
-                        <span className={`text-xs ${getTrendColor(recommendation.trend)}`}>
-                          {recommendation.trend === 'up' ? '↗' : recommendation.trend === 'down' ? '↘' : '→'}
-                        </span>
-                      )}
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs capitalize ${getTypeColorForRecommendation(recommendation.type)}`}
-                      >
-                        {recommendation.type}
-                      </Badge>
-                    </div>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </>
+          // Show simple message when no search term
+          <div className="px-3 py-6 text-center text-muted-foreground">
+            <p>Type to search for players, towns, companies, wiki pages, and nations</p>
+          </div>
         ) : (
           // Show search results
           <>
