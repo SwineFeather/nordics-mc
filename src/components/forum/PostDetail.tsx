@@ -19,6 +19,7 @@ import PostNotifications from './PostNotifications';
 import { forumNotificationService } from '@/services/forumNotificationService';
 import { useNotifications } from '@/hooks/useNotifications';
 import { supabase } from '@/integrations/supabase/client';
+import SimpleMarkdownRenderer from '@/components/SimpleMarkdownRenderer';
 
 interface PostDetailProps {
   postId: string;
@@ -302,9 +303,7 @@ const PostDetail = ({ postId, onBack }: PostDetailProps) => {
           )}
           
           <div className="prose max-w-none">
-            {post.content.split('\n').map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
+            <SimpleMarkdownRenderer content={post.content} />
           </div>
           
           {/* Post Reactions */}
@@ -344,9 +343,7 @@ const PostDetail = ({ postId, onBack }: PostDetailProps) => {
                     </span>
                   </div>
                   <div className="prose max-w-none">
-                    {reply.content.split('\n').map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
+                    <SimpleMarkdownRenderer content={reply.content} />
                   </div>
                 </div>
               </div>

@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2, ArrowLeft, User, Key } from "lucide-react";
+import { UsernameLoginForm } from "@/components/UsernameLoginForm";
 
 // Use environment variables for Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -41,6 +42,7 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tokenlink' | 'username'>('tokenlink');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -158,92 +160,126 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">TokenLink Login</CardTitle>
+          <CardTitle className="text-2xl font-bold">Login to Nordics</CardTitle>
           <CardDescription>
-            Authenticating your Minecraft account...
+            Choose your preferred login method
           </CardDescription>
         </CardHeader>
         
+        {/* Tab Navigation */}
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveTab('tokenlink')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'tokenlink'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Key className="w-4 h-4 inline mr-2" />
+            TokenLink
+          </button>
+          <button
+            onClick={() => setActiveTab('username')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'username'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <User className="w-4 h-4 inline mr-2" />
+            Username
+          </button>
+        </div>
+        
         <CardContent>
-          {loading && (
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
-              </div>
-              <div className="space-y-2">
-                <p className="font-medium">
-                  Validating login token...
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Creating your session and syncing your profile
-                </p>
-              </div>
-            </div>
-          )}
-
-          {success && (
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                <CheckCircle2 className="h-12 w-12 text-green-500" />
-              </div>
-              <div className="space-y-2">
-                <p className="font-medium text-green-600 dark:text-green-400">
-                  Login successful!
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Welcome, {localStorage.getItem("player_name")}!
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Your profile has been synced and you now have full website access.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Redirecting to your dashboard...
-                </p>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="space-y-4">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  {error}
-                </AlertDescription>
-              </Alert>
-              
-              <div className="text-center space-y-3">
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm font-medium mb-2">
-                    To get a new login link:
-                  </p>
-                  <ol className="text-sm text-muted-foreground text-left space-y-1">
-                    <li>1. Join the Minecraft server</li>
-                    <li>2. Type <code className="bg-background px-1 rounded">/login</code> in chat</li>
-                    <li>3. Click the link provided</li>
-                  </ol>
+          {activeTab === 'tokenlink' ? (
+            // TokenLink Login Tab
+            <>
+              {loading && (
+                <div className="text-center space-y-4">
+                  <div className="flex justify-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="font-medium">
+                      Validating login token...
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Creating your session and syncing your profile
+                    </p>
+                  </div>
                 </div>
-                
-                <Button 
-                  onClick={handleRetryLogin}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Return to Homepage
-                </Button>
-                
-                <div className="text-center text-sm text-muted-foreground">
-                  Don't have a Minecraft account?{' '}
-                  <a 
-                    href="/signup" 
-                    className="text-blue-500 hover:text-blue-400 font-medium underline"
-                  >
-                    Create a website account
-                  </a>
+              )}
+
+              {success && (
+                <div className="text-center space-y-4">
+                  <div className="flex justify-center">
+                    <CheckCircle2 className="h-12 w-12 text-green-500" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="font-medium text-green-600 dark:text-green-400">
+                      Login successful!
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Welcome, {localStorage.getItem("player_name")}!
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Your profile has been synced and you now have full website access.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Redirecting to your dashboard...
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              )}
+
+              {error && (
+                <div className="space-y-4">
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="text-center space-y-3">
+                    <div className="p-4 bg-muted rounded-lg">
+                      <p className="text-sm font-medium mb-2">
+                        To get a new login link:
+                      </p>
+                      <ol className="text-sm text-muted-foreground text-left space-y-1">
+                        <li>1. Join the Minecraft server</li>
+                        <li>2. Type <code className="bg-background px-1 rounded">/login</code> in chat</li>
+                        <li>3. Click the link provided</li>
+                      </ol>
+                    </div>
+                    
+                    <Button 
+                      onClick={handleRetryLogin}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Return to Homepage
+                    </Button>
+                    
+                    <div className="text-center text-sm text-muted-foreground">
+                      Don't have a Minecraft account?{' '}
+                      <a 
+                        href="/signup" 
+                        className="text-blue-500 hover:text-blue-400 font-medium underline"
+                      >
+                        Create a website account
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            // Username Login Tab
+            <UsernameLoginForm />
           )}
         </CardContent>
       </Card>

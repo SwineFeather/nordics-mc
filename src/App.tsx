@@ -16,6 +16,7 @@ const Markets = lazy(() => import('./pages/Markets'));
 const Forum = lazy(() => import('./pages/Forum'));
 const Towns = lazy(() => import('./pages/Towns'));
 const Town = lazy(() => import('./pages/Town'));
+const Nation = lazy(() => import('./pages/Nation'));
 const Shop = lazy(() => import('./pages/Shop'));
 const Company = lazy(() => import('./pages/Company'));
 const Economy = lazy(() => import('./pages/Economy'));
@@ -90,6 +91,7 @@ function App() {
                 <Route path="/towns/businesses" element={<Layout><Towns defaultTab="markets" /></Layout>} />
                 <Route path="/towns/shops" element={<Layout><Towns defaultTab="markets" /></Layout>} />
                 <Route path="/town/:townName" element={<Layout><Town /></Layout>} />
+                <Route path="/nation/:nationName" element={<Layout><Nation /></Layout>} />
                 <Route path="/shop/:shopId" element={<Layout><Shop /></Layout>} />
                  <Route path="/nsi" element={<Layout><NSI /></Layout>} />
                  <Route path="/nsi/:slug" element={<Layout><NSISubsidiariesRouter /></Layout>} />

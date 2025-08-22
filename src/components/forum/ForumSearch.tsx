@@ -8,6 +8,7 @@ import { Search, X, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { usePlayerBadges } from '@/hooks/usePlayerBadges';
 import { searchPosts } from '@/hooks/useForumPosts';
+import SimpleMarkdownRenderer from '@/components/SimpleMarkdownRenderer';
 
 interface ForumSearchProps {
   categoryId?: string;
@@ -173,9 +174,9 @@ const ForumSearch = ({ categoryId, onPostSelect }: ForumSearchProps) => {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                          {post.content.substring(0, 150)}...
-                        </p>
+                        <div className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                          <SimpleMarkdownRenderer content={post.content.substring(0, 150) + '...'} />
+                        </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <div className="flex items-center space-x-4">
                             <span className="flex items-center">

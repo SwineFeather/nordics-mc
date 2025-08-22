@@ -4,12 +4,13 @@ import { Globe } from 'lucide-react';
 import SimpleMapScene from '@/components/nyrvalos/SimpleMapScene';
 import TextureSelector from '@/components/nyrvalos/TextureSelector';
 import QualitySettings from '@/components/nyrvalos/QualitySettings';
+import { getMapImageUrl } from '@/utils/supabaseStorage';
 
 const Nyrvalos: React.FC = () => {
-  const [selectedBaseTexture, setSelectedBaseTexture] = useState('/nyrvalos/baselayer-med.jpg');
-  const [selectedHeightmapTexture, setSelectedHeightmapTexture] = useState('/nyrvalos/heightmap-med.png');
-  const [selectedTerrainTexture, setSelectedTerrainTexture] = useState<string | null>('/nyrvalos/terrain-med.png'); // On by default
-  const [selectedMiscTexture, setSelectedMiscTexture] = useState<string | null>('/nyrvalos/misc-med.png'); // On by default
+  const [selectedBaseTexture, setSelectedBaseTexture] = useState(getMapImageUrl('baselayer-med'));
+  const [selectedHeightmapTexture, setSelectedHeightmapTexture] = useState(getMapImageUrl('heightmap-med'));
+  const [selectedTerrainTexture, setSelectedTerrainTexture] = useState<string | null>(getMapImageUrl('terrain-med')); // On by default
+  const [selectedMiscTexture, setSelectedMiscTexture] = useState<string | null>(getMapImageUrl('misc-med')); // On by default
   
   // Quality settings state
   const [showFPS, setShowFPS] = useState(false);
@@ -26,14 +27,27 @@ const Nyrvalos: React.FC = () => {
 
   // Get texture paths based on quality setting
   const getTexturePath = (basePath: string, quality: string) => {
-    return basePath.replace(/(low|med|full)/, quality);
+    // Extract the base key from the Supabase URL
+    const urlParts = basePath.split('/');
+    const filename = urlParts[urlParts.length - 1];
+    const baseKey = filename.replace(/(low|med|full)/, '').replace(/\.(jpg|png)$/, '');
+    
+    // Map quality to size
+    const qualityMap: Record<string, string> = {
+      'low': 'low',
+      'med': 'med', 
+      'full': 'full'
+    };
+    
+    const targetSize = qualityMap[quality] || 'med';
+    return getMapImageUrl(`${baseKey}-${targetSize}`);
   };
 
   const currentBaseTexture = getTexturePath(selectedBaseTexture, textureQuality);
   const currentHeightmapTexture = getTexturePath(selectedHeightmapTexture, textureQuality);
   const currentTerrainTexture = selectedTerrainTexture ? getTexturePath(selectedTerrainTexture, textureQuality) : null;
   const currentMiscTexture = selectedMiscTexture ? getTexturePath(selectedMiscTexture, textureQuality) : null;
-  const currentPoliticalTexture = showPoliticalMap ? '/nyrvalos/2025NordicsMapWeek16small.jpg' : null;
+  const currentPoliticalTexture = showPoliticalMap ? getMapImageUrl('political') : null;
 
   // Debug logging
   console.log('Political map state:', { showPoliticalMap, currentPoliticalTexture });

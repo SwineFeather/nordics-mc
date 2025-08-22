@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Pin, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { getPoliticalMapUrl, testSupabaseConnection } from '@/utils/supabaseStorage';
+import { supabase } from '@/integrations/supabase/client';
 import MapPins from './MapPins';
 import PinModal from './PinModal';
 import DiscussionSidebar from './DiscussionSidebar';
@@ -14,6 +16,30 @@ import FloatingMapControls from './FloatingMapControls';
 import PinsList from './PinsList';
 
 const MapContainer = () => {
+  // Test Supabase connection on component mount
+  useEffect(() => {
+    testSupabaseConnection();
+    
+    // Test if we can access the political map bucket
+    const testBucket = async () => {
+      try {
+        const { data, error } = await supabase.storage
+          .from('map-images')
+          .list('political-maps', { limit: 1 });
+        
+        if (error) {
+          console.error('Storage bucket test failed:', error);
+        } else {
+          console.log('Storage bucket accessible:', data);
+        }
+      } catch (err) {
+        console.error('Storage bucket test error:', err);
+      }
+    };
+    
+    testBucket();
+  }, []);
+
   // Available political map dates - updated with 4 new maps
   const availableDates = [
     { value: '2025-04-20', label: 'April 20, 2025', file: '2025-04-20.jpg' },
@@ -104,6 +130,54 @@ const MapContainer = () => {
     setIsDragging(false);
   }, []);
 
+  // Touch gesture support for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setDragStart({ x: touch.clientX - viewportPosition.x, y: touch.clientY - viewportPosition.y });
+    }
+  }, [viewportPosition]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    
+    if (e.touches.length === 1 && isDragging) {
+      const touch = e.touches[0];
+      setViewportPosition({
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y
+      });
+    } else if (e.touches.length === 2) {
+      // Pinch to zoom
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      
+      const currentDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+      const centerX = (touch1.clientX + touch2.clientX) / 2;
+      const centerY = (touch1.clientY + touch2.clientY) / 2;
+      
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const mouseX = centerX - rect.left;
+        const mouseY = centerY - rect.top;
+        
+        // Calculate zoom based on touch distance change
+        const newZoom = Math.min(Math.max(zoom * 1.01, 0.5), 5);
+        const zoomChange = newZoom / zoom;
+        const newX = mouseX - (mouseX - viewportPosition.x) * zoomChange;
+        const newY = mouseY - (mouseY - viewportPosition.y) * zoomChange;
+        
+        setZoom(newZoom);
+        setViewportPosition({ x: newX, y: newY });
+      }
+    }
+  }, [isDragging, dragStart, zoom, viewportPosition]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   // Mouse-anchored zoom implementation
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -177,20 +251,20 @@ const MapContainer = () => {
   };
 
   return (
-    <div className="h-full flex">
-      {/* Map Panel - Now full width */}
-      <div className="flex-1 flex flex-col">
+    <div className="h-full flex flex-col lg:flex-row">
+      {/* Map Panel - Full width on mobile, flex-1 on desktop */}
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Simplified Header */}
-        <Card className="m-4 mb-2">
+        <Card className="m-2 sm:m-4 mb-2">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-lg">
+            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-lg gap-2">
               <div className="flex items-center">
                 <Calendar className="w-5 h-5 mr-2" />
                 Political Map Timeline
               </div>
               <div className="flex items-center gap-2">
                 <Select value={selectedDate} onValueChange={handleDateChange}>
-                  <SelectTrigger className="w-64">
+                  <SelectTrigger className="w-full sm:w-64">
                     <SelectValue placeholder="Select a date" />
                   </SelectTrigger>
                   <SelectContent>
@@ -208,7 +282,7 @@ const MapContainer = () => {
                     onClick={() => setIsAddingPin(!isAddingPin)}
                   >
                     <Pin className="w-4 h-4 mr-1" />
-                    Add Pin
+                    <span className="hidden sm:inline">Add Pin</span>
                   </Button>
                 )}
               </div>
@@ -224,7 +298,7 @@ const MapContainer = () => {
         />
 
         {/* Map Display - Full width */}
-        <div className="flex-1 m-4 mt-2 relative">
+        <div className="flex-1 m-2 sm:m-4 mt-2 relative">
           {/* Map Container */}
           <div 
             ref={containerRef}
@@ -235,6 +309,9 @@ const MapContainer = () => {
             onMouseLeave={handleMouseUp}
             onWheel={handleWheel}
             onClick={handleMapClick}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             style={{ cursor: isAddingPin ? 'crosshair' : isDragging ? 'grabbing' : 'grab' }}
           >
             {isAddingPin && (
@@ -274,10 +351,26 @@ const MapContainer = () => {
                   
                   <img
                     ref={imageRef}
-                    src={`/lovable-uploads/political-map/${currentMap.file}`}
+                    src={(() => {
+                      const url = getPoliticalMapUrl(currentMap.value);
+                      console.log('Political map URL:', { date: currentMap.value, url });
+                      
+                      // If Supabase URL is empty or fails, fall back to local path temporarily
+                      if (!url) {
+                        console.warn('Supabase URL failed, falling back to local path');
+                        return `/lovable-uploads/political-map/${currentMap.file}`;
+                      }
+                      
+                      return url;
+                    })()}
                     alt={`Political map from ${currentMap.label}`}
                     className="w-full h-full object-contain"
                     onLoad={handleImageLoad}
+                    onError={(e) => {
+                      console.error('Failed to load political map:', e.currentTarget.src);
+                      // Try fallback to local path on error
+                      e.currentTarget.src = `/lovable-uploads/political-map/${currentMap.file}`;
+                    }}
                     draggable={false}
                   />
 
@@ -338,8 +431,8 @@ const MapContainer = () => {
         </div>
       </div>
 
-      {/* Discussion Sidebar with Pins List */}
-      <div className="w-80 border-l bg-background">
+      {/* Discussion Sidebar with Pins List - Collapsible on mobile */}
+      <div className="w-full lg:w-80 border-t lg:border-l lg:border-t-0 bg-background">
         <div className="h-full flex flex-col">
           <div className="flex-1 overflow-hidden">
             <DiscussionSidebar mapDate={selectedDate} />

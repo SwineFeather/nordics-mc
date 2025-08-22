@@ -278,29 +278,29 @@ const DiscussionSidebar = ({ mapDate }: DiscussionSidebarProps) => {
   };
 
   return (
-    <div className="w-96 border-l bg-background flex flex-col">
-      <Card className="m-4 mb-2 flex-shrink-0">
+    <div className="w-full lg:w-96 border-l bg-background flex flex-col">
+      <Card className="m-2 sm:m-4 mb-2 flex-shrink-0">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center text-lg">
-            <MessageSquare className="w-5 h-5 mr-2" />
+          <CardTitle className="flex items-center text-base sm:text-lg">
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Discussion
           </CardTitle>
         </CardHeader>
       </Card>
 
-      <ScrollArea className="flex-1 px-4">
+      <ScrollArea className="flex-1 px-2 sm:px-4">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <div className="space-y-4 pb-4">
+          <div className="space-y-3 sm:space-y-4 pb-4">
             {discussions.map((discussion) => (
               <Card key={discussion.id} className={discussion.is_pinned ? 'border-yellow-500' : ''}>
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">
+                      <span className="font-medium text-xs sm:text-sm">
                         {discussion.author?.full_name || 'Anonymous'}
                       </span>
                       <Badge 
@@ -376,7 +376,7 @@ const DiscussionSidebar = ({ mapDate }: DiscussionSidebarProps) => {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm mb-3">{discussion.content}</p>
+                    <p className="text-xs sm:text-sm mb-2 sm:mb-3">{discussion.content}</p>
                   )}
                   
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -393,13 +393,13 @@ const DiscussionSidebar = ({ mapDate }: DiscussionSidebarProps) => {
                       onClick={() => setReplyTo(replyTo === discussion.id ? null : discussion.id)}
                     >
                       <Reply className="w-3 h-3 mr-1" />
-                      Reply
+                      <span className="hidden sm:inline">Reply</span>
                     </Button>
                   </div>
 
                   {/* Reply Form */}
                   {replyTo === discussion.id && user && (
-                    <div className="mt-3 pt-3 border-t">
+                    <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t">
                       <Textarea
                         placeholder="Write a reply..."
                         value={replyContent}
@@ -412,7 +412,8 @@ const DiscussionSidebar = ({ mapDate }: DiscussionSidebarProps) => {
                           onClick={() => handleSubmitReply(discussion.id)}
                           disabled={submitting || !replyContent.trim()}
                         >
-                          Reply
+                          <span className="hidden sm:inline">Reply</span>
+                          <span className="sm:hidden">Send</span>
                         </Button>
                         <Button
                           variant="outline"
@@ -430,9 +431,9 @@ const DiscussionSidebar = ({ mapDate }: DiscussionSidebarProps) => {
 
                   {/* Replies */}
                   {discussion.replies && discussion.replies.length > 0 && (
-                    <div className="mt-3 space-y-3 border-t pt-3">
+                    <div className="mt-2 sm:mt-3 space-y-2 sm:space-y-3 border-t pt-2 sm:pt-3">
                       {discussion.replies.map((reply) => (
-                        <div key={reply.id} className="pl-3 border-l-2 border-muted">
+                        <div key={reply.id} className="pl-2 sm:pl-3 border-l-2 border-muted">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium text-xs">
                               {reply.author?.full_name || 'Anonymous'}
@@ -463,14 +464,14 @@ const DiscussionSidebar = ({ mapDate }: DiscussionSidebarProps) => {
 
       {/* New Comment Form */}
       {user && (
-        <Card className="m-4 mt-2 flex-shrink-0">
-          <CardContent className="p-4">
-            <form onSubmit={handleSubmitComment} className="space-y-3">
+        <Card className="m-2 sm:m-4 mt-2 flex-shrink-0">
+          <CardContent className="p-3 sm:p-4">
+            <form onSubmit={handleSubmitComment} className="space-y-2 sm:space-y-3">
               <Textarea
                 placeholder="Share your thoughts about this map..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="min-h-[80px]"
+                className="min-h-[80px] text-sm"
               />
               <Button 
                 type="submit" 
@@ -486,9 +487,9 @@ const DiscussionSidebar = ({ mapDate }: DiscussionSidebarProps) => {
       )}
 
       {!user && (
-        <Card className="m-4 mt-2 flex-shrink-0">
-          <CardContent className="p-4 text-center">
-            <p className="text-sm text-muted-foreground">
+        <Card className="m-2 sm:m-4 mt-2 flex-shrink-0">
+          <CardContent className="p-3 sm:p-4 text-center">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Please log in to participate in discussions
             </p>
           </CardContent>

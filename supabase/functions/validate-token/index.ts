@@ -1,22 +1,69 @@
-import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+// Get allowed origins from environment or use secure defaults
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'https://www.nordics.world',
+  'https://nordics.world'
+];
+
+// Validate origin function with additional security checks
+function isValidOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Additional security: check for localhost only in development
+  if (Deno.env.get('NODE_ENV') === 'development') {
+    return origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+  }
+  
+  return false;
+}
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': isValidOrigin(origin) ? origin : allowedOrigins[0],
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
-};
+  'Access-Control-Allow-Credentials': 'true',
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    const origin = req.headers.get('Origin');
+    
+    if (!isValidOrigin(origin)) {
+      return new Response(null, { 
+        status: 403,
+        headers: corsHeaders(null)
+      });
+    }
+
     return new Response(null, { 
       status: 200,
-      headers: corsHeaders 
+      headers: corsHeaders(origin)
     });
   }
 
   try {
+    // Validate origin for all requests
+    const origin = req.headers.get('Origin');
+    if (!isValidOrigin(origin)) {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        {
+          status: 403,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders(null)
+          },
+        }
+      )
+    }
+
     console.log('Validate-token request received');
     
     const url = new URL(req.url);
@@ -35,7 +82,7 @@ serve(async (req) => {
         error: "No token provided" 
       }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -57,7 +104,7 @@ serve(async (req) => {
         details: "Missing Supabase environment variables"
       }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -80,7 +127,7 @@ serve(async (req) => {
         code: testError.code
       }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
     
@@ -102,7 +149,7 @@ serve(async (req) => {
         code: error.code
       }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -113,7 +160,7 @@ serve(async (req) => {
         error: "Invalid token" 
       }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -127,7 +174,7 @@ serve(async (req) => {
         error: "Token already used" 
       }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -142,7 +189,7 @@ serve(async (req) => {
         error: "Token expired" 
       }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -160,7 +207,7 @@ serve(async (req) => {
         details: updateError.message
       }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -199,7 +246,7 @@ serve(async (req) => {
     
     return new Response(JSON.stringify(responseData), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("Validate token error:", e);
@@ -209,7 +256,7 @@ serve(async (req) => {
       details: e.message 
     }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders(null), "Content-Type": "application/json" },
     });
   }
 });

@@ -1,18 +1,62 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Get allowed origins from environment or use secure defaults
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'https://www.nordics.world',
+  'https://nordics.world'
+];
+
+// Validate origin function with additional security checks
+function isValidOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Additional security: check for localhost only in development
+  if (Deno.env.get('NODE_ENV') === 'development') {
+    return origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+  }
+  
+  return false;
 }
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': isValidOrigin(origin) ? origin : allowedOrigins[0],
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Credentials': 'true',
+})
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    const origin = req.headers.get('Origin');
+    
+    if (!isValidOrigin(origin)) {
+      return new Response(null, { 
+        status: 403,
+        headers: corsHeaders(null)
+      });
+    }
+
+    return new Response('ok', { headers: corsHeaders(origin) })
   }
 
   try {
+    // Validate origin for all requests
+    const origin = req.headers.get('Origin');
+    if (!isValidOrigin(origin)) {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        { 
+          status: 403, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -31,7 +75,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'Unauthorized' }),
         { 
           status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
         }
       )
     }
@@ -44,7 +88,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'Message and playerId are required' }),
         { 
           status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
         }
       )
     }
@@ -56,7 +100,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'X.AI API key not configured' }),
         { 
           status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
         }
       )
     }
@@ -105,7 +149,7 @@ ${context ? `\n## AVAILABLE DATABASE INFORMATION:\n\n${context}` : ''}`
           totalLength: 0
         }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
         }
       )
     }
@@ -148,7 +192,7 @@ ${context ? `\n## AVAILABLE DATABASE INFORMATION:\n\n${context}` : ''}`
         totalLength: thorResponse.length
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
       }
     )
 
@@ -160,7 +204,7 @@ ${context ? `\n## AVAILABLE DATABASE INFORMATION:\n\n${context}` : ''}`
         totalLength: 0
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' } 
       }
     )
   }

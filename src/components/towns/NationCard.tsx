@@ -162,7 +162,11 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
                 </span>
               </div>
             )}
-            <CardTitle className={`text-2xl font-bold text-foreground truncate`}>{nation.name.replace(/_/g, ' ')}</CardTitle>
+            <CardTitle className={`text-2xl font-bold text-foreground truncate cursor-pointer hover:text-primary transition-colors`}>
+              <Link to={`/nation/${encodeURIComponent(nation.name)}`}>
+                {nation.name.replace(/_/g, ' ')}
+              </Link>
+            </CardTitle>
           </div>
           
           {/* Nation Description/Bio */}

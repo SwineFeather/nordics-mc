@@ -1,7 +1,6 @@
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Zap,
   UserCheck,
@@ -24,8 +23,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useState } from 'react';
 
 const Rules = () => {
+  const [activeTab, setActiveTab] = useState('cheating');
   const ruleCategories = [
     {
       id: 'cheating',
@@ -264,236 +265,326 @@ const Rules = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-medium mb-4 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-          Rules
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Comprehensive guidelines and regulations for maintaining a fair and enjoyable community on Nordics Minecraft.
-        </p>
-      </div>
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
 
-      <Tabs defaultValue="cheating" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-11 rounded-2xl bg-muted/30">
-          <TabsTrigger value="cheating" className="rounded-xl">
-            <Shield className="w-4 h-4 mr-2" />
-            Cheating
-          </TabsTrigger>
-          <TabsTrigger value="behavior" className="rounded-xl">
-            <Users className="w-4 h-4 mr-2" />
-            Behavior
-          </TabsTrigger>
-          <TabsTrigger value="communication" className="rounded-xl">
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Communication
-          </TabsTrigger>
-          <TabsTrigger value="buildings" className="rounded-xl">
-            <Hammer className="w-4 h-4 mr-2" />
-            Buildings
-          </TabsTrigger>
-          <TabsTrigger value="redstone" className="rounded-xl">
-            <Zap className="w-4 h-4 mr-2" />
-            Redstone
-          </TabsTrigger>
-          <TabsTrigger value="ingame" className="rounded-xl">
-            <Sword className="w-4 h-4 mr-2" />
-            In-Game
-          </TabsTrigger>
-          <TabsTrigger value="economy" className="rounded-xl">
-            <Coins className="w-4 h-4 mr-2" />
-            Economy
-          </TabsTrigger>
 
-          <TabsTrigger value="plugins" className="rounded-xl">
-            <Settings className="w-4 h-4 mr-2" />
-            Plugins
-          </TabsTrigger>
-          <TabsTrigger value="website" className="rounded-xl">
-            <Info className="w-4 h-4 mr-2" />
-            Website
-          </TabsTrigger>
-          <TabsTrigger value="punishments" className="rounded-xl">
-            <Gavel className="w-4 h-4 mr-2" />
-            Punishments
-          </TabsTrigger>
-          <TabsTrigger value="staff" className="rounded-xl">
-            <UserCheck className="w-4 h-4 mr-2" />
-            Staff
-          </TabsTrigger>
-        </TabsList>
+      {/* Main Content with Sidebar */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar Navigation */}
+        <div className="lg:w-64 flex-shrink-0">
+          <div className="sticky top-4 space-y-2">
+            <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/40 dark:to-slate-900/40 rounded-xl p-3 border border-gray-200 dark:border-gray-700 shadow-lg">
+              <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-3 text-center">Rule Categories</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setActiveTab('cheating')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'cheating'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Cheating</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('behavior')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'behavior'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Behavior</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('communication')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'communication'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Communication</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('buildings')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'buildings'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <Hammer className="w-4 h-4" />
+                  <span>Buildings</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('redstone')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'redstone'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Redstone</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('ingame')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'ingame'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <Sword className="w-4 h-4" />
+                  <span>In-Game</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('economy')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'economy'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'hover:bg-orange-100 dark:hover:bg-orange-900/20 text-foreground'
+                  }`}
+                >
+                  <Coins className="w-4 h-4" />
+                  <span>Economy</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('plugins')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'plugins'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Plugins</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('website')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'website'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <Info className="w-4 h-4" />
+                  <span>Website</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('punishments')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'punishments'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <Gavel className="w-4 h-4" />
+                  <span>Punishments</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('staff')}
+                  className={`w-full flex items-center gap-3 px-4 py-4 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    activeTab === 'staff'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-foreground hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                  }`}
+                >
+                  <UserCheck className="w-4 h-4" />
+                  <span>Staff</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0 space-y-4 sm:space-y-6 md:space-y-8">
 
         {/* Cheating & Technical Issues Tab */}
-        <TabsContent value="cheating">
+        {activeTab === 'cheating' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Shield className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Cheating & Technical Issues
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('cheating')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* Behavior Tab */}
-        <TabsContent value="behavior">
+        {activeTab === 'behavior' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Users className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Behaviors
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('behavior')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* Communication Tab */}
-        <TabsContent value="communication">
+        {activeTab === 'communication' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <MessageSquare className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Communication Channels
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('communication')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* Buildings Tab */}
-        <TabsContent value="buildings">
+        {activeTab === 'buildings' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Hammer className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <Hammer className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Buildings & Griefing
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('buildings')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* Redstone Rules Tab */}
-        <TabsContent value="redstone">
+        {activeTab === 'redstone' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Zap className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <Zap className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Redstone Rules
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('redstone')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* In-Game Rules Tab */}
-        <TabsContent value="ingame">
+        {activeTab === 'ingame' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Sword className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <Sword className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 In-game Rules (Fair Play)
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('ingame')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* Economy Rules Tab */}
-        <TabsContent value="economy">
+        {activeTab === 'economy' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Coins className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <Coins className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Economy and Trade
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('economy')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* Plugins Rules Tab */}
-        <TabsContent value="plugins">
+        {activeTab === 'plugins' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Settings className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <Settings className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Plugin-related Rules
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('plugins')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* Website & Platform Rules Tab */}
-        <TabsContent value="website">
+        {activeTab === 'website' && (
           <Card className="glass-card rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Info className="w-6 h-6 mr-3" />
+              <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                <Info className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Website & Platform Rules
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {renderRules('website')}
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* Punishments Tab */}
-        <TabsContent value="punishments">
-          <div className="space-y-6">
+        {activeTab === 'punishments' && (
+          <div className="space-y-4 sm:space-y-6">
             <Card className="glass-card rounded-3xl">
               <CardHeader>
-                <CardTitle className="flex items-center text-xl text-primary">
-                  <Gavel className="w-6 h-6 mr-3" />
+                <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                  <Gavel className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                   Punishment System
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-6">
+              <CardContent className="p-4 sm:p-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 text-primary">Overview</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-primary">Overview</h3>
+                    <p className="text-sm text-muted-foreground mb-3 sm:mb-4">
                       When a moderator has enough evidence to support that a rule violation has occurred, it may be appropriate to administer a penalty. The specific penalties handed out depend on several circumstances including the rule violated, severity, previous penalties, cooperation level, and mitigating circumstances.
                     </p>
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 text-primary">Types of Penalties</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-primary">Types of Penalties</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="p-3 sm:p-4 bg-muted/20 rounded-xl border border-border/30">
                         <h4 className="font-semibold mb-2">Verbal Warning</h4>
                         <p className="text-sm text-muted-foreground">The lightest type of penalty. These are not saved, but they are the moderators' way of pointing out minor rule violations without having too significant consequences for the offender.</p>
                       </div>
-                      <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                      <div className="p-3 sm:p-4 bg-muted/20 rounded-xl border border-border/30">
                         <h4 className="font-semibold mb-2">Warning</h4>
                         <p className="text-sm text-muted-foreground">Results in being disconnected from the server and indicates that a rule violation has been committed. All warnings include a reason and are saved in the player's profile.</p>
                       </div>
-                      <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                      <div className="p-3 sm:p-4 bg-muted/20 rounded-xl border border-border/30">
                         <h4 className="font-semibold mb-2">Banishment</h4>
                         <p className="text-sm text-muted-foreground">As a banned individual, one is usually imprisoned and has limited opportunities to play and communicate on the server. Bans always have an expiration date.</p>
                       </div>
-                      <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                      <div className="p-3 sm:p-4 bg-muted/20 rounded-xl border border-border/30">
                         <h4 className="font-semibold mb-2">Fines and Damages</h4>
                         <p className="text-sm text-muted-foreground">This penalty involves transferring money or items in the form of fines to the nation or as damages to players. Common in cases of X-ray use or unlawful murder.</p>
                       </div>
@@ -501,9 +592,9 @@ const Rules = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 text-primary">Punishment Color Coding</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/30">
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-primary">Punishment Color Coding</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="p-3 sm:p-4 bg-blue-500/10 rounded-xl border border-blue-500/30">
                         <h4 className="font-semibold mb-2 text-blue-600">Minor</h4>
                         <ul className="text-sm text-muted-foreground space-y-1">
                           <li>• 1st Offence: Warning</li>
@@ -512,7 +603,7 @@ const Rules = () => {
                           <li>• 4th Offence: Permanent ban</li>
                         </ul>
                       </div>
-                      <div className="p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/30">
+                      <div className="p-3 sm:p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/30">
                         <h4 className="font-semibold mb-2 text-yellow-600">Moderate</h4>
                         <ul className="text-sm text-muted-foreground space-y-1">
                           <li>• 1st Offence: Warning or ban</li>
@@ -521,7 +612,7 @@ const Rules = () => {
                           <li>• 4th Offence: Permanent ban</li>
                         </ul>
                       </div>
-                      <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/30">
+                      <div className="p-3 sm:p-4 bg-red-500/10 rounded-xl border border-red-500/30">
                         <h4 className="font-semibold mb-2 text-red-600">Severe</h4>
                         <ul className="text-sm text-muted-foreground space-y-1">
                           <li>• 1st Offence: Weeks long ban</li>
@@ -529,7 +620,7 @@ const Rules = () => {
                           <li>• 3rd Offence: Permanent ban</li>
                         </ul>
                       </div>
-                      <div className="p-4 bg-purple-500/10 rounded-xl border border-purple-500/30">
+                      <div className="p-3 sm:p-4 bg-purple-500/10 rounded-xl border border-purple-500/30">
                         <h4 className="font-semibold mb-2 text-purple-600">Grievous</h4>
                         <ul className="text-sm text-muted-foreground space-y-1">
                           <li>• 1st Offence: Permanent Ban</li>
@@ -539,11 +630,11 @@ const Rules = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 text-primary">Appeals</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-primary">Appeals</h3>
+                    <p className="text-sm text-muted-foreground mb-3 sm:mb-4">
                       One can appeal or question a penalty once per penalty if they have been penalized for a rule violation. Appeals are only handled if sent to the support team and are usually handled by the moderator who issued the penalty.
                     </p>
-                    <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                    <div className="p-3 sm:p-4 bg-muted/20 rounded-xl border border-border/30">
                       <h4 className="font-semibold mb-2">When appealing a penalty, it is important to:</h4>
                       <ul className="text-sm text-muted-foreground space-y-1">
                         <li>• Tell the truth</li>
@@ -557,20 +648,20 @@ const Rules = () => {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        )}
 
         {/* Staff Rules Tab */}
-        <TabsContent value="staff">
-          <div className="space-y-6">
+        {activeTab === 'staff' && (
+          <div className="space-y-4 sm:space-y-6">
             {/* Staff Rules */}
             <Card className="glass-card rounded-3xl">
               <CardHeader>
-                <CardTitle className="flex items-center text-xl text-primary">
-                  <UserCheck className="w-6 h-6 mr-3" />
+                <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                  <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                   Staff-related Rules
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 {renderRules('staff')}
               </CardContent>
             </Card>
@@ -578,16 +669,16 @@ const Rules = () => {
             {/* Staff Information */}
             <Card className="glass-card rounded-3xl">
               <CardHeader>
-                <CardTitle className="flex items-center text-xl text-primary">
-                  <Crown className="w-6 h-6 mr-3" />
+                <CardTitle className="flex items-center text-lg sm:text-xl text-primary">
+                  <Crown className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                   The Nordics Staff & Collaborators
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CardContent className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {/* Operators */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 text-primary">Operators</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-primary">Operators</h3>
                     <div className="space-y-2">
                       <div>
                         <h4 className="font-medium text-sm text-muted-foreground">Management</h4>
@@ -602,7 +693,7 @@ const Rules = () => {
 
                   {/* Associates */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 text-primary">Associates</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-primary">Associates</h3>
                     <div className="space-y-2">
                       <div>
                         <h4 className="font-medium text-sm text-muted-foreground">Helpers</h4>
@@ -617,8 +708,8 @@ const Rules = () => {
                 </div>
 
                 {/* Notable Contributors */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-3 text-primary">Notable Contributors</h3>
+                <div className="mt-4 sm:mt-6">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-primary">Notable Contributors</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {staffInfo.notableContributors.map((contributor, index) => (
                       <div key={index} className="text-sm text-muted-foreground">
@@ -630,8 +721,9 @@ const Rules = () => {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-      </Tabs>
+        )}
+        </div>
+      </div>
     </div>
   );
 };

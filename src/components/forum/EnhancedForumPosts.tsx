@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePlayerBadges } from '@/hooks/usePlayerBadges';
 import { isStaffRole } from '@/utils/roleUtils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import SimpleMarkdownRenderer from '@/components/SimpleMarkdownRenderer';
 
 interface EnhancedForumPostsProps {
   categoryId: string;
@@ -262,9 +263,9 @@ const EnhancedForumPosts = ({ categoryId, onBack, onPostSelect }: EnhancedForumP
                             <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
                               {post.title}
                             </h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                              {post.content.substring(0, 200)}...
-                            </p>
+                            <div className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                              <SimpleMarkdownRenderer content={post.content.substring(0, 200) + '...'} />
+                            </div>
                           </div>
                         </div>
                         

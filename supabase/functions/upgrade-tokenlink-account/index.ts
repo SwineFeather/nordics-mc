@@ -2,11 +2,33 @@
 import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+// Get allowed origins from environment or use secure defaults
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'https://www.nordics.world',
+  'https://nordics.world'
+];
+
+// Validate origin function with additional security checks
+function isValidOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Additional security: check for localhost only in development
+  if (Deno.env.get('NODE_ENV') === 'development') {
+    return origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+  }
+  
+  return false;
+}
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': isValidOrigin(origin) ? origin : allowedOrigins[0],
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+  'Access-Control-Allow-Credentials': 'true',
+});
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -14,11 +36,40 @@ const supabase = createClient(
 );
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    const origin = req.headers.get('Origin');
+    
+    if (!isValidOrigin(origin)) {
+      return new Response(null, { 
+        status: 403,
+        headers: corsHeaders(null)
+      });
+    }
+
+    return new Response(null, { 
+      status: 200,
+      headers: corsHeaders(origin)
+    });
   }
 
   try {
+    // Validate origin for all requests
+    const origin = req.headers.get('Origin');
+    if (!isValidOrigin(origin)) {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        {
+          status: 403,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders(null)
+          },
+        }
+      )
+    }
+
     const { profileId, email, password } = await req.json();
 
     if (!profileId || !email || !password) {
@@ -27,7 +78,7 @@ serve(async (req) => {
         error: "Missing required fields" 
       }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -46,7 +97,7 @@ serve(async (req) => {
         error: "Profile not found" 
       }), {
         status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -68,7 +119,7 @@ serve(async (req) => {
         error: authError.message 
       }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -90,7 +141,7 @@ serve(async (req) => {
         error: "Failed to update profile" 
       }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -103,22 +154,23 @@ serve(async (req) => {
     console.log('Successfully upgraded TokenLink account');
 
     return new Response(JSON.stringify({ 
-      success: true,
-      user_id: authUser.user.id,
-      email: email
+      success: true, 
+      message: "Account upgraded successfully",
+      userId: authUser.user.id
     }), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
     });
 
-  } catch (error) {
-    console.error('Upgrade account error:', error);
+  } catch (e) {
+    console.error("Upgrade tokenlink account error:", e);
     return new Response(JSON.stringify({ 
       success: false, 
-      error: "Server error" 
+      error: "Internal server error", 
+      details: e.message 
     }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders(null), "Content-Type": "application/json" },
     });
   }
 });

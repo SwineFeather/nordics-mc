@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NationsTab from '@/components/towns/NationsTab';
 import TownsTab from '@/components/towns/TownsTab';
 import MarketplaceSubTabs from '@/components/towns/MarketplaceSubTabs';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 import { Crown, MapPin, HelpCircle, Building } from 'lucide-react';
 
@@ -15,6 +16,9 @@ interface TownsProps {
 const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Use the page title hook to set dynamic titles
+  usePageTitle();
   
   // Determine active tab from URL or prop
   const getActiveTab = () => {

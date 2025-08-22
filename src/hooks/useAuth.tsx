@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { UserRole } from '@/types/wiki';
 import { useTokenLinkAuth } from './useTokenLinkAuth';
+import { ProfileService, ProfileAuthData } from '@/services/profileService';
 
 interface UserProfile {
   id: string;
@@ -16,6 +17,7 @@ interface UserProfile {
   minecraft_username?: string | null;
   anonymous_mode?: boolean | null;
   silent_join_leave?: boolean | null;
+  can_login_with_username?: boolean;
 }
 
 // Auth cleanup utility
@@ -57,29 +59,50 @@ export const useAuth = () => {
     if (tokenLinkAuth.isTokenLinkUser && tokenLinkAuth.profile) {
       console.log('useAuth: TokenLink user detected, syncing with Supabase');
       
-      // Create user-like object for TokenLink users
-      const tokenLinkUser = {
-        id: tokenLinkAuth.profile.id,
-        email: tokenLinkAuth.profile.email,
-      } as User;
+      // Try to get or create profile for TokenLink user
+      handleTokenLinkProfile();
       
-      setProfile({
-        id: tokenLinkAuth.profile.id,
-        email: tokenLinkAuth.profile.email,
-        full_name: tokenLinkAuth.profile.full_name,
-        role: tokenLinkAuth.profile.role as UserRole,
-        avatar_url: tokenLinkAuth.profile.avatar_url || null,
-        bio: tokenLinkAuth.profile.bio || null,
-        minecraft_username: tokenLinkAuth.profile.minecraft_username || null,
-      });
-      setUser(tokenLinkUser);
-      
-      // Try to establish a proper Supabase session for TokenLink users
-      tryEstablishSupabaseSession(tokenLinkAuth.profile);
-      
-      setLoading(false);
       return;
     }
+    
+    // Also check localStorage directly for TokenLink data
+    const checkStoredTokenLinkData = () => {
+      const playerUuid = localStorage.getItem("player_uuid");
+      const playerName = localStorage.getItem("player_name");
+      const profileData = localStorage.getItem("profile");
+      
+      if (playerUuid && playerName) {
+        console.log('useAuth: Found stored TokenLink data, setting up authentication');
+        
+        // Create a basic profile from stored data
+        const basicProfile = {
+          id: localStorage.getItem("tokenlink_profile_id") || playerUuid,
+          email: playerName + '@tokenlink.local',
+          full_name: playerName,
+          username: playerName,
+          role: 'member' as UserRole,
+          avatar_url: null,
+          bio: null,
+          minecraft_username: playerName,
+          can_login_with_username: false,
+        };
+        
+        setProfile(basicProfile);
+        
+        // Create a user-like object for TokenLink users
+        const tokenLinkUser = {
+          id: basicProfile.id,
+          email: basicProfile.email,
+        } as User;
+        
+        setUser(tokenLinkUser);
+        setLoading(false);
+        return;
+      }
+    };
+    
+    // Check stored data first
+    checkStoredTokenLinkData();
     
     // Regular Supabase auth
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -115,6 +138,84 @@ export const useAuth = () => {
 
     return () => subscription.unsubscribe();
   }, [tokenLinkAuth.isTokenLinkUser, tokenLinkAuth.profile]);
+
+  // Additional effect to handle TokenLink auth state changes
+  useEffect(() => {
+    if (tokenLinkAuth.isTokenLinkUser && tokenLinkAuth.profile && !profile) {
+      console.log('useAuth: TokenLink profile updated, syncing state');
+      handleTokenLinkProfile();
+    }
+  }, [tokenLinkAuth.isTokenLinkUser, tokenLinkAuth.profile, profile]);
+
+  // Debug logging for authentication state
+  useEffect(() => {
+    console.log('useAuth: Authentication state changed:', {
+      hasUser: !!user,
+      hasProfile: !!profile,
+      isTokenLinkUser: tokenLinkAuth.isTokenLinkUser,
+      hasTokenLinkProfile: !!tokenLinkAuth.profile,
+      hasStoredTokenLinkData: !!(localStorage.getItem("player_uuid") && localStorage.getItem("player_name")),
+      isAuthenticated: !!user || (tokenLinkAuth.isTokenLinkUser && !!tokenLinkAuth.profile) || !!(localStorage.getItem("player_uuid") && localStorage.getItem("player_name"))
+    });
+  }, [user, profile, tokenLinkAuth.isTokenLinkUser, tokenLinkAuth.profile]);
+
+  const handleTokenLinkProfile = async () => {
+    try {
+      const playerUuid = tokenLinkAuth.playerUuid;
+      const playerName = tokenLinkAuth.playerName;
+      
+      if (!playerUuid || !playerName) {
+        console.error('Missing player UUID or name for TokenLink user');
+        setLoading(false);
+        return;
+      }
+
+      // First, try to get existing profile
+      let existingProfile = await ProfileService.getProfileByPlayerUuid(playerUuid);
+      
+      if (!existingProfile) {
+        // Profile doesn't exist, create one
+        console.log('Creating new profile for TokenLink user:', playerName);
+        existingProfile = await ProfileService.createTokenLinkProfile({
+          player_uuid: playerUuid,
+          player_name: playerName
+        });
+        
+        if (existingProfile) {
+          console.log('Successfully created profile for TokenLink user');
+        }
+      }
+
+      if (existingProfile) {
+        // Create user-like object for TokenLink users
+        const tokenLinkUser = {
+          id: existingProfile.id,
+          email: existingProfile.email,
+        } as User;
+        
+        setProfile({
+          id: existingProfile.id,
+          email: existingProfile.email,
+          full_name: existingProfile.full_name,
+          username: existingProfile.username || null,
+          role: existingProfile.role as UserRole,
+          avatar_url: existingProfile.avatar_url || null,
+          bio: existingProfile.bio || null,
+          minecraft_username: existingProfile.minecraft_username || null,
+          can_login_with_username: existingProfile.can_login_with_username,
+        });
+        setUser(tokenLinkUser);
+        
+        // Store the profile in localStorage for TokenLink auth
+        localStorage.setItem("profile", JSON.stringify(existingProfile));
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error handling TokenLink profile:', error);
+      setLoading(false);
+    }
+  };
 
   const tryEstablishSupabaseSession = async (tokenLinkProfile: any) => {
     try {
@@ -191,6 +292,54 @@ export const useAuth = () => {
       return { data, error: null };
     } catch (error) {
       console.error('Sign in error:', error);
+      return { data: null, error };
+    }
+  };
+
+  const signInWithUsername = async (username: string, password: string) => {
+    try {
+      cleanupAuthState();
+      
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        console.log('Sign out during sign in failed:', err);
+      }
+
+      // Authenticate using username and password
+      const profile = await ProfileService.authenticateByUsername(username, password);
+      
+      if (!profile) {
+        throw new Error('Invalid username or password');
+      }
+
+      // Create a user-like object for username-based auth
+      const usernameUser = {
+        id: profile.id,
+        email: profile.email,
+      } as User;
+      
+      setUser(usernameUser);
+      setProfile({
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        username: profile.username || null,
+        role: profile.role as UserRole,
+        avatar_url: profile.avatar_url || null,
+        bio: profile.bio || null,
+        minecraft_username: profile.minecraft_username || null,
+        can_login_with_username: profile.can_login_with_username,
+      });
+
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 100);
+
+      return { data: { user: usernameUser }, error: null };
+    } catch (error) {
+      console.error('Username sign in error:', error);
       return { data: null, error };
     }
   };
@@ -284,10 +433,31 @@ export const useAuth = () => {
     return { data, error };
   };
 
+  const setPassword = async (password: string) => {
+    if (!profile?.id) {
+      return { error: new Error('No profile ID found') };
+    }
+
+    try {
+      const success = await ProfileService.setPassword(profile.id, password);
+      
+      if (success) {
+        // Update local profile to reflect password change
+        setProfile(prev => prev ? { ...prev, can_login_with_username: true } : null);
+        return { success: true };
+      } else {
+        return { error: new Error('Failed to set password') };
+      }
+    } catch (error) {
+      console.error('Error setting password:', error);
+      return { error: error instanceof Error ? error : new Error('Unknown error') };
+    }
+  };
+
   const refreshProfile = async () => {
     if (tokenLinkAuth.isTokenLinkUser && tokenLinkAuth.profile) {
       // For TokenLink users, refresh from TokenLink auth
-      const result = await tokenLinkAuth.refreshProfile?.();
+      const result = await tokenLinkAuth.updateProfile?.(tokenLinkAuth.profile);
       if (!result?.error && result?.data) {
         setProfile({
           id: result.data.id,
@@ -319,16 +489,55 @@ export const useAuth = () => {
     return { data, error };
   };
 
+  // Function to manually refresh authentication state from localStorage
+  const refreshAuthState = () => {
+    const playerUuid = localStorage.getItem("player_uuid");
+    const playerName = localStorage.getItem("player_name");
+    const profileData = localStorage.getItem("profile");
+    
+    if (playerUuid && playerName) {
+      console.log('useAuth: Manually refreshing TokenLink authentication state');
+      
+      const basicProfile = {
+        id: localStorage.getItem("tokenlink_profile_id") || playerUuid,
+        email: playerName + '@tokenlink.local',
+        full_name: playerName,
+        username: playerName,
+        role: 'member' as UserRole,
+        avatar_url: null,
+        bio: null,
+        minecraft_username: playerName,
+        can_login_with_username: false,
+      };
+      
+      setProfile(basicProfile);
+      
+      const tokenLinkUser = {
+        id: basicProfile.id,
+        email: basicProfile.email,
+      } as User;
+      
+      setUser(tokenLinkUser);
+      setLoading(false);
+      return true;
+    }
+    
+    return false;
+  };
+
   return {
     user,
     profile,
     loading: loading || tokenLinkAuth.loading,
     signIn,
+    signInWithUsername,
     signUp,
     signOut,
     updateProfile,
+    setPassword,
     refreshProfile,
-    isAuthenticated: !!user || tokenLinkAuth.isTokenLinkUser,
+    refreshAuthState,
+    isAuthenticated: !!user || (tokenLinkAuth.isTokenLinkUser && !!tokenLinkAuth.profile) || !!(localStorage.getItem("player_uuid") && localStorage.getItem("player_name")),
     userRole: profile?.role || 'member' as UserRole,
     isTokenLinkUser: tokenLinkAuth.isTokenLinkUser,
     playerUuid: tokenLinkAuth.playerUuid,

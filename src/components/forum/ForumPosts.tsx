@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePlayerBadges } from '@/hooks/usePlayerBadges';
 import { isStaffRole } from '@/utils/roleUtils';
 import { useNationForumAccess } from '@/hooks/useNationForumAccess';
+import SimpleMarkdownRenderer from '@/components/SimpleMarkdownRenderer';
 
 interface ForumPostsProps {
   categoryId: string;
@@ -153,9 +154,9 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
                       {post.is_locked && <Lock className="w-4 h-4 text-red-500" />}
                       <h3 className="text-lg font-semibold">{post.title}</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {post.content.substring(0, 200)}...
-                    </p>
+                    <div className="text-sm text-muted-foreground line-clamp-2">
+                      <SimpleMarkdownRenderer content={post.content.substring(0, 200) + '...'} />
+                    </div>
                   </div>
                   {/* Removed per request: reply/view counts */}
                 </div>

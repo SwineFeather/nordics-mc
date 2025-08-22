@@ -1,6 +1,8 @@
 // Utility to pre-process the coastal mask texture
 // This creates a simple lookup table for land/water areas
 
+import { getMapImageUrl } from '@/utils/supabaseStorage';
+
 export interface CoastalMaskData {
   width: number;
   height: number;
@@ -66,7 +68,7 @@ export const processCoastalMask = async (): Promise<CoastalMaskData> => {
       reject(new Error('Failed to load coastal mask image'));
     };
     
-    img.src = '/nyrvalos/baselayer-full.png';
+    img.src = getMapImageUrl('baselayer-full');
   });
 };
 

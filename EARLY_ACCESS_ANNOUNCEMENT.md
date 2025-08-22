@@ -1,85 +1,25 @@
-# 🚀 Nordics Minecraft Website - Early Access is Live!
+# 🚀 New Nordics Website is Live!
 
----
+Hey everyone! We finally got a proper website up and running. It's been months in the making and we're pretty excited to share it.
 
-## What is this?
+## What's on there?
 
-We've built a website for nordics.world that's way more than just a basic server page. Think of it as your server's digital hub - where you can check out towns, manage businesses, track stats, and connect with other players.
+**Towns & Nations** - Browse towns, check out politics, see who's running what
 
----
+**Economy** - Create companies, set up shops, trade with others
 
-## What's working right now?
+**Maps** - Historical political maps and interactive locations 
 
-### 🏘️ Towns & Nations
-- Browse all towns and see who's who
-- Check out nations and their politics
-- Town profiles with basic info
+**Wiki** - Community docs and auto-generated pages
 
-### 💼 Economy stuff
-- Create and manage companies
-- Set up shops and trade
-- Browse the marketplace
+**Community** - Forums, player directory, server news
 
-### 🗺️ Maps
-- Historical political maps
-- Interactive town locations
-- Mark interesting spots
+## Important!
 
-### 📚 Wiki
-- Community documentation
-- Auto-generated town pages
-- Easy editing
-
-### 💬 Community
-- Forum for discussions
-- Player directory
-- Server news
-
----
-
-## Why Early Access?
-
-We're still working on this! Right now we're:
-- Fixing bugs you find
-- Making things faster
-- Adding missing features
-- Getting your feedback
-
----
-
-## How to try it out
-
-1. **Visit**: [nordics.world](https://nordics.world)
-2. **Sign up** with your Minecraft username
-3. **Explore** - poke around and see what works
-4. **Tell us** what's broken or what you want
-
----
+Use **/login** in-game first to link your Minecraft account to the website.
 
 ## What's next?
 
-We're working on:
-- Better achievement system
-- More economy features
-- Community events
-- API stuff for developers
+Still adding more features like achievements, economy stuff, and community events.
 
----
-
-## Questions or problems?
-
-- **Discord**: Join our server
-- **Forum**: Post here
-- **In-game**: Ask staff
-
----
-
-## Ready to test?
-
-Jump in and see what works! This is your chance to help shape how the website works for everyone.
-
-**Happy building!** 🎮
-
----
-
-*This has been months in the making. We're excited to finally share it with you all!*
+**Happy exploring!** 🌐

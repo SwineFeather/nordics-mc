@@ -11,10 +11,12 @@ import {
   ExternalLink,
   Shield,
   Key,
-  UserCog
+  UserCog,
+  Settings
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import SettingsModal from "@/components/SettingsModal";
+import { ProfilePasswordSetup } from "@/components/ProfilePasswordSetup";
 
 
 interface Profile {
@@ -34,7 +36,7 @@ const Dashboard = () => {
   const [settingsTab, setSettingsTab] = useState('profile');
   const [needsEmailSetup, setNeedsEmailSetup] = useState(false);
   const navigate = useNavigate();
-  const { signOut, isAuthenticated, user, profile: authProfile, isTokenLinkUser } = useAuth();
+  const { signOut, isAuthenticated, user, profile: authProfile, isTokenLinkUser, refreshAuthState } = useAuth();
 
   useEffect(() => {
     const tokenLinkProfileId = localStorage.getItem("tokenlink_profile_id");
@@ -48,7 +50,8 @@ const Dashboard = () => {
       hasName: !!playerName,
       hasProfile: !!profileData,
       isAuthenticated,
-      hasAuthProfile: !!authProfile
+      hasAuthProfile: !!authProfile,
+      profileData: profileData ? JSON.parse(profileData) : null
     });
 
     // Check if user is authenticated (either through TokenLink or regular auth)
@@ -60,10 +63,11 @@ const Dashboard = () => {
       playerName
     });
     
-    if (!isAuthenticated && (!playerUuid || !playerName)) {
-      console.log('No authentication found, redirecting to login');
-      navigate("/");
-      return;
+    // If we have TokenLink data but no auth state, try to refresh it
+    if ((playerUuid && playerName) && !isAuthenticated && !authProfile) {
+      console.log('Dashboard: Found TokenLink data but no auth state, refreshing...');
+      const refreshed = refreshAuthState();
+      console.log('Dashboard: Auth refresh result:', refreshed);
     }
 
     // Use auth profile if available, otherwise fall back to TokenLink data
@@ -86,8 +90,8 @@ const Dashboard = () => {
       } catch (e) {
         console.error("Error parsing profile data:", e);
       }
-    } else if (playerUuid && playerName) {
-      // Create basic profile from stored data
+    } else if (playerUuid && playerName && !profile) {
+      // Only create basic profile if we don't already have one
       const basicProfile = {
         id: tokenLinkProfileId || playerUuid,
         email: playerName + '@tokenlink.local',
@@ -95,12 +99,13 @@ const Dashboard = () => {
         role: 'member',
         minecraft_username: playerName
       };
+      console.log('Created basic profile from stored data:', basicProfile);
       setProfile(basicProfile);
       setNeedsEmailSetup(true);
     }
 
     setLoading(false);
-  }, [navigate, isAuthenticated, authProfile]);
+  }, [navigate, isAuthenticated, authProfile, refreshAuthState, profile]); // Added profile to dependencies
 
   const handleLogout = async () => {
     console.log('Logging out user');
@@ -128,8 +133,11 @@ const Dashboard = () => {
   };
 
   const handleOpenSettings = (tab: string = 'profile') => {
+    console.log('handleOpenSettings called with tab:', tab);
+    console.log('Current state - showSettings:', showSettings, 'settingsTab:', settingsTab);
     setSettingsTab(tab);
     setShowSettings(true);
+    console.log('State updated - showSettings:', true, 'settingsTab:', tab);
   };
 
   if (loading) {
@@ -207,8 +215,15 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* Password Setup Section for TokenLink Users */}
+        {isTokenLinkUser && profile && (
+          <div className="mb-8">
+            <ProfilePasswordSetup />
+          </div>
+        )}
+
         {/* Account Setup Alert */}
-        {needsEmailSetup && !isTokenLinkUser && (
+        {needsEmailSetup && (
           <Alert className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -294,49 +309,9 @@ const Dashboard = () => {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
-                  onClick={() => handleOpenSettings('profile')}
-                >
-                  <UserCog className="w-4 h-4 mr-2" />
-                  Edit Profile
-                </Button>
-
-
-              </CardContent>
-            </Card>
-
-            {/* Account Security */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Security</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="text-sm text-muted-foreground">
-                  <p className="mb-2">
-                    {isTokenLinkUser ? 'Strengthen your TokenLink account:' : 'Manage your account security:'}
-                  </p>
-                  <ul className="space-y-1 text-xs">
-                    {isTokenLinkUser ? (
-                      <>
-                        <li>• Add a secure email address</li>
-                        <li>• Set a strong password</li>
-                        <li>• Enable full website features</li>
-                      </>
-                    ) : (
-                      <>
-                        <li>• Change your password</li>
-                        <li>• Update your email address</li>
-                        <li>• Manage account security</li>
-                      </>
-                    )}
-                  </ul>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
                   onClick={() => handleOpenSettings('account')}
                 >
-                  <Key className="w-4 h-4 mr-2" />
+                  <Settings className="w-4 h-4 mr-2" />
                   Account Settings
                 </Button>
               </CardContent>
@@ -361,6 +336,87 @@ const Dashboard = () => {
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Continue to Website
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Debug Section - Remove this in production */}
+        <div className="mt-8 text-center">
+          <Card className="max-w-md mx-auto border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
+            <CardContent className="pt-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                Debug Information
+              </h3>
+              <div className="text-xs text-gray-600 dark:text-gray-400 text-left space-y-1 mb-4">
+                <p><strong>isAuthenticated:</strong> {isAuthenticated ? 'true' : 'false'}</p>
+                <p><strong>hasUser:</strong> {user ? 'true' : 'false'}</p>
+                <p><strong>hasProfile:</strong> {profile ? 'true' : 'false'}</p>
+                <p><strong>isTokenLinkUser:</strong> {isTokenLinkUser ? 'true' : 'false'}</p>
+                <p><strong>localStorage player_uuid:</strong> {localStorage.getItem("player_uuid") || 'none'}</p>
+                <p><strong>localStorage player_name:</strong> {localStorage.getItem("player_name") || 'none'}</p>
+                <p><strong>localStorage profile:</strong> {localStorage.getItem("profile") ? 'exists' : 'none'}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    console.log('Manual auth refresh triggered');
+                    refreshAuthState();
+                  }}
+                  className="text-xs"
+                >
+                  Refresh Auth State
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    console.log('Current localStorage:', {
+                      player_uuid: localStorage.getItem("player_uuid"),
+                      player_name: localStorage.getItem("player_name"),
+                      profile: localStorage.getItem("profile"),
+                      tokenlink_profile_id: localStorage.getItem("tokenlink_profile_id")
+                    });
+                  }}
+                  className="text-xs"
+                >
+                  Log localStorage
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    // Simulate a TokenLink login for testing
+                    const testUuid = 'test-uuid-123';
+                    const testName = 'TestPlayer';
+                    localStorage.setItem("player_uuid", testUuid);
+                    localStorage.setItem("player_name", testName);
+                    localStorage.setItem("tokenlink_profile_id", testUuid);
+                    console.log('Test TokenLink data set, refreshing auth...');
+                    refreshAuthState();
+                  }}
+                  className="text-xs"
+                >
+                  Test TokenLink Auth
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    console.log('Current auth state:', {
+                      isAuthenticated,
+                      hasUser: !!user,
+                      hasProfile: !!profile,
+                      hasAuthProfile: !!authProfile,
+                      isTokenLinkUser
+                    });
+                  }}
+                  className="text-xs"
+                >
+                  Log Auth State
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

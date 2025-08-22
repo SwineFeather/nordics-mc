@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { sanitizeHtml } from '@/utils/htmlSanitizer';
+import SimpleMarkdownRenderer from '@/components/SimpleMarkdownRenderer';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 // Removed: Progress (no stats shown)
@@ -29,6 +29,7 @@ import { forumNotificationService } from '@/services/forumNotificationService';
 import { supabase } from '@/integrations/supabase/client';
 import { ForumPost } from '@/hooks/useForumPosts';
 import { useNationForumAccess } from '@/hooks/useNationForumAccess';
+import { canEditContent, canDeleteContent, logSecurityEvent } from '@/middleware/roleValidation';
 
 interface AdvancedPostDetailProps {
   postId: string;
@@ -73,9 +74,62 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
   const startTimeRef = useRef<number>(Date.now());
   const scrollTrackerRef = useRef<NodeJS.Timeout>();
 
-  // Check if user can edit/delete this post
-  const canEditPost = user && (post?.author_id === user.id || (profile && isStaffRole(profile.role)));
-  const canDeletePost = user && (post?.author_id === user.id || (profile && isStaffRole(profile.role)));
+  // Check if user can edit/delete this post using secure validation
+  const [canEditPost, setCanEditPost] = useState(false);
+  const [canDeletePost, setCanDeletePost] = useState(false);
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
+
+  // Load user permissions securely
+  useEffect(() => {
+    const loadUserPermissions = async () => {
+      if (!user || !post) {
+        setPermissionsLoading(false);
+        return;
+      }
+
+      try {
+        setPermissionsLoading(true);
+        
+        // Check edit permissions
+        const editResult = await canEditContent(user.id, post.author_id);
+        setCanEditPost(editResult.hasPermission);
+        
+        // Check delete permissions
+        const deleteResult = await canDeleteContent(user.id, post.author_id);
+        setCanDeletePost(deleteResult.hasPermission);
+        
+        // Log permission check for security audit
+        logSecurityEvent(
+          'permission_check',
+          user.id,
+          'forum_post_permissions',
+          `post_${post.id}`,
+          true,
+          { canEdit: editResult.hasPermission, canDelete: deleteResult.hasPermission }
+        );
+        
+      } catch (error) {
+        console.error('Error loading user permissions:', error);
+        // Default to no permissions on error for security
+        setCanEditPost(false);
+        setCanDeletePost(false);
+        
+        logSecurityEvent(
+          'permission_error',
+          user.id,
+          'forum_post_permissions',
+          `post_${post.id}`,
+          false,
+          { error: error.message }
+        );
+      } finally {
+        setPermissionsLoading(false);
+      }
+    };
+
+    loadUserPermissions();
+  }, [user, post]);
+
   const isCollaborator = collaborations.some(c => c.user_id === user?.id && c.status === 'accepted');
 
   // Fetch the specific post data
@@ -546,29 +600,38 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {(canEditPost || isCollaborator) && (
-                      <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit Post
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={() => setShowVersionHistory(true)}>
-                      <History className="w-4 h-4 mr-2" />
-                      Version History
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowCollaboration(true)}>
-                      <Users className="w-4 h-4 mr-2" />
-                      Collaborators
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowAnalytics(true)}>
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      Analytics
-                    </DropdownMenuItem>
-                    {canDeletePost && (
-                      <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete Post
-                      </DropdownMenuItem>
+                    {permissionsLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                        <span className="text-sm text-muted-foreground">Loading permissions...</span>
+                      </div>
+                    ) : (
+                      <>
+                        {canEditPost && (
+                          <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit Post
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => setShowVersionHistory(true)}>
+                          <History className="w-4 h-4 mr-2" />
+                          Version History
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowCollaboration(true)}>
+                          <Users className="w-4 h-4 mr-2" />
+                          Collaborators
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowAnalytics(true)}>
+                          <BarChart3 className="w-4 h-4 mr-2" />
+                          Analytics
+                        </DropdownMenuItem>
+                        {canDeletePost && (
+                          <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Post
+                          </DropdownMenuItem>
+                        )}
+                      </>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -578,7 +641,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
              <CardContent className="space-y-6">
               {/* Post Content */}
                <div className="prose max-w-none dark:prose-invert">
-                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} />
+                <SimpleMarkdownRenderer content={post.content} />
               </div>
               
               {post.tags && post.tags.length > 0 && (
@@ -654,7 +717,7 @@ export const AdvancedPostDetail: React.FC<AdvancedPostDetailProps> = ({ postId, 
                           </span>
                         </div>
                         <div className="prose max-w-none">
-                          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(reply.content) }} />
+                          <SimpleMarkdownRenderer content={reply.content} />
                         </div>
                       </div>
                     ))}

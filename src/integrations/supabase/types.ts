@@ -3145,6 +3145,7 @@ export type Database = {
           capital_town_name: string | null
           capital_uuid: string | null
           created_at: string | null
+          description: string | null
           enemy_count: number | null
           growth_rate: number | null
           id: number
@@ -3175,6 +3176,7 @@ export type Database = {
           capital_town_name?: string | null
           capital_uuid?: string | null
           created_at?: string | null
+          description?: string | null
           enemy_count?: number | null
           growth_rate?: number | null
           id?: number
@@ -3205,6 +3207,7 @@ export type Database = {
           capital_town_name?: string | null
           capital_uuid?: string | null
           created_at?: string | null
+          description?: string | null
           enemy_count?: number | null
           growth_rate?: number | null
           id?: number
@@ -5385,6 +5388,140 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      nation_gallery: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          height: number | null
+          id: string
+          is_approved: boolean | null
+          tags: string[] | null
+          title: string
+          nation_name: string
+          updated_at: string
+          uploaded_at: string
+          uploaded_by: string | null
+          uploaded_by_username: string
+          view_count: number | null
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          height?: number | null
+          id?: string
+          is_approved?: boolean | null
+          tags?: string[] | null
+          title: string
+          nation_name: string
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          uploaded_by_username: string
+          view_count?: number | null
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          height?: number | null
+          id?: string
+          is_approved?: boolean | null
+          tags?: string[] | null
+          title?: string
+          nation_name?: string
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          uploaded_by_username?: string
+          view_count?: number | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nation_gallery_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      nation_collaborators: {
+        Row: {
+          id: string
+          nation_name: string
+          user_id: string
+          username: string
+          role: string
+          permissions: string[] | null
+          invited_by: string
+          invited_by_username: string
+          invited_at: string
+          accepted_at: string | null
+          is_active: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          nation_name: string
+          user_id: string
+          username: string
+          role?: string
+          permissions?: string[] | null
+          invited_by: string
+          invited_by_username: string
+          invited_at?: string
+          accepted_at?: string | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nation_name?: string
+          user_id?: string
+          username?: string
+          role?: string
+          permissions?: string[] | null
+          invited_by?: string
+          invited_by_username?: string
+          invited_at?: string
+          accepted_at?: string | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nation_collaborators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nation_collaborators_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
         ]
       }
       town_growth_analytics: {

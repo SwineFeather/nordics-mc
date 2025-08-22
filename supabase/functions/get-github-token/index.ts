@@ -1,21 +1,68 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Get allowed origins from environment or use secure defaults
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'https://www.nordics.world',
+  'https://nordics.world'
+];
+
+// Validate origin function with additional security checks
+function isValidOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Additional security: check for localhost only in development
+  if (Deno.env.get('NODE_ENV') === 'development') {
+    return origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+  }
+  
+  return false;
 }
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': isValidOrigin(origin) ? origin : allowedOrigins[0],
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Credentials': 'true',
+})
 
 serve(async (req) => {
   console.log(`📡 get-github-token function called: ${req.method} ${req.url}`);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    const origin = req.headers.get('Origin');
+    
+    if (!isValidOrigin(origin)) {
+      return new Response(null, { 
+        status: 403,
+        headers: corsHeaders(null)
+      });
+    }
+
     console.log('✅ Handling CORS preflight request');
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders(origin) })
   }
 
   try {
+    // Validate origin for all requests
+    const origin = req.headers.get('Origin');
+    if (!isValidOrigin(origin)) {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        {
+          status: 403,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders(null)
+          },
+        }
+      )
+    }
+
     console.log('🔍 Attempting to retrieve GitHub token from environment...');
     
     // Get the GitHub token from Supabase secrets
@@ -43,26 +90,24 @@ serve(async (req) => {
       }),
       { 
         headers: { 
-          ...corsHeaders,
+          ...corsHeaders(origin),
           'Content-Type': 'application/json' 
         } 
       }
     )
   } catch (error) {
     console.error('❌ Error in get-github-token function:', error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const origin = req.headers.get('Origin');
     
     return new Response(
       JSON.stringify({ 
-        error: errorMessage,
-        success: false,
-        timestamp: new Date().toISOString()
+        error: error.message || 'Internal server error',
+        success: false
       }),
       { 
         status: 500,
         headers: { 
-          ...corsHeaders,
+          ...corsHeaders(origin),
           'Content-Type': 'application/json' 
         } 
       }

@@ -1,18 +1,66 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Get allowed origins from environment or use secure defaults
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'https://www.nordics.world',
+  'https://nordics.world'
+];
+
+// Validate origin function with additional security checks
+function isValidOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Additional security: check for localhost only in development
+  if (Deno.env.get('NODE_ENV') === 'development') {
+    return origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+  }
+  
+  return false;
 }
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': isValidOrigin(origin) ? origin : allowedOrigins[0],
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Credentials': 'true',
+})
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    const origin = req.headers.get('Origin');
+    
+    if (!isValidOrigin(origin)) {
+      return new Response(null, { 
+        status: 403,
+        headers: corsHeaders(null)
+      });
+    }
+
+    return new Response(null, { headers: corsHeaders(origin) });
   }
 
   try {
+    // Validate origin for all requests
+    const origin = req.headers.get('Origin');
+    if (!isValidOrigin(origin)) {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        {
+          status: 403,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders(null)
+          },
+        }
+      )
+    }
+
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -69,82 +117,72 @@ serve(async (req) => {
             .insert({
               name: `${town.name} Forum`,
               description: `Private forum for ${town.name} residents`,
-              slug: `town-${town.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
-              icon: 'image',
-              color: getNationColor(town.nation_name),
-              order_index: 6,
-              is_moderator_only: false,
-              nation_name: town.nation_name.replace(/_/g, ' '), // Standardize nation name
+              slug: `town-${town.name.toLowerCase().replace(/\s+/g, '-')}`,
               town_name: town.name,
-              is_archived: false
+              nation_name: town.nation_name,
+              is_archived: false,
+              created_at: new Date().toISOString()
             })
 
           if (createError) {
+            console.error(`Error creating forum for ${town.name}:`, createError)
             results.errors.push(`Failed to create forum for ${town.name}: ${createError.message}`)
           } else {
+            console.log(`Created forum for ${town.name}`)
             results.created++
-            console.log(`Created forum for town: ${town.name}`)
           }
-        } else if (existingForum.is_archived) {
-          // Reactivate archived forum
-          const { error: updateError } = await supabase
-            .from('forum_categories')
-            .update({ 
-              is_archived: false,
-              nation_name: town.nation_name,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', existingForum.id)
+        } else {
+          // Update existing forum if needed
+          const needsUpdate = existingForum.nation_name !== town.nation_name || existingForum.is_archived
+          
+          if (needsUpdate) {
+            const { error: updateError } = await supabase
+              .from('forum_categories')
+              .update({
+                nation_name: town.nation_name,
+                is_archived: false,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', existingForum.id)
 
-          if (updateError) {
-            results.errors.push(`Failed to reactivate forum for ${town.name}: ${updateError.message}`)
-          } else {
-            results.updated++
-            console.log(`Reactivated forum for town: ${town.name}`)
-          }
-        } else if (existingForum.nation_name !== town.nation_name.replace(/_/g, ' ')) {
-          // Update nation if it changed
-          const { error: updateError } = await supabase
-            .from('forum_categories')
-            .update({ 
-              nation_name: town.nation_name.replace(/_/g, ' '), // Standardize nation name
-              color: getNationColor(town.nation_name),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', existingForum.id)
-
-          if (updateError) {
-            results.errors.push(`Failed to update forum for ${town.name}: ${updateError.message}`)
-          } else {
-            results.updated++
-            console.log(`Updated forum for town: ${town.name} (nation changed to ${town.nation_name})`)
+            if (updateError) {
+              console.error(`Error updating forum for ${town.name}:`, updateError)
+              results.errors.push(`Failed to update forum for ${town.name}: ${updateError.message}`)
+            } else {
+              console.log(`Updated forum for ${town.name}`)
+              results.updated++
+            }
           }
         }
       } catch (error) {
-        results.errors.push(`Error processing town ${town.name}: ${error.message}`)
+        console.error(`Error processing town ${town.name}:`, error)
+        results.errors.push(`Error processing ${town.name}: ${error.message}`)
       }
     }
 
     // Step 5: Archive forums for towns that no longer exist
+    const currentTownNames = new Set(towns.map(t => t.name))
     for (const forum of existingForums) {
-      if (!forum.is_archived) {
-        const townStillExists = towns.some(town => town.name === forum.town_name)
-        
-        if (!townStillExists) {
+      if (!currentTownNames.has(forum.town_name) && !forum.is_archived) {
+        try {
           const { error: archiveError } = await supabase
             .from('forum_categories')
-            .update({ 
+            .update({
               is_archived: true,
               updated_at: new Date().toISOString()
             })
             .eq('id', forum.id)
 
           if (archiveError) {
+            console.error(`Error archiving forum for ${forum.town_name}:`, archiveError)
             results.errors.push(`Failed to archive forum for ${forum.town_name}: ${archiveError.message}`)
           } else {
+            console.log(`Archived forum for ${forum.town_name}`)
             results.archived++
-            console.log(`Archived forum for town: ${forum.town_name}`)
           }
+        } catch (error) {
+          console.error(`Error archiving forum for ${forum.town_name}:`, error)
+          results.errors.push(`Error archiving ${forum.town_name}: ${error.message}`)
         }
       }
     }
@@ -154,41 +192,28 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Town forum sync completed',
+        message: 'Town forum sync completed successfully',
         results
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
+        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' }
       }
     )
 
   } catch (error) {
-    console.error('Error in town forum sync:', error)
+    console.error('Town forum sync error:', error)
+    
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: 'Town forum sync failed',
+        details: error.message
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
+        headers: { ...corsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' }
       }
     )
   }
-})
-
-// Helper function to get nation color
-function getNationColor(nationName: string): string {
-  // Standardize nation name (remove underscores, use spaces)
-  const standardizedName = nationName.replace(/_/g, ' ')
-  
-  const nationColors: { [key: string]: string } = {
-    'Skyward Sanctum': '#3b82f6',
-    'North Sea League': '#059669',
-    'Kesko Corporation': '#f59e0b',
-    'Aqua Union': '#0ea5e9',
-    'Constellation': '#8b5cf6',
-  }
-  return nationColors[standardizedName] || '#3b82f6'
-} 
+}) 

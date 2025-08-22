@@ -8,6 +8,7 @@ import NordicsLogo from './NordicsLogo';
 import ServerIPModal from './ServerIPModal';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getMapImageUrl } from '@/utils/supabaseStorage';
 
 const HeroSection = () => {
   const { status, loading: serverStatusLoading } = useServerStatus();
@@ -106,11 +107,15 @@ const HeroSection = () => {
       {/* Europe outline (tinted). Stronger in light mode, subtler in dark mode */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <img 
-          src="/heightmapVector-full.png" 
+          src="/heightmapVector-full.png"
           alt="Europe outline"
           className="w-full h-full object-contain opacity-20 dark:opacity-10"
           style={{ 
             filter: 'sepia(100%) saturate(600%) hue-rotate(-18deg) brightness(0.68) contrast(1.15) blur(1px)'
+          }}
+          onLoad={() => console.log('HeroSection - Europe outline image loaded successfully from public directory')}
+          onError={(e) => {
+            console.error('HeroSection - Failed to load Europe outline image from public directory:', e.currentTarget.src);
           }}
         />
       </div>

@@ -16,7 +16,7 @@ const NordicsLogo: React.FC<NordicsLogoProps> = ({ size = 'md', className = '' }
   return (
     <div className={`${sizeClasses[size]} ${className}`}>
       <img 
-        src="/lovable-uploads/0d1f1e74-8b33-43ee-b7d9-6f13dda1788d.png" 
+        src="/android-chrome-512x512.png" 
         alt="Nordics Logo" 
         className="w-full h-full object-contain"
       />

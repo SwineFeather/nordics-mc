@@ -6,12 +6,16 @@ import NationsTab from '@/components/towns/NationsTab';
 import TownsTab from '@/components/towns/TownsTab';
 import PlayerDirectory from '@/components/community/PlayerDirectory';
 import { Crown, MapPin, Users } from 'lucide-react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const Community = () => {
   const [searchParams] = useSearchParams();
   const playerParam = searchParams.get('player');
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Use the page title hook to set dynamic titles
+  usePageTitle();
   
   // Determine active tab from URL
   const getActiveTab = () => {

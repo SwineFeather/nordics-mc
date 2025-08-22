@@ -39,10 +39,15 @@ import EnhancedWikiEditor from '@/components/wiki/EnhancedWikiEditor';
 import SimpleMarkdownRenderer from '@/components/SimpleMarkdownRenderer';
 import TownCompaniesSection from '@/components/towns/TownCompaniesSection';
 import TownCompaniesCount from '@/components/towns/TownCompaniesCount';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const TownPage = () => {
   const { townName } = useParams<{ townName: string }>();
   const navigate = useNavigate();
+  
+  // Use the page title hook to set dynamic titles
+  usePageTitle();
+  
   const [townData, setTownData] = useState<SupabaseTownData | null>(null);
   const [residents, setResidents] = useState<TownResident[]>([]);
   const [loading, setLoading] = useState(true);

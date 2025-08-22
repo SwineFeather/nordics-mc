@@ -64,6 +64,7 @@ interface DatabaseNation {
   capital_uuid: string | null;
   balance: number | null;
   board: string | null;
+  description: string | null;
   tag: string | null;
   taxes: number | null;
   town_tax: number | null;
@@ -148,6 +149,7 @@ export interface SupabaseNationData {
   type: string;
   color: string;
   description: string;
+  board?: string; // Board text from ingame (read-only)
   capital: string;
   leader: string;
   leader_name?: string; // Add this field for compatibility
@@ -360,7 +362,7 @@ export class SupabaseTownService {
       name: nation.name,
       type: nation.type || 'Nation', // Default type
       color: nation.color || '#1e40af', // Default color
-      description: nation.description || nation.board || '',
+                description: nation.description || '',
       capital: nation.capital || nation.capital_town_name || nation.capital_name || '',
       leader: nation.leader || nation.leader_name || nation.king_name || 'Unknown',
       leader_name: nation.leader_name || nation.leader || nation.king_name || 'Unknown', // Add this for compatibility
@@ -368,11 +370,11 @@ export class SupabaseTownService {
       bank: nation.bank || nation.balance?.toString() || '0',
       daily_upkeep: nation.daily_upkeep || nation.taxes?.toString() || '0',
       founded: nation.founded || (nation.created_at ? new Date(nation.created_at).toISOString().split('T')[0] : 'Unknown'),
-      lore: nation.lore || nation.board || '',
+                lore: nation.lore || '',
 
       motto: nation.motto || nation.tag || '',
       specialties: nation.specialties || [], // Default empty specialties
-      history: nation.history || nation.board || '',
+                history: nation.history || '',
       image_url: nation.image_url || null, // Will be populated from the new nations table
       created_at: nation.created_at || new Date().toISOString(),
       ally_count: nation.ally_count || 0,
@@ -577,7 +579,8 @@ export class SupabaseTownService {
           name: dbNation.name,
           type: 'Nation', // Default type
           color: '#1e40af', // Default color
-          description: dbNation.board || '',
+          description: dbNation.description || '',
+          board: dbNation.board || '',
           capital: dbNation.capital_town_name || dbNation.capital_name || '',
           leader: dbNation.leader_name || dbNation.king_name || 'Unknown',
           population: dbNation.residents_count || 0,
@@ -610,7 +613,7 @@ export class SupabaseTownService {
       const { data: nation, error } = await supabase
         .from('nations')
         .select('*')
-        .eq('id', id)
+        .eq('id', parseInt(id))
         .single();
 
       if (error) {
@@ -631,7 +634,8 @@ export class SupabaseTownService {
         name: dbNation.name,
         type: 'Nation',
         color: '#1e40af',
-        description: dbNation.board || '',
+        description: dbNation.description || '',
+        board: dbNation.board || '',
         capital: dbNation.capital_town_name || dbNation.capital_name || '',
         leader: dbNation.leader_name || dbNation.king_name || 'Unknown',
         population: dbNation.residents_count || 0,
@@ -747,7 +751,16 @@ export class SupabaseTownService {
         });
 
         // Get the nation data from the new nations table to include image_url
-        const mappedNation = this.mapNationData(dbNation);
+        const mappedNation = this.mapNationData({
+        ...dbNation,
+        leader: dbNation.leader_name || dbNation.king_name || 'Unknown',
+        population: dbNation.residents_count || 0,
+        capital: dbNation.capital_town_name || dbNation.capital_name || '',
+        founded: dbNation.created_at ? new Date(dbNation.created_at).toISOString().split('T')[0] : 'Unknown',
+        bank: dbNation.balance?.toString() || '0',
+        type: 'Nation',
+        color: '#1e40af'
+      });
         
         // Try to get the image_url from the new nations table
         try {
@@ -898,13 +911,13 @@ export class SupabaseTownService {
           nations?.forEach((nation, index) => {
             console.log(`   ${index + 1}. ${nation.name}`);
             console.log(`      ID: ${nation.id}`);
-            console.log(`      Leader: ${nation.leader}`);
-            console.log(`      Population: ${nation.population}`);
-            console.log(`      Capital: ${nation.capital}`);
-            console.log(`      Founded: ${nation.founded}`);
-            console.log(`      Bank: ${nation.bank}`);
-            console.log(`      Type: ${nation.type}`);
-            console.log(`      Color: ${nation.color}`);
+            console.log(`      Leader: ${nation.leader_name || nation.king_name || 'Unknown'}`);
+            console.log(`      Population: ${nation.residents_count || 0}`);
+            console.log(`      Capital: ${nation.capital_town_name || nation.capital_name || 'Unknown'}`);
+            console.log(`      Founded: ${nation.created_at ? new Date(nation.created_at).toISOString().split('T')[0] : 'Unknown'}`);
+            console.log(`      Bank: ${nation.balance || 0}`);
+            console.log(`      Type: Nation`);
+            console.log(`      Color: #1e40af`);
             console.log('');
           });
         }
@@ -923,13 +936,13 @@ export class SupabaseTownService {
           towns?.forEach((town, index) => {
             console.log(`   ${index + 1}. ${town.name}`);
             console.log(`      ID: ${town.id}`);
-            console.log(`      Mayor: ${town.mayor}`);
-            console.log(`      Population: ${town.population}`);
-            console.log(`      Type: ${town.type}`);
-            console.log(`      Status: ${town.status}`);
-            console.log(`      Founded: ${town.founded}`);
+            console.log(`      Mayor: ${town.mayor_name || 'Unknown'}`);
+            console.log(`      Population: ${town.residents_count || 0}`);
+            console.log(`      Type: Town`);
+            console.log(`      Status: ${town.is_open ? 'Open' : 'Closed'}`);
+            console.log(`      Founded: ${town.created_at ? new Date(town.created_at).toISOString().split('T')[0] : 'Unknown'}`);
             console.log(`      Nation ID: ${town.nation_id || 'Independent'}`);
-            console.log(`      Is Independent: ${town.is_independent}`);
+            console.log(`      Is Independent: ${!town.nation_name}`);
             console.log('');
           });
         }
@@ -1082,6 +1095,121 @@ export class SupabaseTownService {
       
     } catch (error) {
       console.error('💥 Error checking/creating tables:', error);
+    }
+  }
+
+  static async getNationByName(nationName: string): Promise<SupabaseNationData | null> {
+    try {
+      console.log(`Fetching nation data from Supabase for name: ${nationName}`);
+      
+      const { data: nation, error } = await supabase
+        .from('nations')
+        .select('*')
+        .eq('name', nationName)
+        .single();
+
+      if (error) {
+        console.error('Error fetching nation:', error);
+        return null;
+      }
+
+      if (!nation) {
+        console.log(`Nation not found: ${nationName}`);
+        return null;
+      }
+
+      const dbNation = nation as unknown as DatabaseNation;
+      const mappedNation = this.mapNationData({
+        ...dbNation,
+        leader: dbNation.leader_name || dbNation.king_name || 'Unknown',
+        population: dbNation.residents_count || 0,
+        capital: dbNation.capital_town_name || dbNation.capital_name || '',
+        founded: dbNation.created_at ? new Date(dbNation.created_at).toISOString().split('T')[0] : 'Unknown',
+        bank: dbNation.balance?.toString() || '0',
+        type: 'Nation',
+        color: '#1e40af'
+      });
+
+      console.log(`Successfully fetched nation: ${mappedNation.name}`);
+      return mappedNation;
+    } catch (error) {
+      console.error('Error in getNationByName:', error);
+      return null;
+    }
+  }
+
+  static async getTownsByNation(nationId: string): Promise<SupabaseTownData[]> {
+    try {
+      console.log(`Fetching towns for nation ID: ${nationId}`);
+      
+      // First get the nation name from the ID
+      const { data: nation, error: nationError } = await supabase
+        .from('nations')
+        .select('name')
+        .eq('id', parseInt(nationId))
+        .single();
+
+      if (nationError || !nation) {
+        console.error('Error fetching nation:', nationError);
+        return [];
+      }
+
+      // Then get towns by nation name
+      const { data: towns, error: townsError } = await supabase
+        .from('towns')
+        .select('*')
+        .eq('nation_name', nation.name)
+        .order('name');
+
+      if (townsError) {
+        console.error('Error fetching towns:', townsError);
+        return [];
+      }
+
+      if (!towns || towns.length === 0) {
+        console.log(`No towns found for nation: ${nation.name}`);
+        return [];
+      }
+
+      // Map towns to expected interface
+      const mappedTowns: SupabaseTownData[] = towns.map(town => {
+        const dbTown = town as unknown as DatabaseTown;
+        return {
+          id: dbTown.id.toString(),
+          name: dbTown.name,
+          mayor: dbTown.mayor_name || 'Unknown',
+          population: dbTown.residents_count || 0,
+          type: 'Town',
+          status: dbTown.is_open ? 'Open' : 'Closed',
+          founded: dbTown.created_at ? new Date(dbTown.created_at).toISOString().split('T')[0] : 'Unknown',
+          nation_id: dbTown.nation_id?.toString(),
+          is_independent: !dbTown.nation_name,
+          balance: Number(dbTown.balance) || 0,
+          level: 1,
+          total_xp: 0,
+          created_at: dbTown.created_at || new Date().toISOString(),
+          updated_at: dbTown.last_updated || new Date().toISOString(),
+          capital: dbTown.is_capital || false,
+          public: dbTown.is_public || false,
+          resident_count: dbTown.residents_count || 0,
+          created: dbTown.created_at ? new Date(dbTown.created_at).getTime() : Date.now(),
+          plots: [],
+          open: dbTown.is_open || false,
+          spawn: {
+            world: dbTown.world_name || "world",
+            x: dbTown.spawn_x || 1000,
+            y: dbTown.spawn_y || 64,
+            z: dbTown.spawn_z || 1000
+          },
+          residents: this.parseResidentsFromJsonb(dbTown.residents, dbTown.mayor_name, dbTown.mayor_uuid)
+        };
+      });
+
+      console.log(`Successfully fetched ${mappedTowns.length} towns for nation: ${nation.name}`);
+      return mappedTowns;
+    } catch (error) {
+      console.error('Error in getTownsByNation:', error);
+      return [];
     }
   }
 } 

@@ -1,5 +1,5 @@
 
-import { sanitizeHtml } from '@/utils/sanitizer';
+import { sanitizeMarkdown } from '@/utils/htmlSanitizer';
 
 interface RichContentRendererProps {
   content: string;
@@ -7,7 +7,7 @@ interface RichContentRendererProps {
 }
 
 export const RichContentRenderer = ({ content, className }: RichContentRendererProps) => {
-  const sanitizedContent = sanitizeHtml(content);
+  const sanitizedContent = sanitizeMarkdown(content);
 
   return (
     <div 

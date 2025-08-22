@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,30 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Pin, 
-  Flag, 
-  MapPin, 
-  Star, 
-  AlertTriangle, 
-  Info, 
-  Building, 
-  Eye, 
-  Sword, 
-  Shield, 
-  Crown, 
-  Coins, 
-  Anchor, 
-  Mountain, 
-  Trees, 
-  Flame, 
-  Zap, 
-  Heart, 
-  Target, 
-  Compass, 
-  Home,
   Search,
   Edit,
   Trash2,
-  Circle,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
@@ -69,31 +47,6 @@ interface PinsListProps {
   mapDate: string;
   onPinUpdate: () => void;
 }
-
-const iconMap = {
-  pin: Pin,
-  flag: Flag,
-  map: MapPin,
-  star: Star,
-  alert: AlertTriangle,
-  info: Info,
-  building: Building,
-  eye: Eye,
-  sword: Sword,
-  shield: Shield,
-  crown: Crown,
-  coins: Coins,
-  anchor: Anchor,
-  mountain: Mountain,
-  trees: Trees,
-  flame: Flame,
-  zap: Zap,
-  heart: Heart,
-  target: Target,
-  compass: Compass,
-  home: Home,
-  circle: Circle,
-};
 
 const PinsList = ({ mapDate, onPinUpdate }: PinsListProps) => {
   const [pins, setPins] = useState<MapPin[]>([]);
@@ -183,132 +136,112 @@ const PinsList = ({ mapDate, onPinUpdate }: PinsListProps) => {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-2 p-0 h-auto hover:bg-transparent"
-            >
-              <span>Map Pins ({filteredPins.length})</span>
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
-          </CardTitle>
-          {isExpanded && (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search pins..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          )}
-        </CardHeader>
-        
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-2 p-0 h-auto hover:bg-transparent"
+          >
+            <span className="text-sm sm:text-base">Map Pins ({filteredPins.length})</span>
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+        </CardTitle>
         {isExpanded && (
-          <CardContent className="p-0">
-            <div className="max-h-96 overflow-y-auto">
-              {filteredPins.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  {searchTerm ? 'No pins match your search' : 'No pins on this map'}
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {filteredPins.map((pin) => {
-                    const IconComponent = iconMap[pin.icon as keyof typeof iconMap] || Pin;
-                    
-                    return (
-                      <div
-                        key={pin.id}
-                        className="flex items-center justify-between p-3 hover:bg-muted/50 border-b last:border-b-0"
-                      >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="relative">
-                            <IconComponent 
-                              className={`w-5 h-5 ${pin.icon === 'circle' ? 'animate-pulse' : ''}`}
-                              style={{ color: pin.color }}
-                            />
-                            {pin.icon === 'circle' && (
-                              <div 
-                                className="absolute inset-0 w-5 h-5 rounded-full animate-ping opacity-30"
-                                style={{ backgroundColor: pin.color }}
-                              />
-                            )}
-                            <Badge 
-                              variant="secondary" 
-                              className="absolute -top-1 -right-1 text-xs h-4 w-4 p-0 flex items-center justify-center"
-                            >
-                              {getSizeDisplay(pin.size)}
-                            </Badge>
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm truncate">
-                                {pin.title || 'Untitled Pin'}
-                              </span>
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${
-                                  pin.category === 'town' ? 'border-blue-500 text-blue-600' :
-                                  pin.category === 'lore' ? 'border-purple-500 text-purple-600' :
-                                  'border-gray-500 text-gray-600'
-                                }`}
-                              >
-                                {pin.category}
-                              </Badge>
-                              {pin.is_hidden && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Hidden
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {pin.description || 'No description'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              by {pin.author?.full_name} • {new Date(pin.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-
-                        {isStaff && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => setEditingPin(pin)}
-                              >
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit Pin
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeletePin(pin.id)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete Pin
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </CardContent>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search pins..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 text-sm"
+            />
+          </div>
         )}
-      </Card>
+      </CardHeader>
+      
+      {isExpanded && (
+        <CardContent className="p-0">
+          <div className="max-h-96 overflow-y-auto">
+            {filteredPins.length === 0 ? (
+              <div className="p-3 sm:p-4 text-center text-muted-foreground text-sm">
+                {searchTerm ? 'No pins match your search' : 'No pins on this map'}
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {filteredPins.map((pin) => {
+                  return (
+                    <div
+                      key={pin.id}
+                      className="flex items-center justify-between p-2 sm:p-3 hover:bg-muted/50 border-b last:border-b-0"
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <div className="relative">
+                          <Pin className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: pin.color }} />
+                          <Badge 
+                            variant="secondary" 
+                            className="absolute -top-1 -right-1 text-xs h-4 w-4 p-0 flex items-center justify-center"
+                          >
+                            {getSizeDisplay(pin.size)}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="font-medium text-xs sm:text-sm truncate">
+                              {pin.title || 'Untitled Pin'}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {pin.category}
+                            </Badge>
+                            {pin.is_hidden && (
+                              <Badge variant="secondary" className="text-xs">
+                                Hidden
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {pin.description || 'No description'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            by {pin.author?.full_name} • {new Date(pin.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {isStaff && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8 p-0">
+                              <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => setEditingPin(pin)}
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit Pin
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeletePin(pin.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Pin
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      )}
 
       {editingPin && (
         <EditPinModal
@@ -320,7 +253,7 @@ const PinsList = ({ mapDate, onPinUpdate }: PinsListProps) => {
           }}
         />
       )}
-    </>
+    </Card>
   );
 };
 

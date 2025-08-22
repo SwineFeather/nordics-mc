@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePlayerBadges } from '@/hooks/usePlayerBadges';
 import { getSavedPosts, unsavePost } from '@/hooks/useForumPosts';
 import { useToast } from '@/hooks/use-toast';
+import SimpleMarkdownRenderer from '@/components/SimpleMarkdownRenderer';
 
 interface BookmarksPageProps {
   onBack: () => void;
@@ -200,9 +201,9 @@ const BookmarksPage = ({ onBack, onPostSelect }: BookmarksPageProps) => {
                       >
                         {post.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                        {post.content.substring(0, 200)}...
-                      </p>
+                      <div className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                        <SimpleMarkdownRenderer content={post.content.substring(0, 200) + '...'} />
+                      </div>
                     </div>
                   </div>
                   

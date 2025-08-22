@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Book, BookOpen, Info, Users, ShoppingBag, Building, Building2, Store, Crown, MapPin, Menu, X, Search, Settings, LogOut, User, ChevronDown } from 'lucide-react';
@@ -25,18 +25,33 @@ import { usePlayerProfileByUsername } from '@/hooks/usePlayerProfileByUsername';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
-  const { user, profile } = useAuth();
-  
-  // Fetch player profile if user has minecraft_username
+  const { user, profile, isAuthenticated, signOut, refreshAuthState } = useAuth();
   const { profile: playerProfile, loading: playerProfileLoading } = usePlayerProfileByUsername(
     profile?.minecraft_username ? profile.minecraft_username : ''
   );
 
+  // Debug logging
+  console.log('Navigation: Authentication state:', {
+    hasUser: !!user,
+    hasProfile: !!profile,
+    isAuthenticated,
+    userEmail: user?.email,
+    profileName: profile?.full_name
+  });
+
+  // Refresh authentication state when component mounts
+  useEffect(() => {
+    if (!isAuthenticated && !user && !profile) {
+      console.log('Navigation: No authentication detected, attempting to refresh from localStorage');
+      refreshAuthState();
+    }
+  }, [isAuthenticated, user, profile, refreshAuthState]);
+  
   // --- New Navigation Structure ---
   const isActive = (href: string) => {
     if (href === '/') {

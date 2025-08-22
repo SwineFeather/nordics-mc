@@ -60,7 +60,9 @@ export class SupabaseWikiService {
    */
   static toggleDebugMode(): void {
     this.DEBUG = !this.DEBUG;
-    console.log(`🔧 Debug mode ${this.DEBUG ? 'enabled' : 'disabled'}`);
+    if (this.DEBUG) {
+      console.log(`🔧 Debug mode ${this.DEBUG ? 'enabled' : 'disabled'}`);
+    }
   }
   
   /**
@@ -68,7 +70,9 @@ export class SupabaseWikiService {
    */
   static setDebugMode(enabled: boolean): void {
     this.DEBUG = enabled;
-    console.log(`🔧 Debug mode ${this.DEBUG ? 'enabled' : 'disabled'}`);
+    if (this.DEBUG) {
+      console.log(`🔧 Debug mode ${this.DEBUG ? 'enabled' : 'disabled'}`);
+    }
   }
   
   // S3 Client for direct bucket access
@@ -228,20 +232,28 @@ export class SupabaseWikiService {
    * Test method to check if we can list the root directory
    */
   private static async testRootDirectory(): Promise<void> {
-    console.log('🧪 Testing root directory listing...');
+    if (this.DEBUG) {
+      console.log('🧪 Testing root directory listing...');
+    }
     
     try {
       const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list('', { limit: 10 });
       
-      console.log('🧪 Root directory test result:', { data, error });
+      if (this.DEBUG) {
+        console.log('🧪 Root directory test result:', { data, error });
+      }
       
       if (data && data.length > 0) {
-        console.log('🧪 Root directory contents:', data);
+        if (this.DEBUG) {
+          console.log('🧪 Root directory contents:', data);
+        }
       }
     } catch (error) {
-      console.log('🧪 Root directory test error:', error);
+      if (this.DEBUG) {
+        console.log('🧪 Root directory test error:', error);
+      }
     }
   }
 
@@ -515,15 +527,19 @@ export class SupabaseWikiService {
    */
   private static async exploreDirectory(path: string): Promise<WikiFileStructure[]> {
     try {
-      console.log(`🔍 Exploring directory: ${path}`);
+      if (this.DEBUG) {
+        console.log(`🔍 Exploring directory: ${path}`);
+      }
       
       // List files in the current directory
       const { data: files, error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list(path, { limit: 1000 });
 
-      console.log(`📂 Files in ${path}:`, files);
-      console.log(`❌ Error for ${path}:`, error);
+      if (this.DEBUG) {
+        console.log(`📂 Files in ${path}:`, files);
+        console.log(`❌ Error for ${path}:`, error);
+      }
 
       if (error) {
         console.error(`Error listing directory ${path}:`, error);
@@ -531,7 +547,9 @@ export class SupabaseWikiService {
       }
 
       if (!files || files.length === 0) {
-        console.log(`📭 No files found in ${path}`);
+        if (this.DEBUG) {
+          console.log(`📭 No files found in ${path}`);
+        }
         return [];
       }
 
@@ -803,8 +821,10 @@ export class SupabaseWikiService {
    * Convert a folder to a wiki category
    */
   private static async convertFolderToCategory(folder: WikiFileStructure): Promise<WikiCategory | null> {
-    console.log(`🔄 Converting folder: ${folder.name} (${folder.path})`);
-    console.log(`📁 Folder children:`, folder.children?.length || 0);
+    if (this.DEBUG) {
+      console.log(`🔄 Converting folder: ${folder.name} (${folder.path})`);
+      console.log(`📁 Folder children:`, folder.children?.length || 0);
+    }
     
     const category: WikiCategory = {
       id: folder.path,
@@ -818,30 +838,40 @@ export class SupabaseWikiService {
     };
 
     if (folder.children) {
-      console.log(`📁 Processing ${folder.children.length} children in ${folder.name}`);
+      if (this.DEBUG) {
+        console.log(`📁 Processing ${folder.children.length} children in ${folder.name}`);
+      }
       
       for (const child of folder.children) {
-        console.log(`📄 Processing child: ${child.type} - ${child.name}`);
+        if (this.DEBUG) {
+          console.log(`📄 Processing child: ${child.type} - ${child.name}`);
+        }
         
         if (child.type === 'file' && child.name.endsWith('.md')) {
           // This is a page (metadata only; content loaded on demand)
           const page = await this.convertFileToPageMinimal(child, category.id);
           if (page) {
             category.pages?.push(page);
-            console.log(`✅ Added page (meta only): ${page.title} to category ${category.title}`);
+            if (this.DEBUG) {
+              console.log(`✅ Added page (meta only): ${page.title} to category ${category.title}`);
+            }
           }
         } else if (child.type === 'folder') {
           // This is a subcategory
           const subcategory = await this.convertFolderToCategory(child);
           if (subcategory) {
             category.children?.push(subcategory);
-            console.log(`✅ Added subcategory: ${subcategory.title} to category ${category.title}`);
+            if (this.DEBUG) {
+              console.log(`✅ Added subcategory: ${subcategory.title} to category ${category.title}`);
+            }
           }
         }
       }
     }
 
-    console.log(`✅ Finished converting folder ${folder.name}: ${category.pages?.length || 0} pages, ${category.children?.length || 0} subcategories`);
+    if (this.DEBUG) {
+      console.log(`✅ Finished converting folder ${folder.name}: ${category.pages?.length || 0} pages, ${category.children?.length || 0} subcategories`);
+    }
     return category;
   }
 
@@ -1085,10 +1115,12 @@ export class SupabaseWikiService {
         };
       }
       
-      console.log('✅ User authenticated:', user.email);
-      
-      // Test bucket listing
-      console.log('🔍 Testing bucket listing...');
+      if (this.DEBUG) {
+        console.log('✅ User authenticated:', user.email);
+        
+        // Test bucket listing
+        console.log('🔍 Testing bucket listing...');
+      }
       const { data: listData, error: listError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list('', { limit: 5 });
@@ -1102,10 +1134,12 @@ export class SupabaseWikiService {
         };
       }
       
-      console.log('✅ Bucket listing successful:', listData?.length || 0, 'items found');
-      
-      // Test file upload (small test file)
-      console.log('🔍 Testing file upload...');
+      if (this.DEBUG) {
+        console.log('✅ Bucket listing successful:', listData?.length || 0, 'items found');
+        
+        // Test file upload (small test file)
+        console.log('🔍 Testing file upload...');
+      }
       const testContent = 'Test file for permissions check';
       const testBlob = new Blob([testContent], { type: 'text/plain' });
       const testPath = `test-${Date.now()}.txt`;
@@ -1126,10 +1160,12 @@ export class SupabaseWikiService {
         };
       }
       
-      console.log('✅ File upload test successful');
-      
-      // Clean up test file
-      console.log('🔍 Cleaning up test file...');
+      if (this.DEBUG) {
+        console.log('✅ File upload test successful');
+        
+        // Clean up test file
+        console.log('🔍 Cleaning up test file...');
+      }
       const { error: deleteError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .remove([testPath]);
@@ -1137,7 +1173,9 @@ export class SupabaseWikiService {
       if (deleteError) {
         console.warn('⚠️ Failed to clean up test file:', deleteError);
       } else {
-        console.log('✅ Test file cleaned up successfully');
+        if (this.DEBUG) {
+          console.log('✅ Test file cleaned up successfully');
+        }
       }
       
       return { 
@@ -1180,7 +1218,9 @@ export class SupabaseWikiService {
         throw new Error('No authenticated user found');
       }
       
-      console.log('✅ User authenticated:', user.email);
+      if (this.DEBUG) {
+        console.log('✅ User authenticated:', user.email);
+      }
       
       const { data: testData, error: testError } = await supabase.storage
         .from(this.BUCKET_NAME)
@@ -1192,15 +1232,19 @@ export class SupabaseWikiService {
         throw new Error(`Storage bucket access failed: ${testError.message}`);
       }
       
-      console.log('✅ Storage bucket access test passed');
+      if (this.DEBUG) {
+        console.log('✅ Storage bucket access test passed');
+      }
     } catch (testError) {
       console.error('❌ Storage bucket access test failed:', testError);
       throw testError;
     }
     try {
-      console.log(`💾 Saving wiki page: ${path}`);
-      console.log(`💾 Content length: ${content.length}`);
-      console.log(`💾 Title: ${title || 'No title provided'}`);
+      if (this.DEBUG) {
+        console.log(`💾 Saving wiki page: ${path}`);
+        console.log(`💾 Content length: ${content.length}`);
+        console.log(`💾 Title: ${title || 'No title provided'}`);
+      }
       
       // Create the content with frontmatter if title is provided
       let fileContent = content;
@@ -1213,17 +1257,21 @@ updated_at: "${new Date().toISOString()}"
 ${content}`;
       }
 
-      console.log(`💾 Final content length: ${fileContent.length}`);
-      console.log(`💾 Bucket name: ${this.BUCKET_NAME}`);
+      if (this.DEBUG) {
+        console.log(`💾 Final content length: ${fileContent.length}`);
+        console.log(`💾 Bucket name: ${this.BUCKET_NAME}`);
+      }
 
       // Convert content to Blob
       const blob = new Blob([fileContent], { type: 'text/markdown' });
-      console.log(`💾 Blob size: ${blob.size}`);
-      
-      // Upload to Supabase storage
-      console.log(`💾 Attempting to upload to path: ${path}`);
-      console.log(`💾 Bucket: ${this.BUCKET_NAME}`);
-      console.log(`💾 Blob size: ${blob.size} bytes`);
+      if (this.DEBUG) {
+        console.log(`💾 Blob size: ${blob.size}`);
+        
+        // Upload to Supabase storage
+        console.log(`💾 Attempting to upload to path: ${path}`);
+        console.log(`💾 Bucket: ${this.BUCKET_NAME}`);
+        console.log(`💾 Blob size: ${blob.size} bytes`);
+      }
       
       const { error } = await supabase.storage
         .from(this.BUCKET_NAME)
@@ -1252,7 +1300,9 @@ ${content}`;
         throw new Error(`Failed to save wiki page: ${error.message}`);
       }
 
-      console.log(`✅ Successfully saved wiki page: ${path}`);
+      if (this.DEBUG) {
+        console.log(`✅ Successfully saved wiki page: ${path}`);
+      }
     } catch (error) {
       console.error('❌ Error saving wiki page:', error);
       throw error;
@@ -1272,7 +1322,9 @@ ${content}`;
     pageTags?: string[]
   ): Promise<any> {
     try {
-      console.log(`💾 Saving wiki page to database: ${pageSlug}`);
+      if (this.DEBUG) {
+        console.log(`💾 Saving wiki page to database: ${pageSlug}`);
+      }
       
       const { data, error } = await (supabase as any).rpc('save_wiki_page_to_db', {
         page_slug: pageSlug,
@@ -1289,7 +1341,9 @@ ${content}`;
         throw new Error(`Failed to save page to database: ${error.message}`);
       }
 
-      console.log('✅ Database save successful:', data);
+      if (this.DEBUG) {
+        console.log('✅ Database save successful:', data);
+      }
       return data;
     } catch (error) {
       console.error('❌ Error saving page to database:', error);
@@ -1391,7 +1445,9 @@ ${content}`;
         throw new Error(`Failed to create wiki page: ${error.message}`);
       }
 
-      console.log(`✅ Successfully created wiki page: ${path}`);
+      if (this.DEBUG) {
+        console.log(`✅ Successfully created wiki page: ${path}`);
+      }
     } catch (error) {
       console.error('❌ Error creating wiki page:', error);
       throw error;
@@ -1403,7 +1459,9 @@ ${content}`;
    */
   static async deletePage(path: string): Promise<void> {
     try {
-      console.log(`🗑️ Deleting wiki page: ${path}`);
+      if (this.DEBUG) {
+        console.log(`🗑️ Deleting wiki page: ${path}`);
+      }
       
       const { error } = await supabase.storage
         .from(this.BUCKET_NAME)
@@ -1414,7 +1472,9 @@ ${content}`;
         throw new Error(`Failed to delete wiki page: ${error.message}`);
       }
 
-      console.log(`✅ Successfully deleted wiki page: ${path}`);
+      if (this.DEBUG) {
+        console.log(`✅ Successfully deleted wiki page: ${path}`);
+      }
     } catch (error) {
       console.error('❌ Error deleting wiki page:', error);
       throw error;
@@ -2030,7 +2090,9 @@ updated_at: "${new Date().toISOString()}"
         }
 
         clearedCount += townsPages?.length || 0;
-        console.log(`✅ Cleared ${townsPages?.length || 0} pages in towns category`);
+        if (this.DEBUG) {
+          console.log(`✅ Cleared ${townsPages?.length || 0} pages in towns category`);
+        }
       }
 
       // Clear pages with town-related slugs
@@ -2050,7 +2112,9 @@ updated_at: "${new Date().toISOString()}"
       }
 
       clearedCount += slugPages?.length || 0;
-      console.log(`✅ Cleared ${slugPages?.length || 0} pages with town-related slugs`);
+      if (this.DEBUG) {
+        console.log(`✅ Cleared ${slugPages?.length || 0} pages with town-related slugs`);
+      }
 
       // Clear pages that might be town pages based on title patterns
       // Get all town names from the towns table
@@ -2082,7 +2146,9 @@ updated_at: "${new Date().toISOString()}"
         }
 
         clearedCount += titlePages?.length || 0;
-        console.log(`✅ Cleared ${titlePages?.length || 0} pages with town names as titles`);
+        if (this.DEBUG) {
+          console.log(`✅ Cleared ${titlePages?.length || 0} pages with town names as titles`);
+        }
       }
 
       // Also clear any pages that might be in Towns subcategories
@@ -2115,10 +2181,14 @@ updated_at: "${new Date().toISOString()}"
         }
 
         clearedCount += subcatPages?.length || 0;
-        console.log(`✅ Cleared ${subcatPages?.length || 0} pages in town subcategories`);
+        if (this.DEBUG) {
+          console.log(`✅ Cleared ${subcatPages?.length || 0} pages in town subcategories`);
+        }
       }
 
-      console.log(`✅ Successfully cleared content for ${clearedCount} town wiki pages`);
+      if (this.DEBUG) {
+        console.log(`✅ Successfully cleared content for ${clearedCount} town wiki pages`);
+      }
       return { success: true, clearedCount };
 
     } catch (error) {

@@ -1,0 +1,5 @@
+Contact: mailto:nordics.world@gmail.com
+Expires: 2026-12-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.nordics.world/.well-known/security.txt
+Policy: https://www.nordics.world/security-policy

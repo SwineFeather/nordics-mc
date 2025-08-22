@@ -36,6 +36,27 @@ interface ValidationResponse {
   error?: string;
 }
 
+// Get allowed origins from environment or use secure defaults
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'https://www.nordics.world',
+  'https://nordics.world'
+];
+
+// Validate origin function with additional security checks
+function isValidOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Additional security: check for localhost only in development
+  if (Deno.env.get('NODE_ENV') === 'development') {
+    return origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+  }
+  
+  return false;
+}
+
 // Predefined validation patterns
 const VALIDATION_PATTERNS = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -49,22 +70,55 @@ const VALIDATION_PATTERNS = {
 };
 
 serve(async (req) => {
-  // Handle CORS
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
+    const origin = req.headers.get('Origin');
+    
+    if (!isValidOrigin(origin)) {
+      return new Response(
+        null,
+        {
+          status: 403,
+          headers: {
+            'Access-Control-Allow-Origin': allowedOrigins[0],
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        },
+      )
+    }
+
     return new Response(
       null,
       {
         status: 200,
         headers: {
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': origin,
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Credentials': 'true',
         },
       },
     )
   }
 
   try {
+    // Validate origin for all requests
+    const origin = req.headers.get('Origin');
+    if (!isValidOrigin(origin)) {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        {
+          status: 403,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': allowedOrigins[0],
+          },
+        }
+      )
+    }
+
     const { data, schema, options = {} }: ValidationRequest = await req.json()
     
     if (!data || !schema) {
@@ -77,7 +131,8 @@ serve(async (req) => {
           status: 400,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Credentials': 'true',
           },
         }
       )
@@ -94,13 +149,15 @@ serve(async (req) => {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Credentials': 'true',
         },
       }
     )
 
   } catch (error) {
     console.error('Validation middleware error:', error)
+    const origin = req.headers.get('Origin');
     
     return new Response(
       JSON.stringify({
@@ -111,7 +168,8 @@ serve(async (req) => {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': isValidOrigin(origin) ? origin : allowedOrigins[0],
+          'Access-Control-Allow-Credentials': 'true',
         },
       }
     )

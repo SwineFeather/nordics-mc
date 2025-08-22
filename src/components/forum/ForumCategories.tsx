@@ -211,15 +211,83 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
   }
   
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Staff Categories - Moved to top */}
+      {moderatorCategories.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <h2 className="text-2xl font-semibold text-foreground">Official Updates</h2>
+            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+              <Info className="w-4 h-4" />
+              <span>Staff members only</span>
+            </div>
+          </div>
+          
+          <div className="grid gap-3">
+            {moderatorCategories.map((category) => {
+              const IconComponent = getIconComponent(category.icon);
+              
+              return (
+                <Card 
+                  key={category.id}
+                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 dark:border-orange-900 dark:from-orange-950 dark:to-amber-950"
+                  onClick={() => onCategorySelect(category.id)}
+                >
+                  <CardHeader className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div 
+                          className="p-2 rounded-lg"
+                          style={{ backgroundColor: category.color + '20', color: category.color }}
+                        >
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                        <div className="py-1">
+                          <div className="flex items-center space-x-2">
+                            <CardTitle className="text-lg font-semibold text-foreground">
+                              {category.name}
+                            </CardTitle>
+                            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                              Staff Only
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-2">
+                            {category.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="text-sm text-gray-500 mr-2">
+                          {category.post_count || 0} posts
+                        </div>
+                        {unreadByCategory[category.id] && (
+                          <Badge variant="destructive" className="text-xs">
+                            New
+                          </Badge>
+                        )}
+                        <SubscriptionButton 
+                          subscriptionType="category"
+                          targetId={category.id}
+                          targetName={category.name}
+                        />
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Main Categories */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-foreground">Discussion Categories</h2>
           {/* Creating a post requires a category; button removed from categories view */}
         </div>
         
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {generalCategories.map((category) => {
             const IconComponent = getIconComponent(category.icon);
             
@@ -229,7 +297,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                 className="group cursor-pointer hover:shadow-lg transition-all duration-300"
                 onClick={() => onCategorySelect(category.id)}
               >
-                <CardHeader className="pb-3">
+                <CardHeader className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div 
@@ -238,34 +306,32 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                       >
                         <IconComponent className="w-5 h-5" />
                       </div>
-                      <div>
+                      <div className="py-1">
                         <CardTitle className="text-lg font-semibold text-foreground">
                           {category.name}
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground mt-2">
                           {category.description}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      {unreadByCategory[category.id] && (
-                        <Badge variant="destructive" className="text-xs">
-                          New
+                                          <div className="flex items-center space-x-2">
+                        <div className="text-sm text-muted-foreground mr-2">
+                          {category.post_count || 0} posts
+                        </div>
+                        {unreadByCategory[category.id] && (
+                          <Badge variant="destructive" className="text-xs">
+                            New
                         </Badge>
-                      )}
-                      <SubscriptionButton 
-                        subscriptionType="category"
-                        targetId={category.id}
-                        targetName={category.name}
-                      />
+                        )}
+                        <SubscriptionButton 
+                          subscriptionType="category"
+                          targetId={category.id}
+                          targetName={category.name}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="text-sm text-muted-foreground">
-                    {category.post_count || 0} posts
-                  </div>
-                </CardContent>
+                  </CardHeader>
               </Card>
             );
           })}
@@ -273,7 +339,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
       </div>
 
       {/* Nation Forums Section */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center space-x-2">
           <h2 className="text-2xl font-semibold">Nation Forums</h2>
           <div className="flex items-center space-x-1 text-sm text-muted-foreground">
@@ -284,7 +350,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
 
         {/* Show user's nation forum if they have one, or all nations if admin/moderator */}
         {nationCategories.length > 0 && (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {nationCategories.map((category) => {
               const IconComponent = getIconComponent(category.icon);
               const isUserNation = userNation === category.nation_name;
@@ -295,15 +361,15 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                   className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 dark:border-blue-900 dark:from-blue-950 dark:to-indigo-950 dark:hover:from-blue-900 dark:hover:to-indigo-900"
                   onClick={() => onCategorySelect(category.id)}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         {renderNationIcon(category.nation_name, getNationColor(category.nation_name))}
-                        <div>
+                        <div className="py-1">
                           <CardTitle className="text-lg font-semibold text-foreground">
                             {formatNationName(category.nation_name)} Forum
                           </CardTitle>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-sm text-muted-foreground mt-2">
                             {category.description}
                           </p>
                         </div>
@@ -338,6 +404,9 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                             Mayor
                           </Badge>
                         )}
+                        <div className="text-sm text-muted-foreground mr-2">
+                          {category.post_count || 0} posts
+                        </div>
                         {unreadByCategory[category.id] && (
                           <Badge variant="destructive" className="text-xs">
                             New
@@ -351,11 +420,6 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="text-sm text-muted-foreground">
-                      {category.post_count || 0} posts
-                    </div>
-                  </CardContent>
                 </Card>
               );
             })}
@@ -364,11 +428,11 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
 
         {/* Show town forums within user's nation */}
         {townForums.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h3 className="text-lg font-semibold text-gray-700">
               {canAccessAllForums ? 'All Town Forums' : 'Town Forums'}
             </h3>
-            <div className="grid gap-4">
+            <div className="grid gap-3">
               {townForums.map((category) => {
                 const IconComponent = getIconComponent(category.icon);
                 const isUserMayor = userNationForums?.towns.find(town => town.name === category.town_name)?.isUserMayor;
@@ -380,11 +444,11 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                   className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 dark:border-green-900 dark:from-green-950 dark:to-emerald-950 dark:hover:from-green-900 dark:hover:to-emerald-900"
                     onClick={() => onCategorySelect(category.id)}
                   >
-                    <CardHeader className="pb-3">
+                    <CardHeader className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           {renderTownIcon(category.town_name, getNationColor(category.nation_name))}
-                          <div>
+                          <div className="py-1">
                             <CardTitle className="text-lg font-semibold text-foreground">
                               {category.name}
                             </CardTitle>
@@ -414,6 +478,9 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                               Your Nation
                             </Badge>
                           )}
+                          <div className="text-sm text-muted-foreground mr-2">
+                            {category.post_count || 0} posts
+                          </div>
                           {unreadByCategory[category.id] && (
                             <Badge variant="destructive" className="text-xs">
                               New
@@ -427,11 +494,6 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="text-sm text-muted-foreground">
-                        {category.post_count || 0} posts
-                      </div>
-                    </CardContent>
                   </Card>
                 );
               })}
@@ -458,80 +520,7 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
         )}
       </div>
 
-      {/* Staff Categories */}
-      {moderatorCategories.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-2xl font-semibold text-foreground">Official Updates</h2>
-            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-              <Info className="w-4 h-4" />
-              <span>Staff members only</span>
-            </div>
-          </div>
-          
-          <div className="grid gap-4">
-            {moderatorCategories.map((category) => {
-              const IconComponent = getIconComponent(category.icon);
-              
-              return (
-                <Card 
-                  key={category.id}
-                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 dark:border-orange-900 dark:from-orange-950 dark:to-amber-950"
-                  onClick={() => onCategorySelect(category.id)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div 
-                          className="p-2 rounded-lg"
-                          style={{ backgroundColor: category.color + '20', color: category.color }}
-                        >
-                          <IconComponent className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <CardTitle className="text-lg font-semibold text-foreground">
-                              {category.name}
-                            </CardTitle>
-                            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                              Staff Only
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {category.description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {unreadByCategory[category.id] && (
-                          <Badge variant="destructive" className="text-xs">
-                            New
-                          </Badge>
-                        )}
-                        <SubscriptionButton 
-                          subscriptionType="category"
-                          targetId={category.id}
-                          targetName={category.name}
-                        />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center space-x-4">
-                        <span>{category.post_count || 0} posts</span>
-                        {category.last_activity && (
-                          <span>Last activity: {new Date(category.last_activity).toLocaleDateString()}</span>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

@@ -1,10 +1,32 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Get allowed origins from environment or use secure defaults
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'https://www.nordics.world',
+  'https://nordics.world'
+];
+
+// Validate origin function with additional security checks
+function isValidOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Additional security: check for localhost only in development
+  if (Deno.env.get('NODE_ENV') === 'development') {
+    return origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+  }
+  
+  return false;
 }
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': isValidOrigin(origin) ? origin : allowedOrigins[0],
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Credentials': 'true',
+})
 
 interface PlayerData {
   name: string;
@@ -20,10 +42,37 @@ interface StatsData {
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    const origin = req.headers.get('Origin');
+    
+    if (!isValidOrigin(origin)) {
+      return new Response(null, { 
+        status: 403,
+        headers: corsHeaders(null)
+      });
+    }
+
+    return new Response(null, { headers: corsHeaders(origin) });
   }
 
+  
   try {
+    // Validate origin for all requests
+    const origin = req.headers.get('Origin');
+    if (!isValidOrigin(origin)) {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        {
+          status: 403,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders(null)
+          },
+        }
+      )
+    }
+
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -33,7 +82,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Method not allowed' }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
           status: 405
         }
       )
@@ -46,7 +95,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'No stats data provided' }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
           status: 400
         }
       )
@@ -61,7 +110,25 @@ Deno.serve(async (req) => {
 
     // Process each player
     for (const [playerUuid, playerData] of Object.entries(statsData as StatsData)) {
-      try {
+      
+  try {
+    // Validate origin for all requests
+    const origin = req.headers.get('Origin');
+    if (!isValidOrigin(origin)) {
+      console.warn(`Blocked request from unauthorized origin: ${origin}`);
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        {
+          status: 403,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders(null)
+          },
+        }
+      )
+    }
+
+
         // Skip invalid entries
         if (!playerData || !playerData.name || playerUuid === 'online' || playerUuid === 'playernames' || playerUuid === 'scoreboard' || playerUuid === 'units') {
           continue;
@@ -176,7 +243,7 @@ Deno.serve(async (req) => {
         message: `Successfully imported data for ${players.length} players`
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
         status: 200
       }
     )
@@ -190,7 +257,7 @@ Deno.serve(async (req) => {
         stack: error.stack
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
         status: 500
       }
     )
