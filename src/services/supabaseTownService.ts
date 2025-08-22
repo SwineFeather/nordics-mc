@@ -865,8 +865,8 @@ export class SupabaseTownService {
       
       // 1. SUPABASE CONNECTION INFO
       console.log('📡 SUPABASE CONNECTION:');
-      console.log('   URL: https://erdconvorgecupvavlwv.supabase.co');
-      console.log('   Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+      console.log('   URL: [REDACTED - Use environment variables]');
+      console.log('   Key: [REDACTED - Use environment variables]');
       console.log('');
       
       // 2. CHECK IF TABLES EXIST AND HAVE DATA

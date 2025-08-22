@@ -1,18 +1,41 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+// Get allowed origins from environment or use secure defaults
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
+  'https://www.nordics.world',
+  'https://nordics.world',
+  'http://localhost:3000',
+  'http://localhost:5173'
+];
+
+const corsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : allowedOrigins[0],
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+})
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    const origin = req.headers.get('Origin');
+    return new Response('ok', { headers: corsHeaders(origin) })
   }
 
   try {
+    // Validate origin
+    const origin = req.headers.get('Origin');
+    if (!allowedOrigins.includes(origin || '')) {
+      return new Response(
+        JSON.stringify({ error: 'Origin not allowed' }),
+        { 
+          status: 403, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -31,7 +54,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'Unauthorized' }),
         { 
           status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
         }
       )
     }
@@ -44,7 +67,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'Invalid messages format' }),
         { 
           status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
         }
       )
     }
@@ -56,7 +79,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'X.AI API key not configured' }),
         { 
           status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
         }
       )
     }
@@ -88,7 +111,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'AI service temporarily unavailable' }),
         { 
           status: 503, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
         }
       )
     }
@@ -105,17 +128,18 @@ serve(async (req) => {
         usage: xaiData.usage 
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
       }
     )
 
   } catch (error) {
     console.error('AI chat function error:', error)
+    const origin = req.headers.get('Origin');
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { 
         status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } 
       }
     )
   }

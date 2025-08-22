@@ -142,9 +142,15 @@ const ForumCategories = ({ onCategorySelect, onCreatePost }: ForumCategoriesProp
     );
   };
 
+  // Simple function to get nation image URL
+  const getNationImageUrl = (nationName: string) => {
+    // For now, just use the fallback URL to avoid complex state management
+    // This will be replaced with the dynamic image service later
+    return `https://erdconvorgecupvavlwv.supabase.co/storage/v1/object/public/nation-town-images/nations/${nationName.toLowerCase().replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+  };
+
   const renderNationIcon = (nationName: string, nationColor: string) => {
-    // Use a simple approach with the DynamicImageService directly
-    const imageUrl = `https://erdconvorgecupvavlwv.supabase.co/storage/v1/object/public/nation-town-images/nations/${nationName.toLowerCase().replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+    const imageUrl = getNationImageUrl(nationName);
     
     return (
       <div 

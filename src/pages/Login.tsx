@@ -7,10 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 
-const supabase = createClient(
-  "https://erdconvorgecupvavlwv.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZGNvbnZvcmdlY3VwdmF2bHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1ODM4ODcsImV4cCI6MjA2NTE1OTg4N30.1JAp47oJDpiNmnKjpYB_tS9__0Sytk18o8dL-Dfnrdg"
-);
+// Use environment variables for Supabase configuration
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface Profile {
   id: string;
@@ -53,21 +58,36 @@ const Login = () => {
         setLoading(true);
         
         // Request session creation along with token validation
-        const response = await fetch(
-          `https://erdconvorgecupvavlwv.supabase.co/functions/v1/validate-token?token=${token}&create_session=true`,
-          {
-            headers: {
-              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZGNvbnZvcmdlY3VwdmF2bHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1ODM4ODcsImV4cCI6MjA2NTE1OTg4N30.1JAp47oJDpiNmnKjpYB_tS9__0Sytk18o8dL-Dfnrdg`,
-              'Content-Type': 'application/json'
-            }
+        const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-token?token=${token}&create_session=true`;
+        console.log('Calling Edge Function:', functionUrl);
+        
+        const response = await fetch(functionUrl, {
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
           }
-        );
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        console.log('Response URL:', response.url);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data: LoginResponse = await response.json();
+        // Log response details for debugging
+        const responseText = await response.text();
+        console.log('Response body:', responseText);
+        
+        let data: LoginResponse;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('Failed to parse response as JSON:', parseError);
+          console.error('Response was:', responseText);
+          throw new Error('Invalid response format from server');
+        }
 
         if (!data.valid) {
           setError(data.error || "Invalid or expired token.");

@@ -27,23 +27,9 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [canUpdateImage, setCanUpdateImage] = useState(false);
   const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
-  const [forceUpdate, setForceUpdate] = useState(0);
-  const [currentThemeColor, setCurrentThemeColor] = useState(nation.theme_color || '#eab308');
   const { profile } = useAuth();
 
-  // Update current theme color when nation changes
-  useEffect(() => {
-    setCurrentThemeColor(nation.theme_color || '#eab308');
-    console.log('NationCard: Nation data updated:', {
-      name: nation.name,
-      theme_color: nation.theme_color,
-      ruling_entity: nation.ruling_entity,
-      government_system: nation.government_system,
-      economic_system: nation.economic_system,
 
-      lore: nation.lore
-    });
-  }, [nation.theme_color, nation.ruling_entity, nation.government_system, nation.economic_system, nation.lore, forceUpdate]);
 
   // Use dynamic image service with fallback logic
   const { imageUrl, isLoading, error } = useNationImage(nation.name, nation.image_url);
@@ -147,27 +133,10 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
             <EditNationModal 
               nation={nation}
               onNationUpdated={(updatedNation) => {
-                // Immediately update the local nation object with the new data
-                // This ensures the UI updates immediately without waiting for the parent refresh
-                Object.assign(nation, updatedNation);
-                
-                // Update the current theme color state
-                setCurrentThemeColor(updatedNation.theme_color || '#eab308');
-                
                 // Call the parent's onNationUpdated callback if provided
                 if (onNationUpdated) {
                   onNationUpdated(updatedNation);
                 }
-                
-                // Force a local re-render for immediate UI update
-                setForceUpdate(prev => prev + 1);
-                
-                console.log('NationCard: Nation updated locally:', {
-                  oldThemeColor: nation.theme_color,
-                  newThemeColor: updatedNation.theme_color,
-                  oldRulingEntity: nation.ruling_entity,
-                  newRulingEntity: updatedNation.ruling_entity
-                });
               }}
             />
           </div>
@@ -180,10 +149,9 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
             <Crown 
               className="w-6 h-6" 
               style={{ 
-                color: currentThemeColor,
-                fill: currentThemeColor
+                color: nation.theme_color || '#eab308',
+                fill: nation.theme_color || '#eab308'
               }}
-              key={`crown-${currentThemeColor}-${forceUpdate}`}
             />
             {/* Vassal Icon */}
             {nation.vassal_of && (
@@ -233,10 +201,9 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
               <Crown 
                 className="w-4 h-4" 
                 style={{ 
-                  color: currentThemeColor,
-                  fill: currentThemeColor
+                  color: nation.theme_color || '#eab308',
+                  fill: nation.theme_color || '#eab308'
                 }}
-                key={`crown-leader-${currentThemeColor}-${forceUpdate}`}
               />
               <span className="font-semibold text-foreground">Leader:</span>
               <button
@@ -377,10 +344,12 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
         nationName={nation.name}
         currentImageUrl={nation.image_url}
         onImageUpdated={(imageUrl) => {
-          // Update the nation object with the new image URL
-          nation.image_url = imageUrl;
-          // Force a re-render
+          // Close the dialog
           setShowImageUpload(false);
+          // Call the parent's onNationUpdated callback if provided
+          if (onNationUpdated) {
+            onNationUpdated({ ...nation, image_url: imageUrl });
+          }
         }}
       />
     </Card>

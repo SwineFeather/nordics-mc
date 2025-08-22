@@ -160,10 +160,19 @@ const FloatingChat = ({ isVisible, onToggle }: FloatingChatProps) => {
       // Remove duplicates by checking if this message is the same as the previous one
       if (index === 0) return true;
       const prevMsg = arr[index - 1];
+      
+      // Don't filter out web user messages as aggressively
+      if (msg.source === 'web') {
+        // For web messages, only filter out exact duplicates (same ID)
+        return msg.id !== prevMsg.id;
+      }
+      
+      // For Minecraft messages, use the existing logic but be less strict
       return !(
         msg.player === prevMsg.player &&
         msg.message === prevMsg.message &&
-        Math.abs(new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime()) < 1000
+        msg.source === prevMsg.source &&
+        Math.abs(new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime()) < 5000 // Increased from 1000ms to 5000ms
       );
     })
     .map(formatMessage);

@@ -4,8 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NationsTab from '@/components/towns/NationsTab';
 import TownsTab from '@/components/towns/TownsTab';
+import MarketplaceSubTabs from '@/components/towns/MarketplaceSubTabs';
 
-import { Crown, MapPin, HelpCircle } from 'lucide-react';
+import { Crown, MapPin, HelpCircle, Building } from 'lucide-react';
 
 interface TownsProps {
   defaultTab?: 'nations' | 'towns';
@@ -131,7 +132,7 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
             
             {/* Markets Tab Content */}
             <TabsContent value="markets" className="mt-8">
-              <MarketsTab />
+              <MarketplaceSubTabs />
             </TabsContent>
           </Tabs>
         </div>

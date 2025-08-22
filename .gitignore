@@ -22,12 +22,42 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment variables and secrets
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
+.env.example
+env.example
+
+# Security and configuration files
+config.local.js
+config.production.js
+secrets.json
+*.key
+*.pem
+*.crt
+generate-secrets.js
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache and temporary files
+.cache
+.temp
+.tmp
+*.tmp
+
+# Build artifacts
+build/
+dist/
+out/
+
+# Large media files (already excluded)
 public/nyrvalos/baselayer-full.jpg
 public/nyrvalos/baselayer-full.png
 public/nyrvalos/baselayer-low.jpg
@@ -46,3 +76,9 @@ public/nyrvalos/misc-med.png
 public/nyrvalos/terrain-full.png
 public/nyrvalos/terrain-low.png
 public/nyrvalos/terrain-med.png
+
+# Additional security exclusions
+*.env
+secrets/
+keys/
+credentials/

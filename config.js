@@ -1,10 +1,10 @@
 // Configuration file for Nordics MC
-// Edit these values with your actual Supabase credentials
+// Environment variables are now used for sensitive data
 
 const config = {
   supabase: {
-    url: 'https://erdconvorgecupvavlwv.supabase.co', // Replace with your actual Supabase URL
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZGNvbnZvcmdlY3VwdmF2bHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1ODM4ODcsImV4cCI6MjA2NTE1OTg4N30.1JAp47oJDpiNmnKjpYB_tS9__0Sytk18o8dL-Dfnrdg', // Replace with your actual anon key
+    url: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+    anonKey: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
   },
   storage: {
     wiki: 'wiki',
@@ -16,6 +16,16 @@ const config = {
     port: process.env.PORT || 24532
   }
 };
+
+// Validate required environment variables
+const requiredEnvVars = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName] && !process.env[`VITE_${varName}`]);
+
+if (missingVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingVars);
+  console.error('Please set these variables in your .env file or environment');
+  process.exit(1);
+}
 
 module.exports = config;
   

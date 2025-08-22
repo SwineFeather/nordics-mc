@@ -2,27 +2,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   User, 
-  Calendar, 
-  Clock, 
-  Mail, 
-  LogOut, 
-  Trophy,
-  Settings,
   AlertCircle,
   ExternalLink,
   Shield,
-  ArrowUp,
   Key,
   UserCog
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import SettingsModal from "@/components/SettingsModal";
-import ProfileUrlShare from "@/components/ProfileUrlShare";
+
 
 interface Profile {
   id: string;
@@ -59,6 +52,14 @@ const Dashboard = () => {
     });
 
     // Check if user is authenticated (either through TokenLink or regular auth)
+    console.log('Authentication check:', {
+      isAuthenticated,
+      hasPlayerUuid: !!playerUuid,
+      hasPlayerName: !!playerName,
+      playerUuid,
+      playerName
+    });
+    
     if (!isAuthenticated && (!playerUuid || !playerName)) {
       console.log('No authentication found, redirecting to login');
       navigate("/");
@@ -143,24 +144,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-xl font-bold">Dashboard</h1>
-            </div>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </div>
+
 
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Welcome Section */}
@@ -290,8 +274,7 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Profile URL Share Component */}
-            <ProfileUrlShare playerName={playerName} />
+
           </div>
 
           {/* Quick Actions */}
@@ -311,35 +294,12 @@ const Dashboard = () => {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
-                  onClick={() => navigate("/community")}
-                >
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Community
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => navigate("/forum")}
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Forum
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
                   onClick={() => handleOpenSettings('profile')}
                 >
                   <UserCog className="w-4 h-4 mr-2" />
                   Edit Profile
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => handleOpenSettings('notifications')}
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Preferences
-                </Button>
+
 
               </CardContent>
             </Card>
@@ -374,10 +334,10 @@ const Dashboard = () => {
                   variant="outline" 
                   size="sm" 
                   className="w-full"
-                  onClick={() => handleOpenSettings('security')}
+                  onClick={() => handleOpenSettings('account')}
                 >
                   <Key className="w-4 h-4 mr-2" />
-                  Security Settings
+                  Account Settings
                 </Button>
               </CardContent>
             </Card>
@@ -386,17 +346,17 @@ const Dashboard = () => {
 
         {/* Continue to Website Section */}
         <div className="mt-12 text-center">
-          <Card className="max-w-md mx-auto border-green-200 bg-green-50">
+          <Card className="max-w-md mx-auto border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
             <CardContent className="pt-6">
-              <h3 className="text-lg font-semibold text-green-800 mb-2">
+              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
                 Ready to explore?
               </h3>
-              <p className="text-green-700 text-sm mb-4">
+              <p className="text-green-700 dark:text-green-300 text-sm mb-4">
                 Continue to the main website to access all features
               </p>
               <Button 
                 onClick={() => navigate('/home')}
-                className="bg-green-600 hover:bg-green-700 text-white w-full"
+                className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white w-full"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Continue to Website

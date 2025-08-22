@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { createComprehensivePlayerStats, updatePlayerStatsWithComprehensiveData } from './comprehensiveStatsService';
-import possibleStats from '../possible_stats.json';
+import possibleStats from '../../possible_stats.json';
 
 /**
  * Service to sync all player stats with comprehensive data

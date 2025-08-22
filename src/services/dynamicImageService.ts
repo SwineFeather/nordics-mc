@@ -85,7 +85,9 @@ export class DynamicImageService {
   ): Promise<string> {
     // If primary URL exists, use it (skip existence check to avoid rate limiting)
     if (primaryUrl) {
-      return primaryUrl;
+      // Add cache-busting parameter to prevent browser caching issues
+      const separator = primaryUrl.includes('?') ? '&' : '?';
+      return `${primaryUrl}${separator}t=${Date.now()}`;
     }
 
     // Use fallback URL

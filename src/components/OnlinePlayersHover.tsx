@@ -43,25 +43,31 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, onPlayerSelect, rea
       <HoverCard openDelay={50} closeDelay={50}>
         <HoverCardTrigger asChild>
           <div
-            className="cursor-pointer transition-transform hover:scale-110 relative"
+            className="cursor-pointer transition-all duration-200 hover:scale-105 relative p-2 rounded-md hover:bg-muted/50 group flex items-center space-x-2 bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-border/30 min-w-0 max-w-full"
             onMouseEnter={() => setShow3D(true)}
             onMouseLeave={() => setShow3D(false)}
             onClick={handlePlayerClick}
           >
-            <Avatar className="w-8 h-8 border-2 border-white shadow-md">
+            <Avatar className="w-8 h-8 flex-shrink-0 border border-white shadow-sm">
               <AvatarImage src={avatarUrl} alt={player.name} />
               <AvatarFallback className="text-xs">
                 {player.name.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">{player.name}</p>
+              {realTimePlayerData && (
+                <p className="text-xs text-muted-foreground">Lv.{realTimePlayerData.level}</p>
+              )}
+            </div>
             {/* Real-time status indicator */}
             {realTimePlayerData && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white animate-pulse"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white animate-pulse shadow-sm"></div>
             )}
           </div>
         </HoverCardTrigger>
         <HoverCardContent 
-          className="w-auto p-2 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl"
+          className="w-auto p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl"
           side="top"
           sideOffset={10}
         >
@@ -120,6 +126,7 @@ const OnlinePlayersHover: React.FC<OnlinePlayersHoverProps> = ({
   if (loading || !players || players.length === 0) {
     return <>{children}</>;
   }
+
   // Non-portal hover wrapper: keeps content open while moving between trigger and panel
   const [open, setOpen] = useState(false)
   const closeTimerRef = useRef<number | null>(null)
@@ -150,30 +157,33 @@ const OnlinePlayersHover: React.FC<OnlinePlayersHoverProps> = ({
     <div className="relative inline-block pointer-events-auto">
       <div onMouseEnter={show} onMouseLeave={hide}>{children}</div>
       {open && (
-        <div className={`absolute ${positionClass} ${spacingClass} left-1/2 -translate-x-1/2 z-50`}
+        <div className={`absolute ${positionClass} ${spacingClass} left-1/2 -translate-x-1/2 z-50 animate-in fade-in-0 zoom-in-95 duration-200`}
           onMouseEnter={show}
           onMouseLeave={hide}
         >
-          <div className={`w-auto max-w-2xl p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl select-text ${overlapClass}`}>
+          <div className={`w-auto max-w-[90vw] p-4 bg-background/95 backdrop-blur-sm border shadow-xl rounded-xl select-text ${overlapClass} transition-all duration-200`}>
             <div className="space-y-3">
               <div className="text-center">
-                <h4 className="text-sm font-semibold">Players Online</h4>
+                <p className="text-sm text-muted-foreground">
+                  {loading ? 'Loading players...' : `${players.length} players currently online`}
+                </p>
               </div>
-              <div className="grid grid-cols-8 gap-3 max-h-40 overflow-y-auto">
+              <div className="flex flex-wrap justify-start gap-2 max-h-[60vh] overflow-y-auto p-3 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
                 {players.slice(0, 24).map((player) => {
                   const realTimePlayerData = realTimeData?.find(rtPlayer => rtPlayer.name === player.name);
                   return (
-                    <PlayerAvatar 
-                      key={player.uuid || player.name} 
-                      player={player} 
-                      onPlayerSelect={onPlayerSelect}
-                      realTimePlayerData={realTimePlayerData}
-                    />
+                    <div key={player.uuid || player.name} className="flex-shrink-0">
+                      <PlayerAvatar 
+                        player={player} 
+                        onPlayerSelect={onPlayerSelect}
+                        realTimePlayerData={realTimePlayerData}
+                      />
+                    </div>
                   );
                 })}
               </div>
               {players.length > 24 && (
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-sm text-muted-foreground text-center">
                   +{players.length - 24} more players
                 </p>
               )}

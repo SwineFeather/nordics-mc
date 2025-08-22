@@ -74,11 +74,11 @@ export class AutoWikiSyncService {
       toast.info('🔄 Starting wiki pages sync...');
 
       // Call the edge function directly to create the pages
-      const response = await fetch('https://erdconvorgecupvavlwv.supabase.co/functions/v1/sync-all-wiki-pages', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-all-wiki-pages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZGNvbnZvcmdlY3VwdmF2bHd2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTU4Mzg4NywiZXhwIjoyMDY1MTU5ODg3fQ.eQCYcODSB3Tb6z47iXMi_oqHmKaTqeVM1MGoSgx4MUk`
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         }
       });
 
@@ -112,11 +112,11 @@ export class AutoWikiSyncService {
     try {
       toast.info(`🔄 Creating wiki page for ${entityType}: ${entityName}`);
 
-      const response = await fetch('https://erdconvorgecupvavlwv.supabase.co/functions/v1/create-wiki-page', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-wiki-page`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZGNvbnZvcmdlY3VwdmF2bHd2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTU4Mzg4NywiZXhwIjoyMDY1MTU5ODg3fQ.eQCYcODSB3Tb6z47iXMi_oqHmKaTqeVM1MGoSgx4MUk`
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({
           entity_type: entityType,

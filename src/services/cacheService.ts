@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import possibleStats from '../possible_stats.json';
+import possibleStats from '../../possible_stats.json';
 
 // Cache configuration
 const CACHE_CONFIG = {

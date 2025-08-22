@@ -1,10 +1,10 @@
+import { URL_TRANSFORM_CONFIG } from '@/config/urlTransform';
+
 export interface UrlTransformConfig {
   baseUrl: string;
   placeholder: string;
   fallbackUrl?: string;
 }
-
-import { URL_TRANSFORM_CONFIG } from '@/config/urlTransform';
 
 export class UrlTransformService {
   private static readonly DEFAULT_CONFIG = {

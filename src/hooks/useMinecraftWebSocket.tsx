@@ -123,8 +123,8 @@ export const useMinecraftWebSocket = () => {
     };
 
     const messageCallback = (message: MinecraftMessage) => {
-      // Prevent duplicates by checking message ID
-      if (sentMessages.has(message.id)) return;
+      // Prevent duplicates by checking message ID, but allow web messages from current user
+      if (sentMessages.has(message.id) && message.source !== 'web') return;
       setMessages(prev => [...prev, message]);
       playNotificationSound(message.type);
       if (message.type === 'system' && message.message.includes('has been muted')) {

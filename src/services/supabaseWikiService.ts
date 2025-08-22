@@ -1,3 +1,20 @@
+/**
+ * Supabase Wiki Service
+ * 
+ * This service handles all wiki-related operations including:
+ * - File structure discovery
+ * - Content loading
+ * - Wiki data conversion
+ * - Storage operations
+ * 
+ * DEBUG MODE: 
+ * - Set DEBUG = true in the class to enable verbose logging
+ * - Or use SupabaseWikiService.setDebugMode(true) at runtime
+ * - Or use SupabaseWikiService.toggleDebugMode() to toggle
+ * 
+ * To reduce console noise, keep DEBUG = false in production
+ */
+
 import { supabase } from '@/integrations/supabase/client';
 import { WikiCategory, WikiPage } from '@/types/wiki';
 import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
@@ -36,6 +53,23 @@ export class SupabaseWikiService {
   private static readonly S3_ENDPOINT = 'https://erdconvorgecupvavlwv.supabase.co/storage/v1/s3';
   private static readonly REGION = 'eu-north-1';
   private static readonly ACCESS_KEY_ID = '96dbaa973dcb77349745eb36d4e9e93a';
+  private static DEBUG = false; // Set to true to enable verbose logging
+  
+  /**
+   * Toggle debug mode at runtime
+   */
+  static toggleDebugMode(): void {
+    this.DEBUG = !this.DEBUG;
+    console.log(`🔧 Debug mode ${this.DEBUG ? 'enabled' : 'disabled'}`);
+  }
+  
+  /**
+   * Set debug mode explicitly
+   */
+  static setDebugMode(enabled: boolean): void {
+    this.DEBUG = enabled;
+    console.log(`🔧 Debug mode ${this.DEBUG ? 'enabled' : 'disabled'}`);
+  }
   
   // S3 Client for direct bucket access
   private static s3Client = new S3Client({
@@ -60,19 +94,19 @@ export class SupabaseWikiService {
       const recursiveStructure = await this.getFileStructureViaPathDiscovery();
       
       if (recursiveStructure.length > 0) {
-        console.log('✅ Successfully loaded structure via recursive discovery');
+        if (this.DEBUG) console.log('✅ Successfully loaded structure via recursive discovery');
         return recursiveStructure;
       }
       
       // Fallback to S3 if recursive discovery doesn't work
-      console.log('🔄 Recursive discovery failed, falling back to S3...');
+      if (this.DEBUG) console.log('🔄 Recursive discovery failed, falling back to S3...');
       const s3Structure = await this.getFileStructureViaS3();
       if (s3Structure.length > 0) {
-        console.log('✅ Successfully loaded structure via S3');
+        if (this.DEBUG) console.log('✅ Successfully loaded structure via S3');
         return s3Structure;
       }
       
-      console.log('❌ No files found with any method');
+      if (this.DEBUG) console.log('❌ No files found with any method');
       return [];
     } catch (error) {
       console.error('❌ Failed to load wiki structure:', error);
@@ -85,11 +119,11 @@ export class SupabaseWikiService {
    */
   private static async getFileStructureViaS3(): Promise<WikiFileStructure[]> {
     try {
-      console.log('🔍 Attempting S3-compatible access...');
+      if (this.DEBUG) console.log('🔍 Attempting S3-compatible access...');
       
       // Check if we have the secret key
       if (!import.meta.env.VITE_SUPABASE_S3_SECRET_KEY || import.meta.env.VITE_SUPABASE_S3_SECRET_KEY === 'your_secret_access_key_here') {
-        console.log('⚠️ S3 secret key not found in environment variables');
+        if (this.DEBUG) console.log('⚠️ S3 secret key not found in environment variables');
         return [];
       }
       
@@ -215,7 +249,7 @@ export class SupabaseWikiService {
    * Comprehensive directory discovery - try multiple approaches
    */
   private static async comprehensiveDirectoryDiscovery(): Promise<{ files: WikiFileStructure[], folders: Set<string> }> {
-    console.log('🔍 Starting comprehensive directory discovery...');
+    if (this.DEBUG) console.log('🔍 Starting comprehensive directory discovery...');
     
     const discoveredFiles: WikiFileStructure[] = [];
     const discoveredFolders = new Set<string>();
@@ -224,7 +258,7 @@ export class SupabaseWikiService {
     const possibleRoots = ['', 'Nordics', 'nordics', 'Nordics/', 'nordics/', 'wiki', 'Wiki'];
     
     for (const root of possibleRoots) {
-      console.log(`🔍 Testing root: "${root}"`);
+      if (this.DEBUG) console.log(`🔍 Testing root: "${root}"`);
       
       try {
         const { data, error } = await supabase.storage
@@ -232,12 +266,12 @@ export class SupabaseWikiService {
           .list(root, { limit: 1000 });
         
         if (error) {
-          console.log(`❌ Error listing "${root}":`, error);
+          if (this.DEBUG) console.log(`❌ Error listing "${root}":`, error);
           continue;
         }
         
         if (data && data.length > 0) {
-          console.log(`✅ Found ${data.length} items in "${root}":`, data);
+          if (this.DEBUG) console.log(`✅ Found ${data.length} items in "${root}":`, data);
           
           // Add root to discovered folders if it's not empty
           if (root) {
@@ -251,7 +285,7 @@ export class SupabaseWikiService {
             if (item.metadata) {
               // This is a file
               if (item.name.endsWith('.md')) {
-                console.log(`📄 Found markdown file: ${fullPath}`);
+                if (this.DEBUG) console.log(`📄 Found markdown file: ${fullPath}`);
                 discoveredFiles.push({
                   type: 'file',
                   name: item.name,
@@ -261,7 +295,7 @@ export class SupabaseWikiService {
               }
             } else {
               // This is a directory
-              console.log(`📂 Found directory: ${fullPath}`);
+              if (this.DEBUG) console.log(`📂 Found directory: ${fullPath}`);
               discoveredFolders.add(fullPath);
               
               // Recursively explore this directory
@@ -272,10 +306,10 @@ export class SupabaseWikiService {
           // If we found items in this root, we can stop trying other roots
           break;
         } else {
-          console.log(`📭 No items found in "${root}"`);
+          if (this.DEBUG) console.log(`📭 No items found in "${root}"`);
         }
       } catch (error) {
-        console.log(`❌ Exception listing "${root}":`, error);
+        if (this.DEBUG) console.log(`❌ Exception listing "${root}":`, error);
       }
     }
     
@@ -286,7 +320,7 @@ export class SupabaseWikiService {
    * Get file structure using comprehensive file discovery
    */
   private static async getFileStructureViaPathDiscovery(): Promise<WikiFileStructure[]> {
-    console.log('🔍 Using comprehensive directory discovery...');
+    if (this.DEBUG) console.log('🔍 Using comprehensive directory discovery...');
     
     // Test root directory first
     await this.testRootDirectory();
@@ -295,7 +329,7 @@ export class SupabaseWikiService {
     const { files: discoveredFiles, folders: discoveredFolders } = await this.comprehensiveDirectoryDiscovery();
     
     // Also try HTTP discovery as a fallback
-    console.log('🔍 Trying HTTP discovery as fallback...');
+    if (this.DEBUG) console.log('🔍 Trying HTTP discovery as fallback...');
     const httpFiles = await this.discoverFilesViaHttp();
     for (const filePath of httpFiles) {
       const fileName = filePath.split('/').pop() || '';
@@ -317,11 +351,13 @@ export class SupabaseWikiService {
     // Build hierarchical structure from discovered items
     const structure = this.buildHierarchicalStructure(discoveredFiles, Array.from(discoveredFolders));
     
-    console.log('✅ Wiki structure loaded via recursive discovery:', structure);
-    console.log('📁 Discovered files:', discoveredFiles.length);
-    console.log('📂 Discovered folders:', discoveredFolders.size);
-    console.log('📋 Raw discovered files:', discoveredFiles);
-    console.log('📂 Raw discovered folders:', Array.from(discoveredFolders));
+    if (this.DEBUG) {
+      console.log('✅ Wiki structure loaded via recursive discovery:', structure);
+      console.log('📁 Discovered files:', discoveredFiles.length);
+      console.log('📂 Discovered folders:', discoveredFolders.size);
+      console.log('📋 Raw discovered files:', discoveredFiles);
+      console.log('📂 Raw discovered folders:', Array.from(discoveredFolders));
+    }
     
     return structure;
   }
@@ -330,16 +366,16 @@ export class SupabaseWikiService {
    * Build hierarchical structure from discovered files and folders
    */
   private static buildHierarchicalStructure(files: WikiFileStructure[], folders: string[]): WikiFileStructure[] {
-    console.log('🔨 Building hierarchical structure...');
-    console.log('📁 Input files:', files);
-    console.log('📂 Input folders:', folders);
+    if (this.DEBUG) console.log('🔨 Building hierarchical structure...');
+    if (this.DEBUG) console.log('📁 Input files:', files);
+    if (this.DEBUG) console.log('📂 Input folders:', folders);
     
     const structure: WikiFileStructure[] = [];
     const folderMap = new Map<string, WikiFileStructure>();
     
     // Sort folders by depth (shallowest first)
     folders.sort((a, b) => a.split('/').length - b.split('/').length);
-    console.log('📂 Sorted folders:', folders);
+    if (this.DEBUG) console.log('📂 Sorted folders:', folders);
     
     // Create folder structures
     for (const folderPath of folders) {
@@ -356,21 +392,21 @@ export class SupabaseWikiService {
       };
       
       folderMap.set(folderPath, folder);
-      console.log(`📁 Created folder: ${folderName} at ${folderPath}`);
+      if (this.DEBUG) console.log(`📁 Created folder: ${folderName} at ${folderPath}`);
       
       // Add to parent folder or root structure
       if (pathParts.length === 1) {
         structure.push(folder);
-        console.log(`📁 Added root folder: ${folderName}`);
+        if (this.DEBUG) console.log(`📁 Added root folder: ${folderName}`);
       } else {
         const parentPath = pathParts.slice(0, -1).join('/');
         const parent = folderMap.get(parentPath);
         if (parent) {
           parent.children = parent.children || [];
           parent.children.push(folder);
-          console.log(`📁 Added child folder: ${folderName} to ${parentPath}`);
+          if (this.DEBUG) console.log(`📁 Added child folder: ${folderName} to ${parentPath}`);
         } else {
-          console.log(`⚠️ Parent folder not found: ${parentPath} for ${folderName}`);
+          if (this.DEBUG) console.log(`⚠️ Parent folder not found: ${parentPath} for ${folderName}`);
         }
       }
     }
@@ -381,7 +417,7 @@ export class SupabaseWikiService {
       if (pathParts.length === 1) {
         // File in root
         structure.push(file);
-        console.log(`📄 Added root file: ${file.name}`);
+        if (this.DEBUG) console.log(`📄 Added root file: ${file.name}`);
       } else {
         // File in folder
         const parentPath = pathParts.slice(0, -1).join('/');
@@ -389,9 +425,9 @@ export class SupabaseWikiService {
         if (parent) {
           parent.children = parent.children || [];
           parent.children.push(file);
-          console.log(`📄 Added file: ${file.name} to ${parentPath}`);
+          if (this.DEBUG) console.log(`📄 Added file: ${file.name} to ${parentPath}`);
         } else {
-          console.log(`⚠️ Parent folder not found: ${parentPath} for file ${file.name}`);
+          if (this.DEBUG) console.log(`⚠️ Parent folder not found: ${parentPath} for file ${file.name}`);
           // Add to root if parent not found
           structure.push(file);
         }
@@ -401,7 +437,7 @@ export class SupabaseWikiService {
     // Update isGroup/isPage flags based on README presence
     this.updateFolderFlags(structure);
     
-    console.log('✅ Final structure:', structure);
+    if (this.DEBUG) console.log('✅ Final structure:', structure);
     return structure;
   }
 
@@ -453,7 +489,7 @@ export class SupabaseWikiService {
       'Nordics/about.md'
     ];
     
-    console.log(`🌐 Testing ${filesToTest.length} files via HTTP...`);
+    if (this.DEBUG) console.log(`🌐 Testing ${filesToTest.length} files via HTTP...`);
     
     for (const filePath of filesToTest) {
       try {
@@ -461,7 +497,7 @@ export class SupabaseWikiService {
         
         const response = await fetch(url);
         if (response.ok) {
-          console.log(`✅ Found via HTTP: ${filePath}`);
+          if (this.DEBUG) console.log(`✅ Found via HTTP: ${filePath}`);
           discoveredFiles.push(filePath);
         }
         // Don't log 400 errors as they're expected for non-existent files
@@ -470,7 +506,7 @@ export class SupabaseWikiService {
       }
     }
     
-    console.log(`✅ HTTP discovery complete. Found ${discoveredFiles.length} files.`);
+    if (this.DEBUG) console.log(`✅ HTTP discovery complete. Found ${discoveredFiles.length} files.`);
     return discoveredFiles;
   }
 
@@ -544,44 +580,44 @@ export class SupabaseWikiService {
   /**
    * Explore a directory recursively and collect all files and folders
    */
-  private static async exploreDirectoryRecursively(
-    path: string, 
-    discoveredFiles: WikiFileStructure[], 
+    private static async exploreDirectoryRecursively(
+    path: string,
+    discoveredFiles: WikiFileStructure[],
     discoveredFolders: Set<string>
   ): Promise<void> {
-    console.log(`🔍 Recursively exploring directory: ${path}`);
+    if (this.DEBUG) console.log(`🔍 Recursively exploring directory: ${path}`);
     
     try {
-      console.log(`📡 Making Supabase storage list request for: ${path}`);
+      if (this.DEBUG) console.log(`📡 Making Supabase storage list request for: ${path}`);
       const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list(path, { limit: 1000 });
       
-      console.log(`📡 Supabase response for ${path}:`, { data, error });
+      if (this.DEBUG) console.log(`📡 Supabase response for ${path}:`, { data, error });
       
       if (error) {
-        console.log(`❌ Failed to list directory ${path}:`, error);
+        if (this.DEBUG) console.log(`❌ Failed to list directory ${path}:`, error);
         return;
       }
       
       if (!data || data.length === 0) {
-        console.log(`📁 Directory ${path} is empty`);
+        if (this.DEBUG) console.log(`📁 Directory ${path} is empty`);
         return;
       }
       
-      console.log(`✅ Found ${data.length} items in ${path}:`, data);
+      if (this.DEBUG) console.log(`✅ Found ${data.length} items in ${path}:`, data);
       
       // Add current directory to discovered folders
       discoveredFolders.add(path);
       
       for (const item of data) {
         const fullPath = `${path}/${item.name}`;
-        console.log(`📄 Processing item: ${item.name} (metadata: ${!!item.metadata}) at ${fullPath}`);
+        if (this.DEBUG) console.log(`📄 Processing item: ${item.name} (metadata: ${!!item.metadata}) at ${fullPath}`);
         
         if (item.metadata) {
           // This is a file
           if (item.name.endsWith('.md')) {
-            console.log(`📄 Found markdown file: ${fullPath}`);
+            if (this.DEBUG) console.log(`📄 Found markdown file: ${fullPath}`);
             discoveredFiles.push({
               type: 'file',
               name: item.name,
@@ -589,16 +625,16 @@ export class SupabaseWikiService {
               isPage: true
             });
           } else {
-            console.log(`📄 Found non-markdown file: ${fullPath}`);
+            if (this.DEBUG) console.log(`📄 Found non-markdown file: ${fullPath}`);
           }
         } else {
           // This is a directory - recursively explore it
-          console.log(`📂 Found subdirectory: ${fullPath} - exploring recursively`);
+          if (this.DEBUG) console.log(`📂 Found subdirectory: ${fullPath} - exploring recursively`);
           await this.exploreDirectoryRecursively(fullPath, discoveredFiles, discoveredFolders);
         }
       }
     } catch (error) {
-      console.log(`❌ Error exploring directory ${path}:`, error);
+      if (this.DEBUG) console.log(`❌ Error exploring directory ${path}:`, error);
     }
   }
 
@@ -607,7 +643,7 @@ export class SupabaseWikiService {
    */
   static async getFileContent(path: string): Promise<string> {
     try {
-      console.log(`📄 Loading static file content: ${path}`);
+      if (this.DEBUG) console.log(`📄 Loading static file content: ${path}`);
 
       const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
@@ -623,7 +659,7 @@ export class SupabaseWikiService {
       }
 
       const content = await data.text();
-      console.log(`✅ File content loaded: ${path} (${content.length} characters)`);
+      if (this.DEBUG) console.log(`✅ File content loaded: ${path} (${content.length} characters)`);
       
       return content;
     } catch (error) {
@@ -659,7 +695,7 @@ export class SupabaseWikiService {
    */
   static async getFileContentWithMetadata(path: string): Promise<{ content: string; isLiveData: boolean; lastUpdated?: string }> {
     try {
-      console.log(`📄 Loading static file content with metadata: ${path}`);
+      if (this.DEBUG) console.log(`📄 Loading static file content with metadata: ${path}`);
       const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .download(path);
@@ -674,7 +710,7 @@ export class SupabaseWikiService {
       }
 
       const content = await data.text();
-      console.log(`✅ File content loaded: ${path} (${content.length} characters)`);
+      if (this.DEBUG) console.log(`✅ File content loaded: ${path} (${content.length} characters)`);
       
       return {
         content,
@@ -690,25 +726,25 @@ export class SupabaseWikiService {
   /**
    * Convert file structure to wiki categories and pages
    */
-  static async convertToWikiData(structure: WikiFileStructure[]): Promise<WikiCategory[]> {
+    static async convertToWikiData(structure: WikiFileStructure[]): Promise<WikiCategory[]> {
     const categories: WikiCategory[] = [];
     
-    console.log('🔄 Converting structure to wiki data...');
-    console.log('📁 Input structure:', structure);
+    if (this.DEBUG) console.log('🔄 Converting structure to wiki data...');
+    if (this.DEBUG) console.log('📁 Input structure:', structure);
     
     // Process all items recursively
     for (const item of structure) {
       if (item.type === 'folder') {
         // Special handling for "Nordics" folder - extract its children directly
         if (item.name === 'Nordics' && item.children) {
-          console.log('🔄 Processing Nordics folder - extracting children directly...');
+          if (this.DEBUG) console.log('🔄 Processing Nordics folder - extracting children directly...');
           
           for (const child of item.children) {
             if (child.type === 'folder') {
               const category = await this.convertFolderToCategory(child);
               if (category) {
                 categories.push(category);
-                console.log(`✅ Converted Nordics child folder to category: ${category.title} with ${category.pages?.length || 0} pages and ${category.children?.length || 0} subcategories`);
+                if (this.DEBUG) console.log(`✅ Converted Nordics child folder to category: ${category.title} with ${category.pages?.length || 0} pages and ${category.children?.length || 0} subcategories`);
               }
             } else if (child.type === 'file' && child.name.endsWith('.md')) {
               // Handle files directly under Nordics - create individual categories for each
@@ -726,7 +762,7 @@ export class SupabaseWikiService {
                   pages: [page]
                 };
                 categories.push(nordicsRootCategory);
-                console.log(`✅ Created category for Nordics root file (meta only): ${page.title}`);
+                if (this.DEBUG) console.log(`✅ Created category for Nordics root file (meta only): ${page.title}`);
               }
             }
           }
@@ -735,7 +771,7 @@ export class SupabaseWikiService {
           const category = await this.convertFolderToCategory(item);
           if (category) {
             categories.push(category);
-            console.log(`✅ Converted folder to category: ${category.title} with ${category.pages?.length || 0} pages and ${category.children?.length || 0} subcategories`);
+            if (this.DEBUG) console.log(`✅ Converted folder to category: ${category.title} with ${category.pages?.length || 0} pages and ${category.children?.length || 0} subcategories`);
           }
         }
       } else if (item.type === 'file' && item.name.endsWith('.md')) {
@@ -754,12 +790,12 @@ export class SupabaseWikiService {
             pages: [page]
           };
           categories.push(standaloneCategory);
-          console.log(`✅ Converted standalone file to page (meta only): ${page.title}`);
+          if (this.DEBUG) console.log(`✅ Converted standalone file to page (meta only): ${page.title}`);
         }
       }
     }
-
-    console.log(`✅ Conversion complete: ${categories.length} categories created`);
+    
+    if (this.DEBUG) console.log(`✅ Conversion complete: ${categories.length} categories created`);
     return categories;
   }
 

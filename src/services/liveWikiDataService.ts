@@ -12,11 +12,11 @@ export class LiveWikiDataService {
    */
   static async getLiveWikiData(entityType: 'town' | 'nation', entityName: string): Promise<LiveWikiData> {
     try {
-      const response = await fetch('https://erdconvorgecupvavlwv.supabase.co/functions/v1/get-live-wiki-data', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-live-wiki-data`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZGNvbnZvcmdlY3VwdmF2bHd2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTU4Mzg4NywiZXhwIjoyMDY1MTU5ODg3fQ.eQCYcODSB3Tb6z47iXMi_oqHmKaTqeVM1MGoSgx4MUk`
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({
           entity_type: entityType,

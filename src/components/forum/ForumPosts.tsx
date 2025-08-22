@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +28,7 @@ const ForumPosts = ({ categoryId, onBack, onPostSelect }: ForumPostsProps) => {
   const { user, profile } = useAuth();
 
   // Load the current category to check access
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
     const fetchCategory = async () => {
       setCategoryLoading(true);
