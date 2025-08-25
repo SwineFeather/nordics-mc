@@ -257,7 +257,7 @@ const NationCard: React.FC<NationCardProps> = ({ nation, isExpanded, onToggleExp
 
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <span className="font-semibold text-foreground">Economic System:</span>
-              <span className="font-medium text-foreground">{nation.economic_system || 'Capitalist'}</span>
+                              <span className="font-medium text-foreground">{nation.economic_system || 'Capitalism'}</span>
             </div>
           </div>
         </div>

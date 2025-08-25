@@ -1194,28 +1194,51 @@ const PoliticsTab: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground mb-4">
-            Nations can have different economic systems that determine how resources and wealth are distributed.
+            Nations can choose from a comprehensive range of real-world economic systems that determine how resources, 
+            wealth, and production are organized and distributed within their society.
           </p>
           
-          <h4 className="font-semibold text-foreground">Common Systems:</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-              <h5 className="font-semibold text-green-800 dark:text-green-200 mb-2">Capitalist</h5>
-              <p className="text-sm text-green-700 dark:text-green-300">Free market economy with minimal government intervention</p>
-            </div>
-            <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-              <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Socialist</h5>
-              <p className="text-sm text-blue-700 dark:text-blue-300">Government helps share resources and wealth</p>
-            </div>
-            <div className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-              <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Mixed Economy</h5>
-              <p className="text-sm text-purple-700 dark:text-purple-300">Combination of capitalist and socialist elements</p>
-            </div>
-            <div className="border rounded-lg p-4 bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
-              <h5 className="font-semibold text-orange-800 dark:text-orange-200 mb-2">Resource-Based</h5>
-              <p className="text-sm text-orange-700 dark:text-orange-300">Focus on natural resources and extraction</p>
-            </div>
+          <h4 className="font-semibold text-foreground">Available Economic Systems:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Badge variant="outline" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200 border-green-200 dark:border-green-800">
+              Capitalism
+            </Badge>
+            <Badge variant="outline" className="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200 border-blue-200 dark:border-blue-800">
+              Socialism
+            </Badge>
+            <Badge variant="outline" className="bg-purple-50 text-purple-800 dark:bg-purple-900/20 dark:text-purple-200 border-purple-200 dark:border-purple-800">
+              Communism
+            </Badge>
+            <Badge variant="outline" className="bg-orange-50 text-orange-800 dark:bg-orange-900/20 dark:text-orange-200 border-orange-200 dark:border-orange-800">
+              Feudalism
+            </Badge>
+            <Badge variant="outline" className="bg-indigo-50 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800">
+              Mercantilism
+            </Badge>
+            <Badge variant="outline" className="bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-200 border-red-200 dark:border-red-800">
+              Anarchy
+            </Badge>
+            <Badge variant="outline" className="bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800">
+              Social Democracy
+            </Badge>
+            <Badge variant="outline" className="bg-teal-50 text-teal-800 dark:bg-teal-900/20 dark:text-teal-200 border-teal-200 dark:border-teal-800">
+              Corporatism
+            </Badge>
+            <Badge variant="outline" className="bg-pink-50 text-pink-800 dark:bg-pink-900/20 dark:text-pink-200 border-pink-200 dark:border-pink-800">
+              Workers' Self-Management
+            </Badge>
+            <Badge variant="outline" className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200 border-amber-200 dark:border-amber-800">
+              Market Economy
+            </Badge>
+            <Badge variant="outline" className="bg-lime-50 text-lime-800 dark:bg-lime-900/20 dark:text-lime-200 border-lime-200 dark:border-lime-800">
+              Resource-Based Economy
+            </Badge>
           </div>
+          <p className="text-sm text-muted-foreground mt-3">
+            And many more including: Colonialism, Dirigisme, Distributism, Hydraulic Despotism, Inclusive Democracy, 
+            Keynesian Economics, Mutualism, National Syndicalism, Network Economy, Non-Property System, Palace Economy, 
+            Participatory Economy, Potlatch, Progressive Utilization Theory, Proprietism, Social Credit, and Statism.
+          </p>
         </CardContent>
       </Card>
 
@@ -1491,113 +1514,9 @@ const BrewingTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Tips for Success */}
-      <Card className="shadow-lg border-emerald-200 dark:border-emerald-800">
-        <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20">
-          <CardTitle className="flex items-center gap-2 text-foreground">
-            <Star className="w-6 h-6 text-emerald-600" />
-            Tips for Success
-          </CardTitle>
-          <CardDescription>
-            Essential advice for successful brewing
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-300 text-sm font-bold">
-                  ✓
-                </div>
-                <p className="text-sm text-muted-foreground">Always follow the recipe instructions precisely</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-300 text-sm font-bold">
-                  ✓
-                </div>
-                <p className="text-sm text-muted-foreground">Use the correct type of wood for your barrel</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-300 text-sm font-bold">
-                  ✓
-                </div>
-                <p className="text-sm text-muted-foreground">Monitor brewing times carefully with a clock</p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-300 text-sm font-bold">
-                  ✓
-                </div>
-                <p className="text-sm text-muted-foreground">Don't rush the aging process</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-300 text-sm font-bold">
-                  ✓
-                </div>
-                <p className="text-sm text-muted-foreground">Experiment with different ingredient combinations</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-300 text-sm font-bold">
-                  ✓
-                </div>
-                <p className="text-sm text-muted-foreground">Keep track of your brewing recipes and results</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* What Can You Brew? */}
-      <Card className="shadow-lg border-purple-200 dark:border-purple-800">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20">
-          <CardTitle className="flex items-center gap-2 text-foreground">
-            <Flower className="w-6 h-6 text-purple-600" />
-            What Can You Brew?
-          </CardTitle>
-          <CardDescription>
-            Popular recipes to get you started
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            There are many different drinks you can create! Here are some popular options to try:
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-              <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Beers</h5>
-              <p className="text-sm text-purple-700 dark:text-purple-300">
-                Wheat Beer, Dark Beer, and more - perfect for beginners!
-              </p>
-            </div>
-            <div className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-              <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Wines & Mead</h5>
-              <p className="text-sm text-purple-700 dark:text-purple-300">
-                Red Wine, Apple Mead, and Apple Cider
-              </p>
-            </div>
-            <div className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-              <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Spirits</h5>
-              <p className="text-sm text-purple-700 dark:text-purple-300">
-                Whiskey, Rum, Vodka, and Gin for experienced brewers
-              </p>
-            </div>
-            <div className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-              <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Non-Alcoholic</h5>
-              <p className="text-sm text-purple-700 dark:text-purple-300">
-                Coffee, Hot Chocolate, and Potato Soup
-              </p>
-            </div>
-          </div>
-          
-          <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-            <p className="text-sm text-purple-800 dark:text-purple-200">
-              <strong>Tip:</strong> Start with simple recipes like Wheat Beer to learn the basics, then work your way up to more complex spirits!
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+
+
 
       {/* Complete Recipe List */}
       <Card className="shadow-lg border-indigo-200 dark:border-indigo-800">

@@ -151,6 +151,82 @@ export const normalizeEntityName = (name: string): string => {
   return result;
 };
 
+// Function to normalize entity name for safe filename generation while preserving case
+export const casePreservingNormalizeEntityName = (name: string): string => {
+  // First, normalize Unicode characters (decomposes characters like å, ö, ä)
+  const normalized = name.normalize('NFD');
+  
+  // Create a mapping for Nordic and other special characters
+  const charMap: { [key: string]: string } = {
+    // Nordic characters
+    'å': 'a',
+    'ä': 'a', 
+    'ö': 'o',
+    'Å': 'A',
+    'Ä': 'A',
+    'Ö': 'O',
+    // Other common special characters
+    'é': 'e',
+    'è': 'e',
+    'ê': 'e',
+    'ë': 'e',
+    'á': 'a',
+    'à': 'a',
+    'â': 'a',
+    'ã': 'a',
+    'í': 'i',
+    'ì': 'i',
+    'î': 'i',
+    'ï': 'i',
+    'ó': 'o',
+    'ò': 'o',
+    'ô': 'o',
+    'õ': 'o',
+    'ú': 'u',
+    'ù': 'u',
+    'û': 'u',
+    'ü': 'u',
+    'ý': 'y',
+    'ÿ': 'y',
+    'ñ': 'n',
+    'ç': 'c',
+    'ß': 'ss',
+    // Remove diacritics (combining marks)
+    '\u0300': '', // grave accent
+    '\u0301': '', // acute accent
+    '\u0302': '', // circumflex
+    '\u0303': '', // tilde
+    '\u0304': '', // macron
+    '\u0306': '', // breve
+    '\u0307': '', // dot above
+    '\u0308': '', // diaeresis
+    '\u0309': '', // hook above
+    '\u030A': '', // ring above
+    '\u030B': '', // double acute
+    '\u030C': '', // caron
+    '\u0327': '', // cedilla
+    '\u0328': '', // ogonek
+  };
+
+  // Replace special characters
+  let result = normalized;
+  for (const [char, replacement] of Object.entries(charMap)) {
+    result = result.replace(new RegExp(char, 'g'), replacement);
+  }
+
+  // Remove any remaining non-alphanumeric characters except spaces and underscores
+  result = result
+    .replace(/[^a-zA-Z0-9_\s]/g, '')
+    .replace(/\s+/g, '_');
+
+  // Ensure the result is not empty
+  if (!result) {
+    result = 'unnamed';
+  }
+
+  return result;
+};
+
 // Function to get town profile picture URL with dynamic sizing
 export const getTownProfilePicture = (townName: string, imageUrl?: string | null): TownProfilePicture => {
   // If a custom image URL is provided, use it
@@ -165,7 +241,7 @@ export const getTownProfilePicture = (townName: string, imageUrl?: string | null
   
   // Otherwise, generate the default URL using normalized filename
   const baseUrl = 'https://erdconvorgecupvavlwv.supabase.co/storage/v1/object/public/nation-town-images/towns/';
-  const cleanName = normalizeEntityName(townName);
+  const cleanName = casePreservingNormalizeEntityName(townName);
   const url = `${baseUrl}${cleanName}.png`;
   
   // Default dimensions - will be updated when image loads

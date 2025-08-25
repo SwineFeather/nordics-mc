@@ -149,7 +149,7 @@ const NationPage = () => {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-destructive mb-4">Error</h1>
             <p className="text-muted-foreground mb-4">{error || 'Nation not found'}</p>
-            <Button onClick={() => navigate('/towns/nations')}>
+            <Button onClick={() => navigate('/community/towns')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Nations
             </Button>
@@ -166,7 +166,7 @@ const NationPage = () => {
         <div className="container mx-auto px-4">
           {/* Back Button */}
           <div className="mb-6">
-            <Button variant="outline" onClick={() => navigate('/towns/nations')}>
+            <Button variant="outline" onClick={() => navigate('/community/towns')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Nations
             </Button>
@@ -472,13 +472,13 @@ const NationPage = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Economic System:</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{nationData.economic_system || 'Capitalist'}</span>
+                          <span className="font-medium">{nationData.economic_system || 'Capitalism'}</span>
                           {profile && (profile.role === 'admin' || profile.role === 'moderator' || profile.full_name === nationData.leader_name) && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={async () => {
-                                const newValue = prompt('Enter new economic system:', nationData.economic_system || 'Capitalist');
+                                const newValue = prompt('Enter new economic system:', nationData.economic_system || 'Capitalism');
                                 if (newValue !== null) {
                                   const success = await NationDescriptionService.updateNationProperty(nationData.id, 'economic_system', newValue);
                                   if (success) {

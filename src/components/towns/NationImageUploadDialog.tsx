@@ -290,6 +290,15 @@ const NationImageUploadDialog: React.FC<NationImageUploadDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Special Characters Warning */}
+        <Alert variant="destructive" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertDescription className="text-amber-800 dark:text-amber-200">
+            <strong>Important:</strong> If your nation name contains special characters like Å, Ä, Ö, or other non-English letters, 
+            your emblem will not be shown on BlueMap at all. Our database does not support those letters for BlueMap integration.
+          </AlertDescription>
+        </Alert>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Upload Mode Toggle */}
           <div className="flex gap-2">

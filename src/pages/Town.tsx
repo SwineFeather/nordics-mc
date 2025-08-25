@@ -152,7 +152,7 @@ const TownPage = () => {
               Requested: {townName ? decodeURIComponent(townName) : 'No town name'}
             </p>
             <div className="flex gap-2 justify-center">
-              <Button onClick={() => navigate('/towns')}>
+              <Button onClick={() => navigate('/community/towns')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Towns
               </Button>
@@ -173,7 +173,7 @@ const TownPage = () => {
         <div className="container mx-auto px-4">
           {/* Back Button */}
           <div className="mb-6">
-            <Button variant="outline" onClick={() => navigate('/towns')}>
+            <Button variant="outline" onClick={() => navigate('/community/towns')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Towns
             </Button>

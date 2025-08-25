@@ -40,14 +40,7 @@ To create a barrel, you'll need to construct it from wooden planks and place a s
 
 After you put your drinks in barrels, you just need to wait! 1 "year" is equal to 1 in-game day. If you overdo the drink or use the wrong type of wood, the drink is likely to spoil.
 
-## Tips for Success
 
-- Always follow the recipe instructions precisely
-- Use the correct type of wood for your barrel
-- Monitor brewing times carefully with a clock
-- Don't rush the aging process
-- Experiment with different ingredient combinations
-- Keep track of your brewing recipes and results
 
 ## Troubleshooting
 

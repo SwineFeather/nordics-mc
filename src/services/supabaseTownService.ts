@@ -380,7 +380,7 @@ export class SupabaseTownService {
       ally_count: nation.ally_count || 0,
       towns_count: nation.towns_count || 0,
       // Add the new fields that were added by migrations
-      economic_system: nation.economic_system || 'Capitalist',
+              economic_system: nation.economic_system || 'Capitalism',
       vassal_of: nation.vassal_of || null,
       theme_color: nation.theme_color || 'text-blue-500',
       ruling_entity: nation.ruling_entity || 'Monarch',

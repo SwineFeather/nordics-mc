@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import NationsTab from '@/components/towns/NationsTab';
 import TownsTab from '@/components/towns/TownsTab';
 import MarketplaceSubTabs from '@/components/towns/MarketplaceSubTabs';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
-import { Crown, MapPin, HelpCircle, Building } from 'lucide-react';
+import { Crown, MapPin, HelpCircle, Building, ArrowLeft } from 'lucide-react';
 
 interface TownsProps {
   defaultTab?: 'nations' | 'towns';
@@ -44,6 +45,18 @@ const Towns: React.FC<TownsProps> = ({ defaultTab = 'nations' }) => {
 
   return (
     <div className="min-h-[100vh] bg-background py-8">
+      {/* Back to Community Navigation */}
+      <div className="max-w-5xl mx-auto mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/community/towns')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Community Towns
+        </Button>
+      </div>
+
       {/* Top hero/title removed per request */}
 
       {/* Getting Started Guide Section */}
@@ -173,6 +186,18 @@ const NationsAndTownsTab: React.FC = () => {
   
   return (
     <div className="space-y-6">
+      {/* Back to Community Navigation */}
+      <div className="flex justify-center mb-4">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/community/towns')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Community Towns
+        </Button>
+      </div>
+
       {/* Sub-navigation for Nations & Towns */}
       <div className="flex justify-center">
         <Tabs value={activeSubTab} onValueChange={(value: 'nations' | 'towns') => handleSubTabChange(value)} className="w-full">

@@ -59,7 +59,7 @@ export class DynamicImageService {
     return name
       .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
       .replace(/\s+/g, '_') // Replace spaces with underscores
-      .toLowerCase(); // Convert to lowercase
+      // Note: We don't convert to lowercase here to preserve case sensitivity for towns and nations
   }
 
   /**
